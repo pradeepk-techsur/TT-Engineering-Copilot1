@@ -637,7 +637,9 @@ Acceptance criteria are listed beneath each story. Stories are grouped by epic a
 ---
 
 ### US-10.5: Retry a Failed Gate After Correction
-**As a** Priya Nair, **I want to** retry Gate 4 after Phase 4 initial failure (four simultaneous issues), so that the program can proceed once all corrections are verified — and the original Fail decision is preserved in the audit history alongside the new Pass decision.
+**As a** Priya Nair, **I want to** retry any gate that has been recorded as Fail once corrective actions are verified complete, so that the program can proceed and the original Fail decision is preserved in the audit history alongside the new Pass decision.
+
+> **Note:** A Gate Fail is an off-happy-path scenario. The happy-path gate storyline (G0 Pass → G9 Pass/Close) does not include any Fail gate. This story specifies the retry mechanic for non-happy-path and error-recovery scenarios; it does not imply a Gate 4 Fail is part of the demonstration script.
 
 **Acceptance Criteria:**
 - [ ] After recording Gate 4 `Fail`, phase state transitions to `GateFailed`; project status = `Blocked`
