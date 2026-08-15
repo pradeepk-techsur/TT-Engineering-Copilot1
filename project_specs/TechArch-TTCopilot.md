@@ -1632,44 +1632,86 @@ Both layers must independently reject the Pass decision when blocking actions ar
 
 ### 6.1 Stack Table
 
+#### Frontend
+
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
-| **Frontend framework** | Next.js | 14.x (App Router) | React SSR + API routes; co-located frontend and backend |
-| **UI library** | React | 18.x | Component model for 9 Web Gate Cockpit views |
-| **UI components** | shadcn/ui + Tailwind CSS | Latest stable | Accessible, styled component primitives |
-| **State management** | React Server Components + SWR | — | Server-driven data; client-side revalidation |
+| **Framework** | Next.js (App Router) | 15.x | React SSR + API routes; co-located frontend and backend; `next.config.mjs` (not `.ts`) |
+| **UI library** | React | 19.x | Component model for 9 Web Gate Cockpit views |
+| **Component library** | **shadcn/ui** (Radix UI primitives) | Latest stable | Copy-owned accessible component primitives — Dialog, AlertDialog, Table, Badge, Button, Progress, Tabs, Select, RadioGroup |
+| **Styling** | **Tailwind CSS v4** | 4.x | Utility-first; custom color tokens (surface, border, semantic status colors) |
+| **Icons** | **Lucide React** | Latest stable | Consistent stroke-weight icons; ships with shadcn/ui |
+| **Data tables** | **TanStack Table v8** | 8.x | Headless sortable/filterable tables for Findings, Audit Log, Artifact history |
+| **Charts** | **Recharts** | 2.x | Phase-status timeline, Cpk indicator, progress visualizations |
+| **File upload** | **react-dropzone** | Latest stable | Drag-and-drop with validation callbacks for UP intake workflow |
+| **Toast notifications** | **Sonner** (shadcn/ui default) | Latest stable | Non-blocking status feedback for intake events, rerun triggers, gate decisions |
+| **Fonts** | **Inter** (sans-serif) via `next/font`; **JetBrains Mono** for code/IDs | Latest stable | Industry-standard legibility; monospace for deterministic check values |
+| **State management** | React Server Components + **SWR** | — | Server-driven data; optimistic client-side revalidation |
 | **SSE client** | `EventSource` (browser native) | — | Phase execution real-time progress streaming |
-| **Backend runtime** | Node.js | 20.x LTS | Server runtime for Next.js API routes |
-| **Language** | TypeScript | 5.x | Full-stack type safety; shared interfaces between frontend and backend |
-| **Primary database** | PostgreSQL | 15.x | Durable ProjectState persistence; relational integrity; partial unique index for single-active-version enforcement |
-| **PostgreSQL client** | `pg` + `pg-types` | 8.x | Parameterized queries; type-safe PostgreSQL access |
-| **Migrations** | `node-postgres-migrate` or `db-migrate` | Latest stable | Schema versioning |
-| **Cache / Reference index** | Redis | 7.x | Reference document index (EVINV-POC-STD-001, checklists); per-run SSE cancel flags; context cache |
+| **Theme** | Dark-first; `class="light"` toggle for light mode | — | Dark matches engineering tool conventions (Linear, Vercel, GitHub) |
+
+**Color token summary:**
+
+| Token | Dark value | Light value | Semantic use |
+|---|---|---|---|
+| `--color-background` | `#0f1117` | `#ffffff` | Page background |
+| `--color-surface` | `#1a1d27` | `#f8f9fa` | Card / panel background |
+| `--color-border` | `#2d3148` | `#e2e8f0` | Card and input borders |
+| `--color-pass` | `#22c55e` | `#16a34a` | Pass badges and indicators |
+| `--color-conditional` | `#f97316` | `#ea580c` | Conditional Pass badges |
+| `--color-fail` | `#ef4444` | `#dc2626` | Fail badges and error states |
+| `--color-awaiting` | `#f59e0b` | `#d97706` | Awaiting Decision badges |
+| `--color-synthetic` | `#8b5cf6` | `#7c3aed` | Synthetic data disclaimer badges |
+| `--color-advisory` | `#3b82f6` | `#2563eb` | AI Advisory labels |
+
+#### Backend
+
+| Layer | Technology | Version | Purpose |
+|---|---|---|---|
+| **Runtime** | Node.js | 20.x LTS | Server runtime for Next.js API routes |
+| **Language** | TypeScript (strict mode) | 5.x | Full-stack type safety; shared interfaces between frontend, API, and DB layers |
+| **Primary database** | PostgreSQL | 15.x | Durable ProjectState persistence; partial unique index for single-active-version enforcement |
+| **PostgreSQL client** | `pg` + `pg-types` | 8.x | Parameterized queries; type-safe access |
+| **ORM / Query builder** | **Drizzle ORM** | Latest stable | Type-safe SQL; schema-as-code; lightweight migrations |
+| **Cache / Reference index** | Redis | 7.x | Reference document index; per-run SSE cancel flags; context cache |
 | **Redis client** | `ioredis` | 5.x | Redis connection pool |
 | **LLM provider** | Anthropic Claude API | claude-sonnet-4-6 / claude-opus-4 | Phase agent LLM calls |
 | **Anthropic SDK** | `@anthropic-ai/sdk` | Latest stable | Typed Claude API client |
-| **File uploads** | `busboy` or Next.js built-in | — | Multipart form-data parsing for artifact uploads |
+| **File uploads** | Next.js built-in multipart | — | Multipart form-data parsing for artifact uploads |
 | **File storage** | Local filesystem (dev) / S3-compatible (prod) | — | Uploaded artifacts, synthetic samples, generated outputs |
 | **S3 client** | `@aws-sdk/client-s3` | 3.x | S3-compatible storage access |
-| **XLSX parsing** | `xlsx` (SheetJS) | Latest stable | Parse and generate XLSX artifacts |
+| **XLSX parsing / generation** | `xlsx` (SheetJS) | Latest stable | Parse and generate XLSX artifacts |
 | **PDF parsing** | `pdf-parse` | Latest stable | Parse uploaded PDF artifacts for validation |
 | **DOCX parsing** | `mammoth` | Latest stable | Parse uploaded DOCX artifacts |
 | **DOCX generation** | `docx` | Latest stable | Generate DOCX output artifacts |
-| **Testing** | `jest` + `@testing-library/react` | Latest stable | Unit tests for deterministic tools; integration tests for API routes |
+
+#### Tooling
+
+| Layer | Technology | Version | Purpose |
+|---|---|---|---|
+| **Testing** | `vitest` + `@testing-library/react` | Latest stable | Unit tests for deterministic tools; component tests |
 | **E2E testing** | `playwright` | Latest stable | End-to-end UI tests; gate decision flow verification |
-| **Linting** | ESLint + Prettier | Latest stable | Code quality; formatting |
-| **Environment config** | `dotenv` | — | `.env` file loading; no live system credentials |
+| **Linting** | ESLint (flat config) + Prettier | Latest stable | Code quality; formatting |
+| **Environment config** | `.env.local` (Next.js convention) | — | No live system credentials in POC |
 
 ### 6.2 Key Dependency Rationale
 
 | Dependency | Rationale |
 |---|---|
-| PostgreSQL (not SQLite/JSON file) | Partial unique index (`WHERE active = TRUE`) enforces single-active-version at DB level. `REVOKE UPDATE DELETE ON audit_history` provides immutability without application trust. ACID transactions prevent race conditions on state writes. |
-| Redis (not in-memory Map) | Reference index survives Node.js process restarts. Per-run SSE cancel flags are accessible across multiple requests. Context cache reduces LLM cost on rerun. |
-| TypeScript (strict mode) | Shared interfaces for `CheckResult`, `AuditEvent`, `GateDecision`, etc. prevent runtime type mismatches between frontend, API, and DB layers. |
-| `@anthropic-ai/sdk` | Official SDK handles API versioning, streaming, and error types. Hardened wrapper adds retry/continuation/cancellation on top. |
-| SheetJS (`xlsx`) | Most capable open-source XLSX parser; handles both read (validation) and write (generation) of compact XLSX artifacts. |
-| `playwright` | Gate decision UI tests require browser automation; playwright verifies confirmation dialog, radio button state, and SSE progress display. |
+| **Next.js 15 + `next.config.mjs`** | App Router enables RSC-first data fetching; `next.config.mjs` (not `.ts`) required for Next.js 15 compatibility — `.ts` config causes hard build errors in Next 14 and is unsupported. |
+| **shadcn/ui (copy-owned)** | Components are copied into the repo (not a package import), giving full control over styling without fighting a design system's opinions. Radix UI primitives handle accessibility (ARIA, keyboard nav, focus management) out of the box. |
+| **Tailwind CSS v4** | v4 drops the `tailwind.config.js` in favor of CSS-native `@theme` blocks — simpler token management. Utility-first eliminates CSS specificity bugs common in engineering tools with dense tables. |
+| **TanStack Table v8** | Headless — works with shadcn/ui `<Table>` render. Supports server-side sorting/filtering for the Audit View (potentially 100+ intake events) without re-implementing sort logic. |
+| **Drizzle ORM** | Schema-as-code with TypeScript inference; migrations via `drizzle-kit push` in dev. Lighter than Prisma; no `schema.prisma` separate file — interfaces live in TypeScript alongside the app code. |
+| **react-dropzone** | Handles drag-and-drop, file-type filtering, and size limits as callbacks — integrates cleanly with the UP intake validation flow without reimplementing browser File API handling. |
+| **Sonner** | shadcn/ui's recommended toast library; stacks correctly, supports promise-based toasts for async intake/rerun operations, and respects `prefers-reduced-motion`. |
+| **PostgreSQL (not SQLite/JSON file)** | Partial unique index (`WHERE active = TRUE`) enforces single-active-version at DB level. `REVOKE UPDATE DELETE ON audit_history` provides immutability. ACID transactions prevent race conditions on ProjectState writes. |
+| **Redis (not in-memory Map)** | Reference index survives Node.js process restarts. Per-run SSE cancel flags are accessible across multiple requests. Context cache reduces LLM cost on rerun. |
+| **TypeScript strict mode** | Shared interfaces for `CheckResult`, `AuditEvent`, `GateDecision`, etc. prevent runtime type mismatches between frontend, API, and DB layers. |
+| **`@anthropic-ai/sdk`** | Official SDK handles API versioning, streaming, and error types. Hardened wrapper adds retry/continuation/cancellation on top. |
+| **SheetJS (`xlsx`)** | Most capable open-source XLSX parser; handles both read (validation) and write (generation) of compact XLSX artifacts. |
+| **`playwright`** | Gate decision UI tests require browser automation; playwright verifies confirmation dialog, radio button state, and SSE progress display. |
+| **`vitest` (not Jest)** | Native ESM support; no transform config needed for Next.js App Router; faster cold start than Jest for TypeScript projects. |
 
 ### 6.3 Directory Structure
 

@@ -40,6 +40,134 @@ The Web Gate Cockpit is the **sole** human-in-the-loop interface. It is purpose-
 
 ---
 
+## 1a. Modern Design System
+
+The Web Gate Cockpit must follow current (2025–2026) professional web application design conventions. This is an engineering governance tool used by senior engineers, program managers, and commercial reviewers — it must feel as polished as tools like Linear, Vercel Dashboard, or GitHub, not like a legacy enterprise portal.
+
+### Design Stack
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| **Component library** | **shadcn/ui** (built on Radix UI primitives) | Accessible, headless, fully customizable, no proprietary theming lock-in; copy-owned components |
+| **Styling** | **Tailwind CSS v4** | Utility-first, consistent spacing/color tokens, excellent dark-mode support |
+| **Icons** | **Lucide React** | Consistent stroke-weight icon set; ships with shadcn/ui by default |
+| **Charts / data viz** | **Recharts** (or **Tremor** for dashboard cards) | Lightweight, React-native, sufficient for phase-status timelines and Cpk indicators |
+| **Tables** | **TanStack Table v8** | Headless, sortable, filterable — required for Findings, Audit Log, RTM views |
+| **File upload** | **react-dropzone** | Drag-and-drop upload with validation callbacks; integrates with UP intake workflow |
+| **Notifications / toasts** | **Sonner** (shadcn/ui default) | Non-blocking status feedback for intake events, rerun triggers, gate decisions |
+| **Fonts** | **Inter** (sans-serif) via `next/font` | Industry-standard UI font; excellent legibility for dense engineering tables |
+
+### Color System
+
+Use a neutral-first palette with semantic status colors. Tailwind CSS custom tokens:
+
+```
+--color-background:     #0f1117   (dark) / #ffffff   (light)
+--color-surface:        #1a1d27   (dark) / #f8f9fa   (light)
+--color-border:         #2d3148   (dark) / #e2e8f0   (light)
+--color-text-primary:   #f1f5f9   (dark) / #0f172a   (light)
+--color-text-muted:     #94a3b8   (both)
+
+/* Semantic / status */
+--color-pass:           #22c55e   (green-500)
+--color-conditional:    #f97316   (orange-500)
+--color-fail:           #ef4444   (red-500)
+--color-awaiting:       #f59e0b   (amber-500)
+--color-upcoming:       #64748b   (slate-500)
+--color-synthetic:      #8b5cf6   (violet-500)   ← synthetic data badge
+--color-advisory:       #3b82f6   (blue-500)     ← AI recommendation
+--color-blocked:        #dc2626   (red-600)
+```
+
+**Default mode:** Dark (matches engineering tool conventions; Linear, Vercel, Figma all ship dark-first). Light mode supported via `class="light"` on `<html>`.
+
+### Typography Scale
+
+```
+Display  — 28px / 700 / Inter     (page titles: "Phase 4: Detail Design")
+Heading  — 18px / 600 / Inter     (section headings, card titles)
+Body     — 14px / 400 / Inter     (primary content, table cells)
+Caption  — 12px / 400 / Inter     (labels, metadata, provenance)
+Mono     — 13px / 400 / JetBrains Mono  (check results, field values, IDs)
+```
+
+All text meets WCAG 2.1 AA contrast (≥4.5:1 for body, ≥3:1 for large text).
+
+### Spacing and Layout
+
+- **Base unit:** 4px (Tailwind default)
+- **Content max-width:** 1440px; centered with `px-6` gutters
+- **Sidebar width:** 240px fixed; collapses to icon-only (48px) at <1280px
+- **Card padding:** `p-4` (16px) inner, `gap-4` between cards
+- **Table row height:** 44px (comfortable touch target even on trackpad)
+- **Border radius:** `rounded-lg` (8px) for cards, `rounded-md` (6px) for buttons/inputs
+
+### Component Conventions
+
+**Cards** — all Phase Workspace panels, input readiness cards, output cards:
+```
+bg-surface border border-border rounded-lg p-4 shadow-sm
+```
+
+**Status badges** — phase states, gate outcomes, intake status:
+```
+inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium
+```
+- Pass: `bg-green-500/10 text-green-400 border border-green-500/20`
+- Conditional Pass: `bg-orange-500/10 text-orange-400 border border-orange-500/20`
+- Fail: `bg-red-500/10 text-red-400 border border-red-500/20`
+- Awaiting Decision: `bg-amber-500/10 text-amber-400 border border-amber-500/20`
+- Synthetic: `bg-violet-500/10 text-violet-400 border border-violet-500/20`
+- AI Advisory: `bg-blue-500/10 text-blue-400 border border-blue-500/20`
+
+**Buttons — hierarchy:**
+- Primary (Record Decision, Ingest Sample): `bg-primary text-primary-foreground hover:bg-primary/90`
+- Secondary (View, Download): `variant="outline"`
+- Destructive (Fail gate): `variant="destructive"` — always behind a confirmation dialog
+- Ghost (breadcrumb links, inline navigation): `variant="ghost"`
+
+**Confirmation dialogs** — required before any gate decision, ingestion, or corrective action approval:
+Use shadcn/ui `<AlertDialog>` with explicit "Confirm" + "Cancel" buttons. Never a bare `window.confirm()`.
+
+**Data tables** (Findings, Audit Log, RTM):
+Use TanStack Table with shadcn/ui `<Table>` render. Include:
+- Column sorting (click header)
+- Global text filter input (`<Input>` above table)
+- Sticky header on scroll
+- Row hover highlight
+- Empty state with icon + message when no results
+
+**Code / structured values** (deterministic check results, IDs, field values):
+```
+<code className="font-mono text-xs bg-surface px-1.5 py-0.5 rounded border border-border">
+```
+
+**SSE / streaming states:**
+Use an animated `<Progress>` bar (indeterminate) + spinner icon during phase execution. Never a raw loading text string.
+
+### Key Interaction Patterns
+
+1. **Gate decision control** — radio group (Pass / Conditional Pass / Fail) in a visually contained card with amber background until decided; "Record Decision" button disabled until a selection is made and a comment is entered (minimum 1 character).
+
+2. **Ingest Sample action** — displayed as a bordered card showing the synthetic sample table; a `<Button variant="default">Ingest Sample</Button>` is below the table. Status badge changes from "Preloaded Synthetic Sample Ready" (violet) to "Synthetic System Input Ready" (green) after ingestion. No auto-ingestion.
+
+3. **Upload Revised Version** — shown only after a finding triggers a correction cycle; labeled explicitly "Upload Revised Version" (never "Replace" or "Reupload"); triggers a version-diff view in Artifact Viewer after upload.
+
+4. **Blocking action banner** — a full-width `bg-red-500/10 border-b border-red-500/20` banner at the top of Phase Workspace when an open blocking action from a prior phase is unresolved, with a direct link to the action in AV-07.
+
+5. **AI recommendation pill** — always displayed with `bg-blue-500/10 text-blue-400` badge labeled "AI Advisory Only — Not a Gate Decision". The human decision control is visually separated below it.
+
+6. **Synthetic disclaimer** — a `bg-violet-500/5 border border-violet-500/20 rounded-md px-3 py-2 text-xs text-violet-400` banner at the top of every artifact display and every synthetic sample card. Never suppressible.
+
+### Animation and Motion
+
+- **Transitions:** `transition-colors duration-150` on interactive elements; `transition-all duration-200` on expanding panels
+- **Reduced motion:** all animations respect `prefers-reduced-motion: reduce` — use `motion-safe:` Tailwind variant
+- **Skeleton loaders:** use shimmer placeholders during data fetch (never blank white space)
+- **No decorative animations** — no confetti, no particle effects, no page-enter animations beyond a single `fade-in` at 150ms
+
+---
+
 ## 2. Persona Summary
 
 | Persona | Role | Primary Views |

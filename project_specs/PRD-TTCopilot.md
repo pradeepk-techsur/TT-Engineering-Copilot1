@@ -357,6 +357,9 @@ The TT Engineering Copilot addresses all five pain points through a structured, 
 | **Intake Honesty** | System never claims live system connectivity | Simulated connector labels mandatory |
 | **Version Integrity** | Only one active version per logical input at any time | Enforced in ProjectState schema |
 | **Deployment Scope** | Web only for POC | No mobile, Teams, Outlook, CAD plugin |
+| **Modern UI Design** | Web Gate Cockpit follows current (2025–2026) professional web application design standards | Next.js 15 App Router + React 19 + Tailwind CSS v4 + shadcn/ui (Radix primitives); dark-first theme; Inter + JetBrains Mono fonts; shadcn/ui AlertDialog for all confirmation actions; TanStack Table for data-heavy views; no legacy CSS frameworks or custom component libraries |
+| **Accessibility** | WCAG 2.1 AA compliance | All interactive elements keyboard-navigable; ARIA labels on dynamic states; `aria-live` for SSE progress; `prefers-reduced-motion` respected |
+| **Performance** | Core Web Vitals in acceptable range for a single-user POC demo | LCP <2.5s; INP <200ms; no layout shift on SSE update; skeleton loaders during data fetch |
 
 ---
 
