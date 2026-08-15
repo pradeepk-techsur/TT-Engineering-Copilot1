@@ -201,49 +201,116 @@
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| LC-01 to LC-08 | All phases | Pending |
-| AC-01 to AC-05 | All phases | Pending |
-| II-01 | All phases | Pending |
-| II-02 to II-03 | Phase 0 | Pending |
-| II-04 to II-05 | Phase 1 | Pending |
-| II-06 to II-07 | Phase 2 | Pending |
-| II-08 to II-09 | Phase 3 | Pending |
-| II-10 to II-11 | Phase 4 | Pending |
-| II-12 to II-13 | Phase 5 | Pending |
-| II-14 to II-15 | Phase 6 | Pending |
-| II-16 to II-17 | Phase 7 | Pending |
-| II-18 to II-19 | Phase 8 | Pending |
-| II-20 to II-21 | Phase 9 | Pending |
-| UP-01 to UP-05 | All user-input phases | Pending |
-| SE-01 to SE-05 | All simulated-input phases | Pending |
-| IR-01 to IR-03 | All phases | Pending |
-| IV-01 to IV-04 | All phases | Pending |
-| OP-01 | Phase 0 | Pending |
-| OP-02 | Phase 1 | Pending |
-| OP-03 | Phase 2 | Pending |
-| OP-04 | Phase 3 | Pending |
-| OP-05 | Phase 4 | Pending |
-| OP-06 | Phase 5 | Pending |
-| OP-07 | Phase 6 | Pending |
-| OP-08 | Phase 7 | Pending |
-| OP-09 | Phase 8 | Pending |
-| OP-10 | Phase 9 | Pending |
-| CA-01 to CA-05 | All phases | Pending |
-| DP-01 to DP-07 | Phases 2, 4, 6 primary | Pending |
-| SI-01 | Phase 2 | Pending |
-| SI-02 | Phase 3 | Pending |
-| SI-03 to SI-04 | Phase 4 | Pending |
-| SI-05 | Phase 5 | Pending |
-| SI-06 | Phase 6 | Pending |
-| SI-07 | Phase 7 | Pending |
-| SI-08 | Phase 8 | Pending |
-| TO-01 to TO-04 | All phases | Pending |
-| PS-01 to PS-04 | All phases | Pending |
-| AV-01 to AV-10 | Application-wide | Pending |
-| GR-01 to GR-06 | All gate phases | Pending |
-| SS-01 | Phase 4 | Pending |
+*Phase numbers refer to software development phases in ROADMAP.md, not TT lifecycle phase numbers.*
+
+| Requirement | Roadmap Phase | Status |
+|-------------|---------------|--------|
+| LC-01 | Phase 1 — Foundation | Pending |
+| LC-02 | Phase 1 — Foundation | Pending |
+| LC-03 | Phase 1 — Foundation | Pending |
+| LC-04 | Phase 1 — Foundation | Pending |
+| LC-05 | Phase 1 — Foundation | Pending |
+| LC-06 | Phase 1 — Foundation | Pending |
+| LC-07 | Phase 1 — Foundation | Pending |
+| LC-08 | Phase 7 — Cross-Cutting Views and Demo Polish | Pending |
+| AC-01 | Phase 2 — Input Intake Framework (enforced in framework) | Pending |
+| AC-02 | Phase 2 — Input Intake Framework (enforced in framework) | Pending |
+| AC-03 | Phase 2 — Input Intake Framework (enforced in framework) | Pending |
+| AC-04 | Phase 2 — Input Intake Framework (enforced in framework) | Pending |
+| AC-05 | Phase 2 — Input Intake Framework (enforced in framework) | Pending |
+| II-01 | Phase 2 — Input Intake Framework | Pending |
+| II-02 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-03 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-04 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-05 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-06 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-07 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| II-08 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| II-09 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| II-10 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| II-11 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| II-12 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-13 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-14 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-15 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-16 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-17 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| II-18 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| II-19 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| II-20 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| II-21 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| UP-01 | Phase 2 — Input Intake Framework | Pending |
+| UP-02 | Phase 2 — Input Intake Framework | Pending |
+| UP-03 | Phase 2 — Input Intake Framework | Pending |
+| UP-04 | Phase 2 — Input Intake Framework | Pending |
+| UP-05 | Phase 2 — Input Intake Framework | Pending |
+| SE-01 | Phase 2 — Input Intake Framework | Pending |
+| SE-02 | Phase 2 — Input Intake Framework | Pending |
+| SE-03 | Phase 2 — Input Intake Framework | Pending |
+| SE-04 | Phase 2 — Input Intake Framework | Pending |
+| SE-05 | Phase 2 — Input Intake Framework | Pending |
+| IR-01 | Phase 2 — Input Intake Framework | Pending |
+| IR-02 | Phase 2 — Input Intake Framework | Pending |
+| IR-03 | Phase 2 — Input Intake Framework | Pending |
+| IV-01 | Phase 2 — Input Intake Framework | Pending |
+| IV-02 | Phase 2 — Input Intake Framework | Pending |
+| IV-03 | Phase 2 — Input Intake Framework | Pending |
+| IV-04 | Phase 2 — Input Intake Framework | Pending |
+| OP-01 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| OP-02 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| OP-03 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| OP-04 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| OP-05 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| OP-06 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| OP-07 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| OP-08 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| OP-09 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| OP-10 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| CA-01 | Phase 3 — Lifecycle Phases 0–2 Agents (first phase that generates artifacts; enforced in all subsequent) | Pending |
+| CA-02 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| CA-03 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| CA-04 | Phase 2 — Input Intake Framework (applies at intake; enforced in all artifact generation) | Pending |
+| CA-05 | Phase 2 — Input Intake Framework (provenance recorded at intake; carried through) | Pending |
+| DP-01 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| DP-02 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| DP-03 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| DP-04 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| DP-05 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| DP-06 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| DP-07 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| SI-01 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| SI-02 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| SI-03 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| SI-04 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| SI-05 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| SI-06 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| SI-07 | Phase 5 — Lifecycle Phases 5–7 Agents | Pending |
+| SI-08 | Phase 6 — Lifecycle Phases 8–9 Agents | Pending |
+| TO-01 | Phase 1 — Foundation | Pending |
+| TO-02 | Phase 1 — Foundation | Pending |
+| TO-03 | Phase 1 — Foundation | Pending |
+| TO-04 | Phase 1 — Foundation | Pending |
+| PS-01 | Phase 1 — Foundation | Pending |
+| PS-02 | Phase 1 — Foundation | Pending |
+| PS-03 | Phase 1 — Foundation | Pending |
+| PS-04 | Phase 1 — Foundation | Pending |
+| AV-01 | Phase 1 — Foundation | Pending |
+| AV-02 | Phase 1 — Foundation | Pending |
+| AV-03 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| AV-04 | Phase 2 — Input Intake Framework | Pending |
+| AV-05 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| AV-06 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| AV-07 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
+| AV-08 | Phase 7 — Cross-Cutting Views and Demo Polish | Pending |
+| AV-09 | Phase 7 — Cross-Cutting Views and Demo Polish | Pending |
+| AV-10 | Phase 1 — Foundation | Pending |
+| GR-01 | Phase 3 — Lifecycle Phases 0–2 Agents (first gates; pattern enforced throughout) | Pending |
+| GR-02 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| GR-03 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| GR-04 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| GR-05 | Phase 3 — Lifecycle Phases 0–2 Agents | Pending |
+| GR-06 | Phase 7 — Cross-Cutting Views and Demo Polish (enforced at all gates; verified in demo pass) | Pending |
+| SS-01 | Phase 4 — Lifecycle Phases 3–4 Agents (Flagship) | Pending |
 
 **Coverage:**
 - v1 requirements: 79 total
