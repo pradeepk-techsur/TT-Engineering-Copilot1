@@ -3,7 +3,7 @@ phase: 1
 gate_status: passed
 build_command: "npm run build"
 test_command: "npm test -- --run"
-last_updated: "2026-08-16T17:30:00Z"
+last_updated: "2026-08-16T21:47:00Z"
 boot_smoke: skipped
 waves:
   - wave: 1
@@ -15,6 +15,10 @@ waves:
     tests: pass
     fix_attempts: 0
   - wave: 3
+    build: pass
+    tests: pass
+    fix_attempts: 0
+  - wave: gap-closure
     build: pass
     tests: pass
     fix_attempts: 0
@@ -51,3 +55,11 @@ waves:
 - Tests: `npm test -- --run` → pass (6/6 tests)
 - Boot smoke: skipped (no `.pivota/start-dev.sh`)
 - Note: `node_modules` were not installed in sandbox (fresh workspace); installed via `npm install` before gate run. Build and tests both green on full phase tree.
+
+## Gap-Closure Wave (Plan 01-04)
+
+- Build: `npm run build` → pass (15 routes compiled: /audit ○, /findings-actions ○, /phase/[id] ● SSG 0–9)
+- Tests: `npm test -- --run` → pass (6/6 unit tests in tests/orchestrator.test.ts)
+- Playwright: 12/12 e2e tests pass (10 original + 2 new stub-page tests)
+- Fix attempts: 0/3
+- Gaps closed: REVOKE audit_history (PS-03), stub pages AV-10/LC-05
