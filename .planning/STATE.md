@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-foundation-04-PLAN.md
-last_updated: "2026-08-16T21:46:32.694Z"
-last_activity: "2026-08-16 — Plan 01-02 complete: GatedStateMachine + buildAgentContext + PHASE_CONFIG + reference index"
+stopped_at: Completed 01-foundation-04-PLAN.md (gap closure)
+last_updated: "2026-08-16T22:00:00Z"
+last_activity: "2026-08-16 — Phase 1 Foundation complete: gap closure plan 01-04 — audit_history trigger + stub pages (AV-10, LC-05, PS-03)"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 4
   completed_plans: 4
-  percent: 67
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-15)
 
 **Core value:** Demonstrate that AI can process compact lifecycle artifacts, detect objective issues, recommend corrections, regenerate only affected outputs, and preserve full traceability — while keeping every material decision under human authority.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 2 — Input Intake Framework
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation)
-Plan: 2 of TBD in current phase (01-01, 01-02 complete)
-Status: In progress
-Last activity: 2026-08-16 — Plan 01-02 complete: GatedStateMachine + buildAgentContext + PHASE_CONFIG + reference index
+Phase: 1 of 7 (Foundation) — COMPLETE
+Plan: 4/4 complete (01-01, 01-02, 01-03, 01-04 gap closure)
+Status: Complete — ready for Phase 2
+Last activity: 2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100% (Phase 1)
 
 ## Performance Metrics
 
@@ -76,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Tailwind v4 @apply border-border fails with custom @theme inline — replaced with direct CSS border-color property
 - [Phase 01-foundation]: Playwright locators scoped to ARIA landmarks (complementary, navigation) to avoid strict-mode violations from multiple element matches
 - [Phase 01-foundation]: webServer in playwright.config.ts auto-starts dev server for e2e tests — no manual server startup required
+- [Phase 01-foundation gap closure]: REVOKE alone is vacuous — app connects as table owner, not app_role; added BEFORE UPDATE OR DELETE trigger on audit_history for role-agnostic append-only enforcement (SQLSTATE 45000)
+- [Phase 01-foundation gap closure]: dynamicParams=false required on /phase/[id] alongside generateStaticParams to ensure out-of-range paths 404 instead of rendering with NaN phaseId
 - [Phase 01-foundation]: REVOKE placed after app_role DO block in seed.ts — PostgreSQL REVOKE on never-granted privilege is no-op, making it idempotent on every container boot
 - [Phase 01-foundation]: generateStaticParams for /phase/[id] prebuilds all 10 phase routes at build time — consistent with Next.js SSG pattern for finite known route sets
 
