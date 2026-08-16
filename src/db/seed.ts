@@ -58,6 +58,36 @@ async function seed() {
     REVOKE UPDATE, DELETE ON audit_history FROM app_role;
   `);
 
+  // Enforce append-only on audit_history via a trigger — role-agnostic guard that
+  // blocks UPDATE/DELETE regardless of which DB role executes the statement.
+  // SQLSTATE '45000' = unhandled user-defined exception (ISO/IEC 9075 compliant).
+  await db.execute(sql`
+    CREATE OR REPLACE FUNCTION audit_history_immutable()
+    RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      RAISE EXCEPTION 'audit_history is append-only: UPDATE and DELETE are not permitted'
+        USING ERRCODE = '45000';
+      RETURN NULL;
+    END;
+    $$;
+  `);
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger
+        WHERE tgname = 'trg_audit_history_immutable'
+          AND tgrelid = 'audit_history'::regclass
+      ) THEN
+        CREATE TRIGGER trg_audit_history_immutable
+          BEFORE UPDATE OR DELETE ON audit_history
+          FOR EACH ROW EXECUTE FUNCTION audit_history_immutable();
+      END IF;
+    END
+    $$;
+  `);
+
   console.log('Seed complete: EVINV-POC-001 project + 10 phase_states inserted');
   process.exit(0);
 }
