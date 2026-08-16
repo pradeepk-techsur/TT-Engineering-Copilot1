@@ -3,7 +3,7 @@ import type { Config } from 'tailwindcss';
 // Tailwind CSS v4 config — theme extensions only
 // Color tokens are defined in globals.css as CSS custom properties
 const config: Config = {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}', './app/**/*.{ts,tsx}'],
   theme: {
     extend: {
