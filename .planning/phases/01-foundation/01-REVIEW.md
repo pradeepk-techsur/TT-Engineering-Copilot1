@@ -33,6 +33,8 @@ iteration: 1
 
 - **Fix direction:** Either (a) switch the runtime application's DB connection to `app_role` (grant it only `SELECT, INSERT` on `audit_history`, then revoke `UPDATE, DELETE`), so the restriction actually applies to the queries the app issues; or (b) enforce append-only via a `BEFORE UPDATE OR DELETE` trigger on `audit_history` that raises an exception regardless of the caller's role — this makes the protection role-agnostic. The current REVOKE-only approach should be supplemented with at least a trigger or a runtime role assignment to be meaningful.
 
+**Resolution:** fixed (94bbb6c) — Added `CREATE OR REPLACE FUNCTION audit_history_immutable()` (SQLSTATE `45000`) and `BEFORE UPDATE OR DELETE` trigger `trg_audit_history_immutable` on `audit_history` in `src/db/seed.ts`. The original REVOKE is retained. The trigger is role-agnostic and fires regardless of connection user, closing the gap for the `tt_copilot` owner-role attack surface. `tsc --noEmit` clean; `npm run build` exits 0; `npm test -- --run` 6/6.
+
 ---
 
 ## WARNINGs
@@ -52,6 +54,8 @@ iteration: 1
   The plan's threat model T-01-13 documents and accepts this behavior, but it misstates the result as "gracefully falls back to `Phase NaN` label" without noting the `/phase/NaN` orphan link emitted in the breadcrumb. No crash occurs; the issue is a degraded-UI path that is unreachable through the sidebar (which only links `/phase/0`–`/phase/9`) but reachable by direct URL entry.
 
   **Simplest fix:** Add `export const dynamicParams = false;` to `src/app/phase/[id]/page.tsx`. Next.js will then return a 404 for any `id` not produced by `generateStaticParams`, eliminating the NaN render path entirely with no additional logic required.
+
+**Resolution:** fixed (625d125) — Added `export const dynamicParams = false;` at line 4 of `src/app/phase/[id]/page.tsx`. Build confirms route changed from `ƒ` (Dynamic) to `●` (SSG), meaning only pre-generated paths `/phase/0`–`/phase/9` are served; all others return 404. `tsc --noEmit` clean; `npm run build` exits 0; `npm test -- --run` 6/6.
 
 ---
 
