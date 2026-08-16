@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-foundation-02-PLAN.md
-last_updated: "2026-08-16T16:44:20.097Z"
-last_activity: "2026-08-16 — Plan 01-01 complete: Next.js 15 + PostgreSQL + Redis foundation + 11-table schema + seed"
+stopped_at: Completed 01-foundation-03-PLAN.md
+last_updated: "2026-08-16T17:01:54.291Z"
+last_activity: "2026-08-16 — Plan 01-02 complete: GatedStateMachine + buildAgentContext + PHASE_CONFIG + reference index"
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 67
 ---
 
 # Project State
@@ -52,6 +52,7 @@ Progress: [███████░░░] 67%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-foundation P03 | 14min | 2 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: vitest.config.ts needs resolve.alias @/* for test imports — tsconfig paths not inherited by vitest
 - [Phase 01-foundation]: Next.js 15 params is async — all route handlers use await params destructuring
 - [Phase 01-foundation]: AI actor check and gate outcome validation precede DB access in recordGateDecision — enables unit testing without live DB
+- [Phase 01-foundation]: Tailwind v4 @apply border-border fails with custom @theme inline — replaced with direct CSS border-color property
+- [Phase 01-foundation]: Playwright locators scoped to ARIA landmarks (complementary, navigation) to avoid strict-mode violations from multiple element matches
+- [Phase 01-foundation]: webServer in playwright.config.ts auto-starts dev server for e2e tests — no manual server startup required
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-16T16:44:20.096Z
-Stopped at: Completed 01-foundation-02-PLAN.md
+Last session: 2026-08-16T17:01:54.290Z
+Stopped at: Completed 01-foundation-03-PLAN.md
 Resume file: None
