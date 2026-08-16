@@ -39,7 +39,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. One versioned ProjectState instance covers all ten phases, holding the artifact registry, provenance, dependencies, findings, actions, gate decisions, and audit history; a developer can inspect the state object and see the correct phase-scoped structure with version tracking.
   5. Agent context construction retrieves only the active phase inputs, relevant approved upstream compact summaries, open actions, and selected checklist/rules — not full prior-phase documents; this is verifiable by inspecting prompt payloads during a test run.
 
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffold, Docker Compose, PostgreSQL schema (all 11 tables), migrations, seed
+- [ ] 01-02-PLAN.md — Gated orchestrator state machine, gate enforcement, context assembly service
+- [ ] 01-03-PLAN.md — App shell, dark theme, shadcn/ui, breadcrumb, Project Overview (AV-01), Product Lifecycle View (AV-02)
 
 ---
 
