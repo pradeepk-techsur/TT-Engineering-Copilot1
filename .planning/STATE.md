@@ -1,3 +1,19 @@
+---
+pivota_spec_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Completed 01-foundation-01-PLAN.md
+last_updated: "2026-08-16T16:35:57.760Z"
+last_activity: 2026-08-15 — Roadmap created; 79 v1 requirements mapped across 7 phases
+progress:
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
+---
+
 # Project State
 
 ## Project Reference
@@ -10,27 +26,29 @@ See: .planning/PROJECT.md (updated 2026-08-15)
 ## Current Position
 
 Phase: 1 of 7 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-08-15 — Roadmap created; 79 v1 requirements mapped across 7 phases
+Plan: 1 of TBD in current phase (01-01 complete)
+Status: In progress
+Last activity: 2026-08-16 — Plan 01-01 complete: Next.js 15 + PostgreSQL + Redis foundation + 11-table schema + seed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0.0 hours
+
+- Total plans completed: 1
+- Average duration: 10 min
+- Total execution time: 0.17 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation | 1 | 10min | 10min |
 
 **Recent Trend:**
-- Last 5 plans: —
+
+- Last 5 plans: 01-01 (10min)
 - Trend: —
 
 *Updated after each plan completion*
@@ -47,6 +65,9 @@ Recent decisions affecting current work:
 - [Pre-build]: Gate Review rendered from structured state (avoids third artifact; satisfies output limit)
 - [Pre-build]: Simulated connectors only — no live system connections for POC
 - [Pre-build]: Compact approved-phase summaries as upstream context (token optimization)
+- [Phase 01-foundation]: Used tsx over ts-node for Docker migrate/seed — tsconfig esnext module incompatible with ts-node
+- [Phase 01-foundation]: Tailwind v4 requires @tailwindcss/postcss plugin and @import syntax — updated PostCSS config and globals.css
+- [Phase 01-foundation]: timestamptz helper wraps timestamp({withTimezone:true}) — not exported from drizzle-orm/pg-core v0.38
 
 ### Pending Todos
 
@@ -59,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-15
-Stopped at: Roadmap created and approved; STATE.md initialized; REQUIREMENTS.md traceability updated
+Last session: 2026-08-16T16:35:57.759Z
+Stopped at: Completed 01-foundation-01-PLAN.md
 Resume file: None
