@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-surface: #1a1a2e;
+  --color-border: #2d2d44;
+  --color-pass: #22c55e;
+  --color-conditional: #f59e0b;
+  --color-fail: #ef4444;
+  --color-awaiting: #3b82f6;
+  --color-upcoming: #6b7280;
+  --color-synthetic: #a855f7;
+  --color-advisory: #06b6d4;
+  --color-blocked: #dc2626;
+}
