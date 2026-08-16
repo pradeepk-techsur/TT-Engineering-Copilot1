@@ -87,4 +87,25 @@ test.describe('Breadcrumb and Navigation', () => {
     await expect(sidebar.getByRole('link', { name: 'Findings & Actions' })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: 'Audit Log' })).toBeVisible();
   });
+
+  test('sidebar links render app shell (not 404)', async ({ page }) => {
+    for (const path of ['/findings-actions', '/audit', '/phase/0']) {
+      await page.goto(path);
+      // AppShell top bar brand is always visible
+      await expect(page.getByText('TT Engineering Copilot')).toBeVisible();
+      // Breadcrumb EV-INV-800 root segment is always visible
+      await expect(
+        page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'EV-INV-800' })
+      ).toBeVisible();
+      // SYNTHETIC POC badge is always visible
+      await expect(page.getByText('SYNTHETIC POC')).toBeVisible();
+    }
+  });
+
+  test('/phase/0 breadcrumb shows Phase 0 segment', async ({ page }) => {
+    await page.goto('/phase/0');
+    await expect(
+      page.getByRole('navigation', { name: 'Breadcrumb' }).getByText(/Phase 0/i)
+    ).toBeVisible();
+  });
 });
