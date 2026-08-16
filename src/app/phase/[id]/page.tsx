@@ -1,6 +1,8 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 
+export const dynamicParams = false;
+
 interface Props {
   params: Promise<{ id: string }>;
 }
