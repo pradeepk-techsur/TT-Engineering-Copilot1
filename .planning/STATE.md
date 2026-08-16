@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-foundation-03-PLAN.md
-last_updated: "2026-08-16T17:01:54.291Z"
+stopped_at: Completed 01-foundation-04-PLAN.md
+last_updated: "2026-08-16T21:46:32.694Z"
 last_activity: "2026-08-16 — Plan 01-02 complete: GatedStateMachine + buildAgentContext + PHASE_CONFIG + reference index"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 4
+  completed_plans: 4
   percent: 67
 ---
 
@@ -53,6 +53,7 @@ Progress: [███████░░░] 67%
 
 *Updated after each plan completion*
 | Phase 01-foundation P03 | 14min | 2 tasks | 25 files |
+| Phase 01-foundation P04 | 7min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Tailwind v4 @apply border-border fails with custom @theme inline — replaced with direct CSS border-color property
 - [Phase 01-foundation]: Playwright locators scoped to ARIA landmarks (complementary, navigation) to avoid strict-mode violations from multiple element matches
 - [Phase 01-foundation]: webServer in playwright.config.ts auto-starts dev server for e2e tests — no manual server startup required
+- [Phase 01-foundation]: REVOKE placed after app_role DO block in seed.ts — PostgreSQL REVOKE on never-granted privilege is no-op, making it idempotent on every container boot
+- [Phase 01-foundation]: generateStaticParams for /phase/[id] prebuilds all 10 phase routes at build time — consistent with Next.js SSG pattern for finite known route sets
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-16T17:01:54.290Z
-Stopped at: Completed 01-foundation-03-PLAN.md
+Last session: 2026-08-16T21:46:32.693Z
+Stopped at: Completed 01-foundation-04-PLAN.md
 Resume file: None
