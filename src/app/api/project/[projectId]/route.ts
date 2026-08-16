@@ -16,14 +16,14 @@ export async function GET(
       .limit(1);
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      return NextResponse.json({ error_code: 'PROJECT_NOT_FOUND' }, { status: 404 });
     }
 
     return NextResponse.json(rows[0]);
   } catch (error) {
     console.error('Error fetching project:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error_code: 'INTERNAL_ERROR', message: 'Internal server error' },
       { status: 500 }
     );
   }
