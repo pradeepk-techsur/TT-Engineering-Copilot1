@@ -52,6 +52,12 @@ async function seed() {
     $$;
   `);
 
+  // Revoke UPDATE/DELETE on audit_history from app_role (append-only enforcement)
+  // Revoking a privilege never granted is a no-op in PostgreSQL — idempotent on every boot
+  await db.execute(sql`
+    REVOKE UPDATE, DELETE ON audit_history FROM app_role;
+  `);
+
   console.log('Seed complete: EVINV-POC-001 project + 10 phase_states inserted');
   process.exit(0);
 }
