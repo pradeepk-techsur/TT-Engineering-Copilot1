@@ -9,6 +9,10 @@ waves:
     build: pass
     tests: skipped
     fix_attempts: 1
+  - wave: 2
+    build: pass
+    tests: pass
+    fix_attempts: 0
 ---
 
 ## Wave 1
@@ -23,3 +27,9 @@ waves:
 - `vitest.config.ts` created to exclude `e2e/` directory from unit test runner.
 - No unit test files exist after wave 1 (schema, scaffold, seed). E2E test at `e2e/app-boots.spec.ts` is deferred to Playwright run at verify phase.
 - Gate status: `passed_with_warnings` (build green, tests pre_existing skip).
+
+## Wave 2
+
+- Build: `npm run build` → pass
+- Tests: `npm test -- --run` → pass (6/6 tests in `tests/orchestrator.test.ts`)
+- Fix attempts: 0/3
