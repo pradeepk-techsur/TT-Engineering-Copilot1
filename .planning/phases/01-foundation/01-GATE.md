@@ -63,3 +63,12 @@ waves:
 - Playwright: 12/12 e2e tests pass (10 original + 2 new stub-page tests)
 - Fix attempts: 0/3
 - Gaps closed: REVOKE audit_history (PS-03), stub pages AV-10/LC-05
+
+## Code Review + Final Regression Gate (Gap-Closure)
+
+- Code review: iteration 1 → 1 blocker (REVOKE no-op), 1 warning (dynamicParams); iteration 2 → clean
+- Fixes: B1 — added `BEFORE UPDATE OR DELETE` trigger `trg_audit_history_immutable` on `audit_history` (SQLSTATE 45000, role-agnostic); W1 — `dynamicParams = false` on `/phase/[id]`
+- Final regression build: `npm run build` → pass (Compiled successfully)
+- Final regression tests: `npm test -- --run` → pass (6/6)
+- Boot smoke: skipped (no `.pivota/start-dev.sh`)
+- gate_status: passed
