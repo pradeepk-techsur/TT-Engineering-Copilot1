@@ -26,6 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### Phase 1: Foundation
 
+**Status**: In Progress
 **Goal**: The application has a running, navigable skeleton — a versioned ProjectState, a gated orchestrator state machine that enforces human-only gate decisions, a shared data model covering all ten lifecycle phases, persistent lifecycle breadcrumbs on every view, and the Project Overview and Product Lifecycle views — so every subsequent phase has a deterministic execution substrate to build on.
 
 **Depends on**: Nothing (first phase)
