@@ -67,7 +67,14 @@ Plans:
   4. When a revised version of a user-provided input is uploaded, a new version is created, the prior version is preserved and accessible for comparison, only affected checks are invalidated and rerun, original and revised results remain traceable, and the term "replacement input" does not appear anywhere in the UI or audit log.
   5. Every intake event is recorded with phase, logical input, intake behavior, user action, system represented, status, source artifact, normalized artifact, version, validation result, and timestamp; the full log is queryable from the Audit View; labels "Connected to [SYSTEM]" and "Live [SYSTEM] Data" never appear.
 
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [x] 02-01-PLAN.md — Intake service layer: UP/SI handlers, file validator (9 rules), audit event writer, 11 XLSX samples
+- [x] 02-02-PLAN.md — Versioning API: upload-revised, version history endpoint, dependency graph BFS invalidation
+- [x] 02-03-PLAN.md — Phase Workspace (AV-03) + Input Intake Panel (AV-04) UI components + 29 Playwright tests
+- [ ] 02-04-PLAN.md — Gap closure: remove per-card Synthetic POC Data disclaimer; Version History section heading + improved empty state
+- [ ] 02-05-PLAN.md — Gap closure: fix fileValidator Rules 3+4 false MISMATCH errors (findMetadataValue helper, config.productName)
 
 ---
 
