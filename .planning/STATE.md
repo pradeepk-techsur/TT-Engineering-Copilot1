@@ -3,9 +3,9 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-input-intake-framework-04-PLAN.md
-last_updated: "2026-08-17T15:55:09.153Z"
-last_activity: "2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)"
+stopped_at: Completed 02-input-intake-framework-05-PLAN.md (gap closure)
+last_updated: "2026-08-17T16:05:00.000Z"
+last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-15)
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation) — COMPLETE
-Plan: 4/4 complete (01-01, 01-02, 01-03, 01-04 gap closure)
-Status: Complete — ready for Phase 2
-Last activity: 2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)
+Phase: 2 of 7 (Input Intake Framework) — COMPLETE
+Plan: 5/5 complete (02-01, 02-02, 02-03, 02-04 gap closure, 02-05 gap closure)
+Status: Complete — ready for Phase 3
+Last activity: 2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed
 
 Progress: [██████████] 100% (Phase 1)
 
