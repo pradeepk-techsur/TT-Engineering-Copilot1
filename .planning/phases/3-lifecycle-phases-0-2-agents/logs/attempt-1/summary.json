@@ -1,0 +1,20 @@
+{
+  "duration_secs": 2084.0,
+  "token_usage": {
+    "input": 312,
+    "output": 114086,
+    "total": 30243059,
+    "cache_read": 29668439,
+    "cache_write": 460222,
+    "cost": 12.338590199999997
+  },
+  "model": "claude-sonnet-4-6",
+  "files_changed": [
+    ".planning/ROADMAP.md"
+  ],
+  "verification_status": "passed",
+  "error_message": null,
+  "attempt_number": 1,
+  "created_at": "2026-08-17T18:19:26.119866+00:00",
+  "completed_at": "2026-08-17T18:54:10.986001485+00:00"
+}
