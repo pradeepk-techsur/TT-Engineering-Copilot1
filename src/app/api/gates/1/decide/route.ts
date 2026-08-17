@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { GatedStateMachine } from '@/server/orchestrator/stateMachine';
+import { AI_ACTOR_BLOCKLIST } from '@/server/orchestrator/types';
+import { db } from '@/db';
+import { phaseStates } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
+
+export async function POST(req: NextRequest) {
+  // GR-02: Human-only gate decision — AI actor prohibition
+  const reviewerRole = req.headers.get('X-Reviewer-Role') ?? '';
+  if (!reviewerRole || AI_ACTOR_BLOCKLIST.has(reviewerRole)) {
+    return NextResponse.json({
+      error_code: 'GATE_AI_PROHIBITED',
+      message: 'Gate decisions must be made by an authorized human reviewer. AI cannot approve any gate.',
+    }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { decision, comments, conditionalActions } = body;
+
+  // GR-03: Validate outcome
+  if (!['Pass', 'Conditional Pass', 'Fail'].includes(decision)) {
+    return NextResponse.json({ error_code: 'GATE_OUTCOME_INVALID', message: 'Gate outcome must be Pass, Conditional Pass, or Fail.' }, { status: 400 });
+  }
+
+  if (decision === 'Conditional Pass' && (!conditionalActions || conditionalActions.length === 0)) {
+    return NextResponse.json({ error_code: 'CONDITIONAL_ACTIONS_REQUIRED', message: 'Conditional Pass requires at least one conditional action.' }, { status: 400 });
+  }
+
+  try {
+    const sm = new GatedStateMachine('EVINV-POC-001');
+    await sm.recordGateDecision({
+      gateNumber: 1,
+      decision,
+      reviewerRole,
+      comments,
+      openConditions: conditionalActions ?? [],
+    });
+
+    // Generate compact phase summary after gate decision
+    const compactSummary = {
+      phaseId: 1,
+      phaseName: 'Business Case',
+      outcome: decision,
+      keyFindings: [],
+      openActions: [],
+      approvedOutputs: ['Costed Proposal or Business Case', 'Resource and Milestone Schedule'],
+      approvedAt: new Date().toISOString(),
+    };
+
+    await db.update(phaseStates)
+      .set({ compactPhaseSummary: compactSummary as any })
+      .where(and(eq(phaseStates.projectId, 'EVINV-POC-001'), eq(phaseStates.phaseId, 1 as any)));
+
+    return NextResponse.json({ success: true, decision, gateNumber: 1, reviewerRole });
+  } catch (err: any) {
+    const code = err.message?.split(':')[0] ?? 'INTERNAL_ERROR';
+    const status = code === 'GATE_AI_PROHIBITED' ? 403
+      : code === 'INVALID_GATE_OUTCOME' ? 400
+      : code === 'GATE_NOT_OPEN' ? 409
+      : 500;
+    return NextResponse.json({ error_code: code, message: err.message }, { status });
+  }
+}
