@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-input-intake-framework
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md
 started: 2026-08-17T14:23:25Z
@@ -108,9 +108,15 @@ per_test:
   severity: minor
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Both UpIntakeCard and SiIntakeCard render a hardcoded 'Synthetic POC Data...' disclaimer block that is redundant with the global SyntheticBadge in AppShell header. The per-card disclaimers add visual noise without providing additional information."
+  artifacts:
+    - path: "src/components/intake/UpIntakeCard.tsx"
+      issue: "Lines 118-121: Hardcoded Synthetic POC Data disclaimer div rendered unconditionally. Redundant with global AppShell SyntheticBadge."
+    - path: "src/components/intake/SiIntakeCard.tsx"
+      issue: "Lines 105-108: Identical hardcoded disclaimer div. Redundant. The Simulated Connector notice at lines 93-97 is card-specific and should be kept."
+  missing:
+    - "Remove the {/* Synthetic disclaimer */} block from UpIntakeCard.tsx (lines 118-121)"
+    - "Remove the {/* Synthetic disclaimer */} block from SiIntakeCard.tsx (lines 105-108) — keep the Simulated Connector notice"
   debug_session: ""
 
 - truth: "Version History section is visible on /phase/[id]/intake after intake actions"
@@ -119,9 +125,16 @@ per_test:
   severity: minor
   test: 6
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Version History section exists but is below the fold (two tall intake cards push it off-screen), has no labeled section heading as a visual anchor, and the empty state 'No versions yet.' is too muted and terse to communicate the feature exists. No scroll-cue fires after successful intake."
+  artifacts:
+    - path: "src/app/phase/[id]/intake/page.tsx"
+      issue: "No labeled section heading above the Version History grid. Two tall intake cards push it off-screen on standard viewports."
+    - path: "src/components/intake/VersionHistoryTable.tsx"
+      issue: "Empty state renders 'No versions yet.' in text-xs text-muted with no explanation. Users interpret it as absent feature."
+  missing:
+    - "Add 'Version History' section heading/separator above the grid in page.tsx"
+    - "Improve empty state in VersionHistoryTable.tsx with explanatory second line"
+    - "Add scroll-anchor id to version history div and scroll-into-view after successful intake action"
   debug_session: ""
 
 - truth: "File upload with correct Project ID and Product Name values in XLSX is accepted without PROJECT_ID_MISMATCH or PRODUCT_NAME_MISMATCH errors"
@@ -130,7 +143,14 @@ per_test:
   severity: major
   test: 7
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Two bugs in fileValidator.ts Rules 3+4: (1) flat-array findIndex with .includes() substring match hits data-table column headers (e.g. 'Product Name') before the actual metadata row, so allCells[idx+1] returns the wrong cell and fires false MISMATCH errors on valid files; (2) Rule 4 hardcodes 'EV-INV-800' instead of using config.productName."
+  artifacts:
+    - path: "src/server/intake/fileValidator.ts"
+      issue: "Lines 58-64 (Rule 3): .includes('Project ID') in flat array matches column headers before metadata rows. allCells[pidIdx+1] returns wrong cell."
+    - path: "src/server/intake/fileValidator.ts"
+      issue: "Lines 70-75 (Rule 4): .includes('Product') matches 'Product Name' column header. allCells[idx+1] is wrong. Line 73 hardcodes EV-INV-800 instead of config.productName."
+  missing:
+    - "Add findMetadataValue(rows, exactLabels) helper that iterates rows (not flat array), checks only col A/B (index 0-1) for metadata labels using exact case-insensitive match"
+    - "Replace Rule 3 flat-array logic with findMetadataValue(firstSheet, ['Project ID', 'project_id'])"
+    - "Replace Rule 4 flat-array logic with findMetadataValue(firstSheet, ['Product', 'product']) and use config.productName instead of hardcoded string"
+  debug_session: ".planning/debug/xlsx-project-id-product-name-mismatch.md"
