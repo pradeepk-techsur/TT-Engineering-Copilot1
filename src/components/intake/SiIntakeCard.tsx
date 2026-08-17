@@ -102,11 +102,6 @@ export function SiIntakeCard({
           {activeVersion && <span className="ml-2">· Version {activeVersion} active</span>}
         </div>
 
-        {/* Synthetic disclaimer */}
-        <div className="rounded-md bg-violet-500/5 border border-violet-500/20 px-3 py-2 text-xs text-violet-400">
-          Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
-        </div>
-
         {/* CORRECT label: "Preloaded Synthetic Sample" */}
         <div className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
           Preloaded Synthetic Sample

@@ -38,10 +38,10 @@ test.describe('UP Intake Card', () => {
     await expect(page.getByTestId('dropzone-external')).toBeVisible();
   });
 
-  test('shows synthetic disclaimer', async ({ page }) => {
+  test('does not show per-card synthetic disclaimer (global AppShell badge covers it)', async ({ page }) => {
     await page.goto('/phase/0');
     const card = page.getByTestId('up-intake-external');
-    await expect(card.getByText(/Synthetic POC Data/)).toBeVisible();
+    await expect(card.getByText(/Synthetic POC Data/)).not.toBeVisible();
   });
 
   test('never shows "replacement input" text', async ({ page }) => {
