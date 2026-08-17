@@ -1,4 +1,5 @@
 'use client';
+import React, { useState } from 'react';
 import useSWR from 'swr';
 import { UpIntakeCard } from './UpIntakeCard';
 import { SiIntakeCard } from './SiIntakeCard';
@@ -20,11 +21,34 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
     `/api/phases/${phaseId}/execution-status`, fetcher, { refreshInterval: 3000 }
   );
 
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executeError, setExecuteError] = useState<string | null>(null);
+
   const config = PHASE_CONFIG_MAP[phaseId as keyof typeof PHASE_CONFIG_MAP];
 
   const refresh = () => {
     mutateReadiness();
     mutateStatus();
+  };
+
+  const handleRunPhase = async () => {
+    setIsExecuting(true);
+    setExecuteError(null);
+    try {
+      const res = await fetch(`/api/phases/${phaseId}/execute`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        setExecuteError(data.message ?? data.error_code ?? 'Execution failed');
+      } else {
+        // Revalidate readiness and status after successful execution
+        refresh();
+      }
+    } catch (err: any) {
+      setExecuteError(err.message ?? 'Network error during execution');
+    } finally {
+      setIsExecuting(false);
+      refresh();
+    }
   };
 
   if (!config || !readiness) {
@@ -67,13 +91,18 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         {/* Run Phase button — DISABLED until both inputs ready */}
         <Button
           size="sm"
-          disabled={!bothReady || status === 'Processing' || status === 'Complete'}
+          disabled={!bothReady || status === 'Processing' || status === 'Complete' || isExecuting}
           data-testid="run-phase-button"
-          onClick={() => {/* Phase execution triggered by phase agent — not implemented in this plan */}}
+          onClick={handleRunPhase}
         >
-          Run Phase
+          {isExecuting ? 'Running…' : 'Run Phase'}
         </Button>
       </div>
+      {executeError && (
+        <p className="text-xs text-red-400 mt-1" data-testid="execute-error">
+          Execution error: {executeError}
+        </p>
+      )}
 
       {/* External Input Card */}
       <div>
