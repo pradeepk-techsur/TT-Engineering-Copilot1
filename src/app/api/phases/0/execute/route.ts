@@ -21,7 +21,7 @@ export async function POST(_req: NextRequest) {
 
   // Transition to Running
   await db.update(phaseStates)
-    .set({ phaseState: 'Running', executionStartedAt: new Date() })
+    .set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
     .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
 
   try {
