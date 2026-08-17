@@ -6,16 +6,20 @@ interface Finding {
 }
 
 export function FindingsSummaryTable({ findings }: { findings: Finding[] }) {
-  if (!findings.length) {
-    return <p className="text-xs text-[var(--color-text-muted)]">No findings for this phase.</p>;
-  }
-
   const SEVERITY_STYLES: Record<string, string> = {
     Critical: 'bg-red-500/10 text-red-400 border-red-500/20',
     Major: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
     Minor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     Observation: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
   };
+
+  if (!findings.length) {
+    return (
+      <div data-testid="findings-summary-table">
+        <p className="text-xs text-[var(--color-text-muted)]">No findings for this phase.</p>
+      </div>
+    );
+  }
 
   return (
     <table className="w-full text-sm" data-testid="findings-summary-table">
