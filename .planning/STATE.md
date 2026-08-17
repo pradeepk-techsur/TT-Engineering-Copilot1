@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-input-intake-framework-05-PLAN.md (gap closure)
-last_updated: "2026-08-17T16:05:00.000Z"
+stopped_at: Completed 03-lifecycle-phases-0-2-agents-01-PLAN.md
+last_updated: "2026-08-17T18:28:07.905Z"
 last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 100
 ---
 
@@ -59,6 +59,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 02-input-intake-framework P03 | 17min | 2 tasks | 19 files |
 | Phase 02-input-intake-framework P05 | 3min | 1 tasks | 2 files |
 | Phase 02-input-intake-framework P04 | 8min | 2 tasks | 5 files |
+| Phase 03-lifecycle-phases-0-2-agents P01 | 6min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 02-input-intake-framework]: Rule 4 compares against config.productName (case-insensitive includes) — hardcoded EV-INV-800 comparison removed from fileValidator.ts
 - [Phase 02-input-intake-framework]: Per-card Synthetic POC Data disclaimer removed — global AppShell SyntheticBadge is the canonical coverage point; per-card duplication removed
 - [Phase 02-input-intake-framework]: Version History section wrapped in id='version-history' scroll anchor with h2 heading and explanatory text for discoverability (UAT gap 6 closure)
+- [Phase 03-lifecycle-phases-0-2-agents]: Route files placed in src/app/api/ not app/api/ — consistent with Phase 2 decision that root-level app/ shadows src/app/ in Next.js
+- [Phase 03-lifecycle-phases-0-2-agents]: BaseAgent pattern established: all phase agents extend BaseAgent, call callLLM() with retry/truncation/prohibited-label guard, and buildAIRecommendation() with 'Advisory Only' label
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T15:55:09.152Z
-Stopped at: Completed 02-input-intake-framework-04-PLAN.md
+Last session: 2026-08-17T18:28:07.903Z
+Stopped at: Completed 03-lifecycle-phases-0-2-agents-01-PLAN.md
 Resume file: None
