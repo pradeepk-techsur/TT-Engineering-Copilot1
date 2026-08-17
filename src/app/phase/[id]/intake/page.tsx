@@ -39,23 +39,32 @@ export default async function IntakePanelPage({ params }: Props) {
         <InputReadinessPanel phaseId={phaseId} />
 
         {/* Version History */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-            <CardHeader>
-              <CardTitle className="text-sm">External Input — Version History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VersionHistoryTable phaseId={phaseId} inputRole="external" />
-            </CardContent>
-          </Card>
-          <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-            <CardHeader>
-              <CardTitle className="text-sm">Internal Input — Version History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VersionHistoryTable phaseId={phaseId} inputRole="internal" />
-            </CardContent>
-          </Card>
+        <div id="version-history" className="space-y-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold">Version History</h2>
+            <div className="flex-1 h-px bg-[var(--color-border)]" />
+          </div>
+          <p className="text-xs text-[var(--color-text-muted)]">
+            Every upload or ingest action creates a new version. Prior versions are preserved for comparison.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+              <CardHeader>
+                <CardTitle className="text-sm">External Input — Version History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <VersionHistoryTable phaseId={phaseId} inputRole="external" />
+              </CardContent>
+            </Card>
+            <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+              <CardHeader>
+                <CardTitle className="text-sm">Internal Input — Version History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <VersionHistoryTable phaseId={phaseId} inputRole="internal" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppShell>
