@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-input-intake-framework-03-PLAN.md
-last_updated: "2026-08-17T14:07:50.833Z"
+stopped_at: Completed 02-input-intake-framework-05-PLAN.md
+last_updated: "2026-08-17T15:49:05.950Z"
 last_activity: "2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)"
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 1
+  total_plans: 9
+  completed_plans: 8
   percent: 100
 ---
 
@@ -57,6 +57,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 02-input-intake-framework P02 | 5min | 1 tasks | 11 files |
 | Phase 02-input-intake-framework P01 | 9min | 2 tasks | 21 files |
 | Phase 02-input-intake-framework P03 | 17min | 2 tasks | 19 files |
+| Phase 02-input-intake-framework P05 | 3min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 02-input-intake-framework]: Bash heredoc used to write intake stub replacements — Write tool output was overridden by prior agent stubs already on disk
 - [Phase 02-input-intake-framework]: Moved API routes from root app/api/ to src/app/api/ — root-level app/ directory shadows src/app/ in Next.js, breaking all UI routes
 - [Phase 02-input-intake-framework]: @base-ui/react Button has no asChild support — AlertDialogTrigger and download links use styled Tailwind classes directly
+- [Phase 02-input-intake-framework]: findMetadataValue uses exact equality on col A/B only — prevents data-table column headers from matching metadata labels in fileValidator.ts Rules 3+4
+- [Phase 02-input-intake-framework]: Rule 4 compares against config.productName (case-insensitive includes) — hardcoded EV-INV-800 comparison removed from fileValidator.ts
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T14:07:50.832Z
-Stopped at: Completed 02-input-intake-framework-03-PLAN.md
+Last session: 2026-08-17T15:49:05.949Z
+Stopped at: Completed 02-input-intake-framework-05-PLAN.md
 Resume file: None
