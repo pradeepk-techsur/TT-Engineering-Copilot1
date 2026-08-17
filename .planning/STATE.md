@@ -2,15 +2,15 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-foundation-04-PLAN.md (gap closure)
-last_updated: "2026-08-16T22:00:00Z"
-last_activity: "2026-08-16 — Phase 1 Foundation complete: gap closure plan 01-04 — audit_history trigger + stub pages (AV-10, LC-05, PS-03)"
+status: completed
+stopped_at: Completed 02-input-intake-framework-05-PLAN.md (gap closure)
+last_updated: "2026-08-17T16:05:00.000Z"
+last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-15)
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation) — COMPLETE
-Plan: 4/4 complete (01-01, 01-02, 01-03, 01-04 gap closure)
-Status: Complete — ready for Phase 2
-Last activity: 2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)
+Phase: 2 of 7 (Input Intake Framework) — COMPLETE
+Plan: 5/5 complete (02-01, 02-02, 02-03, 02-04 gap closure, 02-05 gap closure)
+Status: Complete — ready for Phase 3
+Last activity: 2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed
 
 Progress: [██████████] 100% (Phase 1)
 
@@ -54,6 +54,11 @@ Progress: [██████████] 100% (Phase 1)
 *Updated after each plan completion*
 | Phase 01-foundation P03 | 14min | 2 tasks | 25 files |
 | Phase 01-foundation P04 | 7min | 2 tasks | 5 files |
+| Phase 02-input-intake-framework P02 | 5min | 1 tasks | 11 files |
+| Phase 02-input-intake-framework P01 | 9min | 2 tasks | 21 files |
+| Phase 02-input-intake-framework P03 | 17min | 2 tasks | 19 files |
+| Phase 02-input-intake-framework P05 | 3min | 1 tasks | 2 files |
+| Phase 02-input-intake-framework P04 | 8min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -80,6 +85,17 @@ Recent decisions affecting current work:
 - [Phase 01-foundation gap closure]: dynamicParams=false required on /phase/[id] alongside generateStaticParams to ensure out-of-range paths 404 instead of rendering with NaN phaseId
 - [Phase 01-foundation]: REVOKE placed after app_role DO block in seed.ts — PostgreSQL REVOKE on never-granted privilege is no-op, making it idempotent on every container boot
 - [Phase 01-foundation]: generateStaticParams for /phase/[id] prebuilds all 10 phase routes at build time — consistent with Next.js SSG pattern for finite known route sets
+- [Phase 02-input-intake-framework]: In-memory adjacency list for POC dependency graph with DB query fallback for check_results/findings
+- [Phase 02-input-intake-framework]: activateVersion deactivates current active version first then activates new — DB partial unique index enforces single-active at DB level
+- [Phase 02-input-intake-framework]: Prior versions never deleted — only active=false and invalidatedBy set; getVersionHistory returns all versions
+- [Phase 02-input-intake-framework]: confirm_viewed === true (strict equality) in siHandler and API route — prevents truthy bypass of AUTO_INGEST_PROHIBITED
+- [Phase 02-input-intake-framework]: Bash heredoc used to write intake stub replacements — Write tool output was overridden by prior agent stubs already on disk
+- [Phase 02-input-intake-framework]: Moved API routes from root app/api/ to src/app/api/ — root-level app/ directory shadows src/app/ in Next.js, breaking all UI routes
+- [Phase 02-input-intake-framework]: @base-ui/react Button has no asChild support — AlertDialogTrigger and download links use styled Tailwind classes directly
+- [Phase 02-input-intake-framework]: findMetadataValue uses exact equality on col A/B only — prevents data-table column headers from matching metadata labels in fileValidator.ts Rules 3+4
+- [Phase 02-input-intake-framework]: Rule 4 compares against config.productName (case-insensitive includes) — hardcoded EV-INV-800 comparison removed from fileValidator.ts
+- [Phase 02-input-intake-framework]: Per-card Synthetic POC Data disclaimer removed — global AppShell SyntheticBadge is the canonical coverage point; per-card duplication removed
+- [Phase 02-input-intake-framework]: Version History section wrapped in id='version-history' scroll anchor with h2 heading and explanatory text for discoverability (UAT gap 6 closure)
 
 ### Pending Todos
 
@@ -92,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-16T21:46:32.693Z
-Stopped at: Completed 01-foundation-04-PLAN.md
+Last session: 2026-08-17T15:55:09.152Z
+Stopped at: Completed 02-input-intake-framework-04-PLAN.md
 Resume file: None

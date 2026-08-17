@@ -13,16 +13,27 @@
 #   - Backoff 1s / 2s / 4s — Claude's Discretion per CONTEXT.md (small base, predictable).
 #   - Log destination `/tmp/pivota-dev.log` — Open Question #4 resolved (always
 #     writable inside Daytona sandboxes; matches existing convention).
-#   - Agent-synthesized (multi-match: compose + react-next): this project has both
-#     docker-compose.yml (postgres+redis+app services) and next.config.mjs. The
-#     compose file already encodes migrate→seed→serve ordering in the app service
-#     command; the wrapper delegates entirely to `docker compose up --build`.
-#   - No install step: compose builds the app image which handles npm ci internally
-#     via the Dockerfile; no host-level node_modules needed.
-#   - LOCK_FILE / INSTALL_CMD left empty: docker layer cache is the sentinel.
-#   - EXEC_CMD = `docker compose up --build`: --build is load-bearing (source
-#     changes between boots must not run stale cached images).
-#   - Ready signal port 3000: the app service publishes 3000:3000.
+#   - Lockfile-sentinel skip combined with INSTALL_PRESENCE_CHECK — RESEARCH.md
+#     Pitfall 6 (sentinel survives reboots but install output dirs may not on
+#     fresh tmpfs; never skip on a clean directory).
+#   - Retry exits with INNER command's last exit code (not a fixed 1) so callers
+#     can disambiguate failures from the wrapper.
+#   - run_install has an npm ERESOLVE fallback (--legacy-peer-deps) + a FATAL
+#     marker (D-12.1) — a scaffold with a lagging peer range must not silently
+#     leave node_modules empty and hang the preview on "Waiting to bind".
+#
+# Agent-synthesized rationale (multi-match: compose + react-next):
+#   This project matched both `compose` and `react-next` catalog entries.
+#   Canonical resolution: the compose entry wins for exec — `docker compose up
+#   --build` is the single foreground process; compose handles DB health-gating
+#   (postgres + redis), migrate → seed → `npm run dev` inside the app container.
+#   The react-next pre-exec snippet (allowedDevOrigins overlay) is retained
+#   because next.config.mjs does NOT yet declare allowedDevOrigins and the
+#   overlay seed is still applicable for future Next versions that pick it up.
+#   No host-env preamble is needed: compose services bind via their own
+#   `ports:` block; the app service runs `npm run dev` with the CMD in the
+#   Dockerfile (port 3000). The docker-compose.yml already uses 0.0.0.0 binding
+#   (no loopback restriction in `ports:` declarations).
 
 set -euo pipefail
 
@@ -46,46 +57,59 @@ if ! flock -n 200; then
 fi
 
 # === D-11.4: tee stdout/stderr to /tmp/pivota-dev.log AND pass through ===
+# Researcher resolved log destination: /tmp/pivota-dev.log (always writable,
+# matches existing convention). SSE chat panel sees output live AND a file
+# exists for scrollback / replay.
 mkdir -p /tmp
 exec > >(tee -a /tmp/pivota-dev.log) 2>&1
 echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: agent-synthesized)"
 
 # === D-11.1 + D-11.2: per-stack 0.0.0.0 binding + host allowlist relaxation ===
-# Compose services control their own bind addresses via the `ports:` block in
-# the compose file — there is no env-var lever the wrapper can pull to force
-# 0.0.0.0 binding for child containers. The wrapper preamble's per-stack env
-# block is intentionally EMPTY for this compose entry.
+# Compose entry: compose services control their own bind addresses via the
+# `ports:` block in the compose file — there is no env-var lever the wrapper
+# can pull to force 0.0.0.0 binding for child containers. The env preamble
+# is intentionally empty for this compose-driven project (compose.md §Env preamble).
 #
-# The app service in docker-compose.yml publishes port 3000:3000 (0.0.0.0 bind
-# is compose's default for published ports). The Next.js command inside the
-# container already uses `npm run dev` which invokes `next dev -H 0.0.0.0`.
-#
-# WARNING — sandbox preview reachability:
-# If a compose service declares `ports: ["127.0.0.1:8080:8080"]`, the service is
-# bound to the sandbox's loopback only and the preview iframe will NOT see it.
-# This project's compose uses "3000:3000" (no loopback restriction) — correct.
+# The docker-compose.yml `ports:` mappings use short form ("5432:5432",
+# "6379:6379", "3000:3000") which defaults to 0.0.0.0 binding — no loopback
+# restriction detected; preview iframe access is not blocked at the wrapper level.
 
 # === D-11.3: .env.example -> .env seed (platform-injection-safe) ===
-# This project uses .env.local / .env.local.example rather than .env.example.
-# The compose file hard-codes DATABASE_URL and REDIS_URL directly in the
-# compose environment: block (no platform injection needed for compose services).
-# Native .env seeding is a no-op for compose-only apps but we seed .env.local
-# for any host-side tooling (e.g. drizzle-kit, tsx migrations run outside compose).
-if [[ ! -f .env.local && -f .env.local.example ]]; then
-  echo "[pivota] seeding .env.local from .env.local.example (preserving platform-injected vars)"
+# Seed .env from .env.example for first boot, but NEVER let an .env.example
+# placeholder shadow a variable the platform already injected into the sandbox
+# environment. The motivating bug: .env.example shipped a dead
+# `DATABASE_URL=postgresql://user:pass@localhost/...` that overrode the injected
+# sidecar DATABASE_URL, so Prisma `db push`/`$connect()` failed. Any KEY already
+# set in the environment (DATABASE_URL, POSTGRES_*/MYSQL_*, REDIS_URL, PIVOTA_*,
+# plus PORT/NODE_ENV from the preamble above) is dropped from the copy so the
+# injected value wins. See references/runtime-environment.md §3.
+if [[ ! -f .env && -f .env.example ]]; then
+  echo "[pivota] seeding .env from .env.example (preserving platform-injected vars)"
   while IFS= read -r line || [[ -n "$line" ]]; do
-    trimmed="${line#"${line%%[![:space:]]*}"}"
+    trimmed="${line#"${line%%[![:space:]]*}"}"   # left-trim for the test only
     if [[ "$trimmed" == \#* || -z "$trimmed" || "$trimmed" != *"="* ]]; then
-      printf '%s\n' "$line"; continue
+      printf '%s\n' "$line"; continue            # keep comments / blanks / non-assignments
     fi
     key="${trimmed#export }"; key="${key%%=*}"; key="${key//[[:space:]]/}"
     if [[ -n "${!key+x}" ]]; then
       printf '# [pivota] %s omitted — provided by platform environment\n' "$key"
       continue
     fi
+    # D-11.5: sanitize the copied assignment. Documented .env.example files
+    # column-align inline `# comments` after values, and docker compose's .env
+    # parser passes those through as part of the value (motivating bug:
+    # `LDAP_URL=   # LDAP server URL, e.g. ldap://…` made a Spring app treat
+    # LDAP as enabled and crash-loop on boot, so the compose frontend behind a
+    # `service_healthy` dependency never started). Strip them from unquoted
+    # values only — a `#` inside quotes is part of the value.
     if [[ "$line" != *\"* && "$line" != *\'* ]]; then
       line="$(printf '%s' "$line" | sed -E 's/[[:space:]]+#.*$//')"
     fi
+    # Replace CHANGE_ME placeholder secrets with generated values. Placeholders
+    # are landmines at runtime, not just cosmetics: jjwt hard-rejects HMAC keys
+    # under 256 bits, so `JWT_SECRET=CHANGE_ME_BASE64_256BIT_SECRET` (240 bits)
+    # 500s every login. Same generated value is seen by every compose service
+    # reading this .env, so cross-service credentials stay consistent.
     value="${line#*=}"
     value_lc="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
     if [[ "$value_lc" == change_me* || "$value_lc" == changeme* ]]; then
@@ -95,24 +119,127 @@ if [[ ! -f .env.local && -f .env.local.example ]]; then
     else
       printf '%s\n' "$line"
     fi
-  done < .env.local.example > .env.local
+  done < .env.example > .env
 fi
 
-# === No pre-exec snippet needed ===
-# docker compose handles all service builds internally via Dockerfile.
+# === Optional pre-exec snippet (Next.js allowedDevOrigins overlay) ===
+# Borrowed from react-next catalog entry: overlay next.config.* to permit dev
+# origins. Only fires if user's config does NOT already declare allowedDevOrigins.
+# compose.md does not need this; it is included here because this project is a
+# Next.js app inside compose — the Next dev server inside the container benefits
+# from the overlay for sandbox preview iframe embedding.
+#
+# The overlay is written to the host repo (mounted into the container if the
+# compose file uses a bind mount — the current docker-compose.yml does NOT mount
+# the host directory, so this overlay is a best-effort seed for native-run mode
+# and for future compose override setups that do mount the source).
+for CFG in next.config.mjs next.config.js next.config.ts; do
+  if [[ -f "$CFG" ]]; then
+    if ! grep -q "allowedDevOrigins" "$CFG" 2>/dev/null; then
+      mkdir -p .pivota
+      cat > .pivota/next.config.pivota.cjs <<'EOF'
+// Auto-generated by pivota init-dev-server. Extends user's next.config to permit
+// Daytona preview origin embedding in dev. Phase 39 will refine this; for now
+// the overlay is a best-effort seed that only takes effect for Next versions
+// that expose a dynamic config-merge hook (see Notes in catalog entry).
+module.exports = (phase, { defaultConfig }) => {
+  let user = {};
+  try { user = require('../next.config.js'); }
+  catch { try { user = require('../next.config.mjs').default || {}; } catch {} }
+  if (typeof user === 'function') user = user(phase, { defaultConfig });
+  return {
+    ...user,
+    allowedDevOrigins: [
+      ...(user.allowedDevOrigins || []),
+      '*.preview.daytona.io',
+      '*.daytona.work',
+    ],
+  };
+};
+EOF
+      echo "[pivota] wrote .pivota/next.config.pivota.cjs (allowedDevOrigins overlay)"
+    fi
+    break
+  fi
+done
 
-# === D-12: no host-level install step for compose projects ===
-# docker compose up --build triggers image builds (including npm ci inside the
-# Dockerfile). The wrapper has no lock file to hash at the host level.
-# LOCK_FILE is empty; the install-sentinel branch is skipped.
+# === D-12: idempotent install via lockfile hash + presence check ===
+# Compose entry: no host-side install needed — `docker compose up --build`
+# triggers docker's own layer-cache-aware build inside the container.
+# LOCK_FILE_PATH and INSTALL_CMD are intentionally empty; the sentinel branch
+# short-circuits cleanly (compose.md §Lock file / §Install command).
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH=""
 INSTALL_PRESENCE_CHECK=""
-INSTALL_CMD=''
+INSTALL_CMD=''   # single-quoted: catalog must escape internal quotes correctly
 
-# Lock file path is empty for compose — skip install sentinel logic entirely.
+run_install() {
+  echo "[pivota] running install: $INSTALL_CMD"
+  local rc=0
+  bash -c "$INSTALL_CMD" || rc=$?   # capture directly; `if …; then` would reset $? to 0 on the no-else path
+  if (( rc == 0 )); then
+    return 0
+  fi
+  # D-12.1: npm peer-dependency (ERESOLVE) fallback + loud failure.
+  if [[ "$INSTALL_CMD" == *"npm "* ]]; then
+    echo "[pivota] WARN install failed (exit=$rc) — retrying with --legacy-peer-deps (peer conflict force-resolved; runtime incompatibility possible)"
+    local rc2=0
+    npm install --legacy-peer-deps || rc2=$?
+    if (( rc2 == 0 )); then
+      echo "[pivota] WARN install succeeded via --legacy-peer-deps fallback — a dependency's peer range is unsatisfied; fix package.json (this is a real bug, not just a warning)"
+      return 0
+    fi
+    rc=$rc2
+  fi
+  echo "[pivota] FATAL install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
+  return "$rc"
+}
+
+if [[ -n "$LOCK_FILE_PATH" && -f "$LOCK_FILE_PATH" ]]; then
+  CURRENT_HASH=$(sha256sum "$LOCK_FILE_PATH" | cut -d' ' -f1)
+  PREVIOUS_HASH=$(cat "$SENTINEL" 2>/dev/null || echo "")
+
+  # RESEARCH.md Pitfall 6: lockfile-unchanged is necessary but not sufficient —
+  # the install-output directory must also exist (sentinel survives but
+  # node_modules / .venv / target might not on a fresh sandbox tmpfs).
+  PRESENCE_OK=1
+  if [[ -n "$INSTALL_PRESENCE_CHECK" && ! -e "$INSTALL_PRESENCE_CHECK" ]]; then
+    PRESENCE_OK=0
+  fi
+
+  if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
+    echo "[pivota] lockfile unchanged AND install output present; skipping install"
+  else
+    if [[ "$PRESENCE_OK" == "0" ]]; then
+      echo "[pivota] install output ($INSTALL_PRESENCE_CHECK) missing; install required"
+    else
+      echo "[pivota] lockfile changed (or first boot); install required"
+    fi
+    run_install
+    echo "$CURRENT_HASH" > "$SENTINEL"
+  fi
+elif [[ -n "$INSTALL_CMD" ]]; then
+  # No lockfile to compare; honor any sentinel mismatch by running install once per sandbox.
+  if [[ ! -f "$SENTINEL" ]]; then
+    run_install
+    touch "$SENTINEL"
+  fi
+fi
 
 # === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
+# Final-attempt exit code propagates the INNER command's exit code, not a
+# fixed 1, so the caller (platform / Daytona) can distinguish "wrapper bug"
+# from "user command failed with N".
+#
+# compose entry exec: `docker compose up --build`
+# --build is load-bearing: pivota projects are actively modified between boots;
+# a plain `docker compose up` reuses the cached image and keeps crash-looping
+# on a stale container (compose.md §Exec command). Docker layer cache keeps the
+# rebuild cheap when nothing changed.
+# The compose file already health-gates postgres + redis before starting the app
+# service, which runs: npx tsx src/db/migrate.ts && npx tsx src/db/seed.ts && npm run dev
+# The wrapper does NOT duplicate migrate — it lives inside the container command
+# AFTER the image's install step (references/runtime-environment.md §3).
 EXEC_CMD='docker compose up --build'
 ATTEMPT=1
 DELAY=1
