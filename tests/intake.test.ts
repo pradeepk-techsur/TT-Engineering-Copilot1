@@ -81,3 +81,65 @@ describe('SI Auto-Ingest Prevention', () => {
     await expect(handleSampleIngest(0, 'internal', false)).rejects.toThrow('AUTO_INGEST_PROHIBITED');
   });
 });
+
+describe('File Validator — metadata field rules (Rules 3+4)', () => {
+  it('accepts XLSX with correct Project ID in metadata row even when data table has "Project ID" column header', async () => {
+    // Metadata rows have label in col A, value in col B
+    // Data table header row has "Project ID" in col C and "Product Name" in col D (not col A/B) — must not false-trigger
+    const buf = makeXlsxBuffer([
+      ['Project ID', 'EVINV-POC-001'],                                          // metadata row — label col A, value col B
+      ['Product', 'EV-INV-800'],                                                // metadata row — label col A, value col B
+      ['Part Number', 'Description', 'Project ID', 'Product Name', 'Revision'], // data table header (col C/D — excluded by i<=1)
+      ['PN-001', 'Inverter Module', 'EVINV-POC-001', 'EV-INV-800', 'Rev A'],
+    ]);
+    const result = await validateUploadedFile(buf, 'test.xlsx', {
+      acceptedFormats: ['.xlsx'],
+      projectId: 'EVINV-POC-001',
+      productName: 'EV-INV-800',
+    });
+    expect(result.issues.find(i => i.code === 'PROJECT_ID_MISMATCH')).toBeUndefined();
+    expect(result.issues.find(i => i.code === 'PRODUCT_NAME_MISMATCH')).toBeUndefined();
+  });
+
+  it('accepts XLSX with correct Product Name even when data table has "Product Name" column header', async () => {
+    // "Product Name" header appears in col C of the data table (index 2, excluded by i<=1) — must not false-trigger
+    const buf = makeXlsxBuffer([
+      ['Product', 'EV-INV-800'],                             // metadata row (label=Product col A, value col B)
+      ['Project ID', 'EVINV-POC-001'],                       // metadata row
+      ['ID', 'Description', 'Product Name', 'Revision'],     // data table header — "Product Name" in col C (excluded)
+      ['R001', 'Traction Inverter Board', 'EV-INV-800', 'Rev A'],
+    ]);
+    const result = await validateUploadedFile(buf, 'test.xlsx', {
+      acceptedFormats: ['.xlsx'],
+      productName: 'EV-INV-800',
+      projectId: 'EVINV-POC-001',
+    });
+    expect(result.issues.find(i => i.code === 'PRODUCT_NAME_MISMATCH')).toBeUndefined();
+  });
+
+  it('fires PROJECT_ID_MISMATCH when metadata row has wrong project ID', async () => {
+    const buf = makeXlsxBuffer([
+      ['Project ID', 'WRONG-999'],  // metadata row — wrong value
+      ['ID', 'Name', 'Revision'],
+      ['REQ-001', 'Some req', 'Rev A'],
+    ]);
+    const result = await validateUploadedFile(buf, 'test.xlsx', {
+      acceptedFormats: ['.xlsx'],
+      projectId: 'EVINV-POC-001',
+    });
+    expect(result.issues.find(i => i.code === 'PROJECT_ID_MISMATCH')).toBeDefined();
+  });
+
+  it('Rule 4 uses config.productName — fires PRODUCT_NAME_MISMATCH for wrong product', async () => {
+    const buf = makeXlsxBuffer([
+      ['Product', 'WRONG-PRODUCT'],  // metadata row — wrong value
+      ['ID', 'Name', 'Revision'],
+      ['REQ-001', 'Some req', 'Rev A'],
+    ]);
+    const result = await validateUploadedFile(buf, 'test.xlsx', {
+      acceptedFormats: ['.xlsx'],
+      productName: 'EV-INV-800',
+    });
+    expect(result.issues.find(i => i.code === 'PRODUCT_NAME_MISMATCH')).toBeDefined();
+  });
+});

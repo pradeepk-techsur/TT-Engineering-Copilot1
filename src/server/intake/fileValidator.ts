@@ -11,6 +11,25 @@ interface FileValidatorConfig {
   maxPages?: number;                     // default 2
 }
 
+/**
+ * Searches rows for a metadata label in col A or col B (index 0-1) using
+ * exact case-insensitive equality, then returns the value in the adjacent cell
+ * (same row, next column). Ignores data-table column headers that only partially
+ * match (e.g. "Product Name" will NOT match exactLabel "Product").
+ */
+function findMetadataValue(rows: unknown[][], exactLabels: string[]): string {
+  for (const row of rows) {
+    const cells = (row as unknown[]).map(c => String(c ?? '').trim());
+    // Only check leading columns (index 0 and 1) — metadata labels are always in col A or B
+    for (let i = 0; i <= Math.min(1, cells.length - 2); i++) {
+      if (exactLabels.some(label => cells[i].toLowerCase() === label.toLowerCase())) {
+        return cells[i + 1] ?? '';
+      }
+    }
+  }
+  return '';
+}
+
 export async function validateUploadedFile(
   buffer: Buffer,
   fileName: string,
@@ -51,28 +70,21 @@ export async function validateUploadedFile(
     return { passed: false, issues, warnings };
   }
 
-  // Rule 3: project_id_field (XLSX only — check first sheet for Project ID row)
+  // Rule 3: project_id_field — exact-match label in col A/B, read adjacent value
   if (parsedContent.sheets && config.projectId) {
     const firstSheet = Object.values(parsedContent.sheets)[0] as unknown[][];
-    const allCells = firstSheet.flat().map(c => String(c ?? ''));
-    if (allCells.some(c => c.includes('Project ID') || c.includes('project_id'))) {
-      const pidIdx = allCells.findIndex(c => c.includes('Project ID') || c.includes('project_id'));
-      const pid = allCells[pidIdx + 1] ?? '';
-      if (pid && !pid.includes(config.projectId)) {
-        issues.push({ code: 'PROJECT_ID_MISMATCH', message: `Project ID in file does not match ${config.projectId}.`, field: 'project_id' });
-      }
+    const pid = findMetadataValue(firstSheet, ['Project ID', 'project_id', 'ProjectID']);
+    if (pid && !pid.toLowerCase().includes(config.projectId.toLowerCase())) {
+      issues.push({ code: 'PROJECT_ID_MISMATCH', message: `Project ID in file does not match ${config.projectId}.`, field: 'project_id' });
     }
   }
 
-  // Rule 4: product_name_field (similar — check for EV-INV-800)
+  // Rule 4: product_name_field — exact-match label in col A/B, compare against config.productName
   if (parsedContent.sheets && config.productName) {
-    const allCells = Object.values(parsedContent.sheets)[0]?.flat().map(c => String(c ?? '')) ?? [];
-    if (allCells.some(c => c.includes('Product') || c.includes('product'))) {
-      const pidx = allCells.findIndex(c => c.includes('Product') || c.includes('product'));
-      const prod = allCells[pidx + 1] ?? '';
-      if (prod && !prod.includes('EV-INV-800') && !prod.includes('EV INV')) {
-        issues.push({ code: 'PRODUCT_NAME_MISMATCH', message: `Product name in file does not match ${config.productName}.`, field: 'product_name' });
-      }
+    const firstSheet = Object.values(parsedContent.sheets)[0] as unknown[][];
+    const prod = findMetadataValue(firstSheet, ['Product', 'product', 'Product Name', 'ProductName']);
+    if (prod && !prod.toLowerCase().includes(config.productName.toLowerCase())) {
+      issues.push({ code: 'PRODUCT_NAME_MISMATCH', message: `Product name in file does not match ${config.productName}.`, field: 'product_name' });
     }
   }
 
