@@ -1,90 +1,152 @@
-// Stub implementation — full implementation in plan 02-01
-// This stub is sufficient for the versioning routes in 02-02 to compile and import
-
 import { db } from '@/db';
 import { phaseInputs, inputVersions, artifactRegistry } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { validateUploadedFile } from './fileValidator';
+import { ValidationResult } from './types';
+import { writeIntakeEvent } from './intakeAudit';
+import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
+import { randomUUID } from 'crypto';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
 
-interface UploadResult {
-  status: 'User Input Ready';
-  versionId: string;
-  artifactId: string;
-  versionNumber: number;
-  inputId: string;
-}
-
-/**
- * Handle user-uploaded file intake (UP behavior).
- * Creates artifact registry entry and new version record, activates version.
- */
 export async function handleUserUpload(
   phaseId: number,
   inputRole: 'external' | 'internal',
   fileName: string,
-  buffer: Buffer
-): Promise<UploadResult> {
-  // Find or create phase_input record
-  const [existingInput] = await db.select().from(phaseInputs).where(and(
-    eq(phaseInputs.projectId, 'EVINV-POC-001'),
-    eq(phaseInputs.phaseId, phaseId as unknown as number),
-    eq(phaseInputs.inputRole, inputRole),
-  ));
+  fileBuffer: Buffer,
+  projectId: string = 'EVINV-POC-001'
+): Promise<{ status: 'User Input Ready'; versionId: string; artifactId: string; validationResult: ValidationResult }> {
+  const config = PHASE_CONFIG_MAP[phaseId as keyof typeof PHASE_CONFIG_MAP];
+  if (!config) throw new Error(`Unknown phaseId: ${phaseId}`);
 
-  if (!existingInput) {
-    throw Object.assign(new Error('INPUT_NOT_FOUND: No phase input configured for this phase/role'), { httpStatus: 404 });
+  const intakeConfig = inputRole === 'external' ? config.externalIntake : config.internalIntake;
+
+  // Enforce intake behavior — UP inputs only
+  if (intakeConfig.behavior !== 'UP') {
+    throw new Error(`INTAKE_BEHAVIOR_MISMATCH: Phase ${phaseId} ${inputRole} input uses SI behavior, not UP.`);
   }
 
+  // Determine accepted formats
+  const formatStr = intakeConfig.format ?? 'DOCX/PDF/XLSX';
+  const acceptedFormats = formatStr.split('/').map(f => '.' + f.toLowerCase().trim());
+
+  // Run validation
+  const validationResult = await validateUploadedFile(fileBuffer, fileName, {
+    acceptedFormats,
+    projectId,
+    productName: 'EV-INV-800',
+    phaseId,
+    maxRows: 10,
+    maxPages: 2,
+  });
+
+  if (!validationResult.passed) {
+    // Update phase_inputs readiness status to reflect failure
+    await db.update(phaseInputs)
+      .set({ readinessStatus: 'Awaiting User Input', validationIssues: validationResult.issues as any })
+      .where(and(
+        eq(phaseInputs.projectId, projectId),
+        eq(phaseInputs.phaseId, phaseId as any),
+        eq(phaseInputs.inputRole, inputRole),
+      ));
+
+    throw Object.assign(
+      new Error(`FILE_VALIDATION_FAILED: ${validationResult.issues.map(i => i.code).join(', ')}`),
+      { validationResult, httpStatus: 422 }
+    );
+  }
+
+  // Save file to storage
+  const storageDir = path.join(process.cwd(), 'uploads', projectId, `phase${phaseId}`);
+  if (!existsSync(storageDir)) mkdirSync(storageDir, { recursive: true });
+  const storagePath = path.join(storageDir, `${inputRole}-v-${Date.now()}-${fileName}`);
+  writeFileSync(storagePath, fileBuffer);
+  const storageUri = storagePath;
+
   // Register artifact
-  const ext = fileName.split('.').pop()?.toUpperCase() ?? 'XLSX';
-  const [artifact] = await db.insert(artifactRegistry).values({
-    artifactName: fileName,
-    artifactType: ext as 'XLSX' | 'CSV' | 'DOCX' | 'PDF',
+  const artifactId = randomUUID();
+  await db.insert(artifactRegistry).values({
+    artifactId,
+    artifactName: intakeConfig.logicalName,
+    artifactType: acceptedFormats[0].replace('.', '').toUpperCase() as any,
     source: 'UserUploaded',
     intakeBehavior: 'UP',
     version: 1,
-    phaseId: phaseId as unknown as number,
-    gateId: phaseId as unknown as number,
-    inputVersionRefs: [],
-    generatedBy: 'user',
-    disclaimerPresent: false,
-    storageUri: `memory://${fileName}`,
-    fileSizeBytes: buffer.length,
-  }).returning();
+    phaseId: phaseId as any,
+    gateId: phaseId as any,
+    generatedBy: 'user-upload',
+    disclaimerPresent: true,
+    storageUri,
+    fileSizeBytes: fileBuffer.length,
+  });
 
-  // Count existing versions
-  const existingVersions = await db.select().from(inputVersions)
-    .where(eq(inputVersions.inputId, existingInput.inputId));
-  const nextVersionNumber = existingVersions.length + 1;
+  // Get or create phase_inputs row
+  let [phaseInput] = await db.select().from(phaseInputs)
+    .where(and(
+      eq(phaseInputs.projectId, projectId),
+      eq(phaseInputs.phaseId, phaseId as any),
+      eq(phaseInputs.inputRole, inputRole),
+    ));
 
-  // Deactivate existing active version
-  const [activeVersion] = existingVersions.filter(v => v.active);
-  if (activeVersion) {
-    await db.update(inputVersions)
-      .set({ active: false })
-      .where(eq(inputVersions.versionId, activeVersion.versionId));
+  if (!phaseInput) {
+    const [inserted] = await db.insert(phaseInputs).values({
+      projectId,
+      phaseId: phaseId as any,
+      inputRole,
+      logicalName: intakeConfig.logicalName,
+      intakeBehavior: 'UP',
+      systemRepresented: null,
+      readinessStatus: 'User Input Ready',
+      validationIssues: [],
+    }).returning();
+    phaseInput = inserted;
   }
+
+  // Deactivate prior versions
+  await db.update(inputVersions)
+    .set({ active: false })
+    .where(and(
+      eq(inputVersions.inputId, phaseInput.inputId),
+      eq(inputVersions.active, true),
+    ));
+
+  // Get current version count
+  const versions = await db.select().from(inputVersions)
+    .where(eq(inputVersions.inputId, phaseInput.inputId));
+  const versionNumber = versions.length + 1;
 
   // Create new active version
   const [newVersion] = await db.insert(inputVersions).values({
-    inputId: existingInput.inputId,
-    versionNumber: nextVersionNumber,
-    artifactId: artifact.artifactId,
+    inputId: phaseInput.inputId,
+    versionNumber,
+    artifactId,
     intakeBehavior: 'UP',
     active: true,
-    validationResult: { passed: true, issues: [] } as unknown as Record<string, unknown>,
+    validationResult: validationResult as any,
     affectedScope: [],
   }).returning();
 
-  // Update input readiness
+  // Update phase_inputs readiness
   await db.update(phaseInputs)
-    .set({ readinessStatus: 'User Input Ready' })
-    .where(eq(phaseInputs.inputId, existingInput.inputId));
+    .set({ readinessStatus: 'User Input Ready', validationIssues: [] })
+    .where(eq(phaseInputs.inputId, phaseInput.inputId));
 
-  return {
+  // Write intake audit event (all 13 fields)
+  await writeIntakeEvent({
+    event_type: 'USER_FILE_UPLOAD',
+    phase_id: phaseId,
+    logical_input: intakeConfig.logicalName,
+    intake_behavior: 'UP',
+    user_action: versionNumber === 1 ? 'file_uploaded' : 'revised_version_uploaded',
+    system_represented: null,
     status: 'User Input Ready',
-    versionId: newVersion.versionId,
-    artifactId: artifact.artifactId,
-    versionNumber: nextVersionNumber,
-    inputId: existingInput.inputId,
-  };
+    source_artifact_id: artifactId,
+    normalized_artifact_id: artifactId,
+    version: versionNumber,
+    validation_result: validationResult,
+    timestamp: new Date().toISOString(),
+    operator_id: 'user',
+  });
+
+  return { status: 'User Input Ready', versionId: newVersion.versionId, artifactId, validationResult };
 }
