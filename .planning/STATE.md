@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-lifecycle-phases-0-2-agents-01-PLAN.md
-last_updated: "2026-08-17T18:28:07.905Z"
+stopped_at: Completed 03-lifecycle-phases-0-2-agents-02-PLAN.md
+last_updated: "2026-08-17T18:33:24.530Z"
 last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 100
 ---
 
@@ -60,6 +60,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 02-input-intake-framework P05 | 3min | 1 tasks | 2 files |
 | Phase 02-input-intake-framework P04 | 8min | 2 tasks | 5 files |
 | Phase 03-lifecycle-phases-0-2-agents P01 | 6min | 2 tasks | 11 files |
+| Phase 03-lifecycle-phases-0-2-agents P02 | 10min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 02-input-intake-framework]: Version History section wrapped in id='version-history' scroll anchor with h2 heading and explanatory text for discoverability (UAT gap 6 closure)
 - [Phase 03-lifecycle-phases-0-2-agents]: Route files placed in src/app/api/ not app/api/ — consistent with Phase 2 decision that root-level app/ shadows src/app/ in Next.js
 - [Phase 03-lifecycle-phases-0-2-agents]: BaseAgent pattern established: all phase agents extend BaseAgent, call callLLM() with retry/truncation/prohibited-label guard, and buildAIRecommendation() with 'Advisory Only' label
+- [Phase 03-lifecycle-phases-0-2-agents]: RequirementTestability check is deterministic (no LLM call) — isTestable() is pure TypeScript on criterion text
+- [Phase 03-lifecycle-phases-0-2-agents]: isRevised=true parameter pattern for correction cycle — flows from API route through agent.run() to runTestabilityCheck()
+- [Phase 03-lifecycle-phases-0-2-agents]: seeded=true flag on findings distinguishes seeded (SI-01) from discovered issues — set at insert time and never modified
 
 ### Pending Todos
 
@@ -111,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T18:28:07.903Z
-Stopped at: Completed 03-lifecycle-phases-0-2-agents-01-PLAN.md
+Last session: 2026-08-17T18:33:24.529Z
+Stopped at: Completed 03-lifecycle-phases-0-2-agents-02-PLAN.md
 Resume file: None
