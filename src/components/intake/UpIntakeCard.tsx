@@ -115,11 +115,6 @@ export function UpIntakeCard({
           </div>
         )}
 
-        {/* Synthetic disclaimer */}
-        <div className="rounded-md bg-violet-500/5 border border-violet-500/20 px-3 py-2 text-xs text-violet-400">
-          Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
-        </div>
-
         {/* Drop zone */}
         <div
           {...getRootProps()}
