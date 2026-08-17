@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-input-intake-framework-02-PLAN.md
-last_updated: "2026-08-17T13:42:21.456Z"
+stopped_at: Completed 02-input-intake-framework-01-PLAN.md
+last_updated: "2026-08-17T13:46:34.908Z"
 last_activity: "2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 100
 ---
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 01-foundation P03 | 14min | 2 tasks | 25 files |
 | Phase 01-foundation P04 | 7min | 2 tasks | 5 files |
 | Phase 02-input-intake-framework P02 | 5min | 1 tasks | 11 files |
+| Phase 02-input-intake-framework P01 | 9min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 02-input-intake-framework]: In-memory adjacency list for POC dependency graph with DB query fallback for check_results/findings
 - [Phase 02-input-intake-framework]: activateVersion deactivates current active version first then activates new — DB partial unique index enforces single-active at DB level
 - [Phase 02-input-intake-framework]: Prior versions never deleted — only active=false and invalidatedBy set; getVersionHistory returns all versions
+- [Phase 02-input-intake-framework]: confirm_viewed === true (strict equality) in siHandler and API route — prevents truthy bypass of AUTO_INGEST_PROHIBITED
+- [Phase 02-input-intake-framework]: Bash heredoc used to write intake stub replacements — Write tool output was overridden by prior agent stubs already on disk
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T13:42:21.455Z
-Stopped at: Completed 02-input-intake-framework-02-PLAN.md
+Last session: 2026-08-17T13:46:34.907Z
+Stopped at: Completed 02-input-intake-framework-01-PLAN.md
 Resume file: None
