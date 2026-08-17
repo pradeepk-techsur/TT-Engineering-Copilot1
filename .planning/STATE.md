@@ -2,15 +2,15 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-foundation-04-PLAN.md (gap closure)
-last_updated: "2026-08-16T22:00:00Z"
-last_activity: "2026-08-16 — Phase 1 Foundation complete: gap closure plan 01-04 — audit_history trigger + stub pages (AV-10, LC-05, PS-03)"
+status: completed
+stopped_at: Completed 02-input-intake-framework-02-PLAN.md
+last_updated: "2026-08-17T13:42:21.456Z"
+last_activity: "2026-08-16 — Phase 1 gap closure complete: audit_history trigger (PS-03) + stub pages for /findings-actions, /audit, /phase/[id] (AV-10, LC-05)"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 100
 ---
 
@@ -54,6 +54,7 @@ Progress: [██████████] 100% (Phase 1)
 *Updated after each plan completion*
 | Phase 01-foundation P03 | 14min | 2 tasks | 25 files |
 | Phase 01-foundation P04 | 7min | 2 tasks | 5 files |
+| Phase 02-input-intake-framework P02 | 5min | 1 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation gap closure]: dynamicParams=false required on /phase/[id] alongside generateStaticParams to ensure out-of-range paths 404 instead of rendering with NaN phaseId
 - [Phase 01-foundation]: REVOKE placed after app_role DO block in seed.ts — PostgreSQL REVOKE on never-granted privilege is no-op, making it idempotent on every container boot
 - [Phase 01-foundation]: generateStaticParams for /phase/[id] prebuilds all 10 phase routes at build time — consistent with Next.js SSG pattern for finite known route sets
+- [Phase 02-input-intake-framework]: In-memory adjacency list for POC dependency graph with DB query fallback for check_results/findings
+- [Phase 02-input-intake-framework]: activateVersion deactivates current active version first then activates new — DB partial unique index enforces single-active at DB level
+- [Phase 02-input-intake-framework]: Prior versions never deleted — only active=false and invalidatedBy set; getVersionHistory returns all versions
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-16T21:46:32.693Z
-Stopped at: Completed 01-foundation-04-PLAN.md
+Last session: 2026-08-17T13:42:21.455Z
+Stopped at: Completed 02-input-intake-framework-02-PLAN.md
 Resume file: None
