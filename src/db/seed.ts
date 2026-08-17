@@ -1,6 +1,6 @@
 import { db } from './index';
 import { projectState, phaseStates } from './schema';
-import { sql } from 'drizzle-orm';
+import { sql, getTableColumns } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
@@ -31,14 +31,51 @@ async function seed() {
     syntheticDataIndicator: true,
   }).onConflictDoNothing();
 
-  // Insert all 10 phase_states rows
+  // Seeded AI recommendations for phases 0–2 — used by Gate Review Workspace tests.
+  // Advisory label 'Advisory Only — Human Decision Required' is always set here at seed time
+  // and overwritten by the real agent at execute time. SYNTHETIC POC data.
+  const SEEDED_AI_RECOMMENDATIONS: Record<number, object> = {
+    0: {
+      recommendedOutcome: 'Pass',
+      rationale: '[SYNTHETIC POC] Commercial assessment complete. EV-INV-800 meets bid/no-bid criteria for Category 1 NPI. Opportunity summary and capability gap matrix produced.',
+      findingsCited: [],
+      checksCited: [],
+      advisoryLabel: 'Advisory Only — Human Decision Required',
+    },
+    1: {
+      recommendedOutcome: 'Pass',
+      rationale: '[SYNTHETIC POC] Business case and costed proposal reviewed. Resource schedule milestone alignment acceptable. No critical cost variances detected.',
+      findingsCited: [],
+      checksCited: [],
+      advisoryLabel: 'Advisory Only — Human Decision Required',
+    },
+    2: {
+      recommendedOutcome: 'Conditional Pass',
+      rationale: '[SYNTHETIC POC] Requirements definition mostly complete. Finding F2-001 (REQ-THERM-004 non-testable criterion) raised. Conditional pass pending revised thermal criterion.',
+      findingsCited: ['F2-001'],
+      checksCited: ['RequirementTestability'],
+      advisoryLabel: 'Advisory Only — Human Decision Required',
+    },
+  };
+
+  // Insert all 10 phase_states rows — upsert aiRecommendation so the advisory label
+  // is always present in the DB even after a compose restart (volumes persist).
+  // All other fields use onConflict no-update to preserve live agent state.
   for (const phase of PHASE_CONFIG) {
+    const seededRec = SEEDED_AI_RECOMMENDATIONS[phase.phaseId] ?? null;
     await db.insert(phaseStates).values({
       projectId: 'EVINV-POC-001',
       phaseId: phase.phaseId as unknown as number,
       phaseState: phase.phaseId === 0 ? 'AwaitingInputs' : 'Pending',
       gateState: 'Locked',
-    }).onConflictDoNothing();
+      aiRecommendation: seededRec,
+    }).onConflictDoUpdate({
+      target: [phaseStates.projectId, phaseStates.phaseId],
+      // Only set aiRecommendation when it is currently null (preserve agent-set values)
+      set: {
+        aiRecommendation: sql`CASE WHEN phase_states.ai_recommendation IS NULL THEN ${JSON.stringify(seededRec) as any} ELSE phase_states.ai_recommendation END`,
+      },
+    });
   }
 
   // Revoke UPDATE/DELETE on audit_history from app_role (run as superuser)
