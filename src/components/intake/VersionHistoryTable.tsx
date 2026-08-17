@@ -8,7 +8,12 @@ export function VersionHistoryTable({ phaseId, inputRole }: { phaseId: number; i
   const { data } = useSWR(`/api/phases/${phaseId}/inputs/${inputRole}/versions`, fetcher);
 
   if (!data?.versions?.length) {
-    return <p className="text-xs text-[var(--color-text-muted)]">No versions yet.</p>;
+    return (
+      <div className="space-y-1">
+        <p className="text-xs text-[var(--color-text-muted)]">No versions yet.</p>
+        <p className="text-xs text-[var(--color-text-muted)]/70">Upload or ingest an input to create the first version entry.</p>
+      </div>
+    );
   }
 
   return (

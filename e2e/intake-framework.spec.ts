@@ -114,8 +114,17 @@ test.describe('Input Intake Panel (AV-04)', () => {
   test('loads with version history tables', async ({ page }) => {
     await page.goto('/phase/0/intake');
     await expect(page.getByText('Input Intake and Validation')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Version History' })).toBeVisible();
     await expect(page.getByText('External Input — Version History')).toBeVisible();
     await expect(page.getByText('Internal Input — Version History')).toBeVisible();
+  });
+
+  test('intake cards do not show Synthetic POC Data disclaimer', async ({ page }) => {
+    await page.goto('/phase/1/intake');
+    const body = await page.textContent('body');
+    // The AppShell header carries the global synthetic badge; per-card disclaimers are removed
+    const cardArea = page.getByTestId('up-intake-external');
+    await expect(cardArea.getByText(/Synthetic POC Data/)).not.toBeVisible();
   });
 
   test('back link returns to phase workspace', async ({ page }) => {
