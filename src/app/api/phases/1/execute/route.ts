@@ -18,7 +18,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Both inputs must be ready before phase execution.' }, { status: 409 });
   }
 
-  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date() })
+  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
     .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 1 as any)));
 
   try {
