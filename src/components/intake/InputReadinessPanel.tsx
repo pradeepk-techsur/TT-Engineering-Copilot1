@@ -95,7 +95,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
           data-testid="run-phase-button"
           onClick={handleRunPhase}
         >
-          {isExecuting ? 'Running…' : 'Run Phase'}
+          {isExecuting || status === 'Processing' ? 'Running…' : 'Run Phase'}
         </Button>
       </div>
       {executeError && (
