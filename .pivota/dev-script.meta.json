@@ -1,7 +1,7 @@
 {
   "generator_version": "init-dev-server@1",
-  "catalog_entry": "react-next",
-  "generated_at": "2026-08-17T17:04:37Z",
+  "catalog_entry": null,
+  "generated_at": "2026-08-17T17:33:49Z",
   "inspection_inputs_hash": "1a364c6168bb80f8b5552264f072be7ac17b566cbc97daf714d63eee748f4e62",
   "inspection_inputs": {
     "matched_globs": [
