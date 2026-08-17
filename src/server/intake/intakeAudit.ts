@@ -14,7 +14,7 @@ export async function writeIntakeEvent(event: Omit<IntakeEvent, 'event_id'>): Pr
     description: `${event.event_type}: ${event.logical_input} — ${event.user_action}`,
     actor: event.operator_id,
     relatedIds: [event.source_artifact_id, event.normalized_artifact_id],
-    payload: fullEvent as Record<string, unknown>,
+    payload: fullEvent as unknown as Record<string, unknown>,
   });
 
   return eventId;
