@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // xlsx uses fs.writeFileSync internally — opt-out of bundling so Node.js fs is available at runtime
+  serverExternalPackages: ['xlsx'],
   // Allow embedding in preview iframe — do NOT set X-Frame-Options or frame-ancestors: none
   async headers() {
     return [

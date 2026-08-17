@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { db } from '@/db';
 import { artifactRegistry } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import path from 'path';
@@ -44,7 +45,18 @@ export async function generateXlsx(
 
   const storageDir = getStorageDir(phaseId);
   const storagePath = path.join(storageDir, fileName);
-  XLSX.writeFile(wb, storagePath);
+  const xlsxBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  writeFileSync(storagePath, xlsxBuffer);
+
+  // Remove any stale AgentGenerated rows from prior partial runs
+  await db.delete(artifactRegistry)
+    .where(and(
+      eq(artifactRegistry.phaseId, phaseId as any),
+      eq(artifactRegistry.gateId, gateId as any),
+      eq(artifactRegistry.source, 'AgentGenerated'),
+      eq(artifactRegistry.generatedBy, generatedBy),
+      eq(artifactRegistry.artifactType, 'XLSX'),
+    ));
 
   const artifactId = randomUUID();
   await db.insert(artifactRegistry).values({
@@ -60,7 +72,7 @@ export async function generateXlsx(
     disclaimerPresent: true,
     storageUri: storagePath,
     rowCount: rows.length,
-    fileSizeBytes: 0,  // set after write
+    fileSizeBytes: xlsxBuffer.length,
   });
 
   return { artifactId, storageUri: storagePath, rowCount: rows.length };
@@ -88,6 +100,16 @@ export async function generateDocx(
   const storageDir = getStorageDir(phaseId);
   const storagePath = path.join(storageDir, fileName);
   writeFileSync(storagePath, fullContent, 'utf-8');
+
+  // Remove any stale AgentGenerated rows from prior partial runs
+  await db.delete(artifactRegistry)
+    .where(and(
+      eq(artifactRegistry.phaseId, phaseId as any),
+      eq(artifactRegistry.gateId, gateId as any),
+      eq(artifactRegistry.source, 'AgentGenerated'),
+      eq(artifactRegistry.generatedBy, generatedBy),
+      eq(artifactRegistry.artifactType, 'DOCX'),
+    ));
 
   const artifactId = randomUUID();
   await db.insert(artifactRegistry).values({
