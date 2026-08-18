@@ -31,11 +31,21 @@ interface OutputsPanelProps {
 }
 
 export function OutputsPanel({ phaseId }: OutputsPanelProps) {
-  const { data } = useSWR<OutputsApiResponse>(
+  const { data, error } = useSWR<OutputsApiResponse>(
     `/api/phases/${phaseId}/outputs`,
     fetcher,
     { refreshInterval: 3000 }
   );
+
+  if (!data && error) {
+    return (
+      <div data-testid="outputs-panel">
+        <div data-testid="outputs-error" className="text-sm text-red-400 py-2">
+          Could not load outputs. Please try again later.
+        </div>
+      </div>
+    );
+  }
 
   if (!data) {
     return (
