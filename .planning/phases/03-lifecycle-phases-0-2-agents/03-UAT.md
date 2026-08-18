@@ -1,9 +1,10 @@
 ---
-status: complete
+status: partial
 phase: 03-lifecycle-phases-0-2-agents
-source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md
+source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md, 03-05-PLAN.md
 started: 2026-08-17T19:03:46Z
-updated: 2026-08-17T19:28:00Z
+updated: 2026-08-18T00:00:00Z
+note: "Tests 1–7 cover plans 03-01 through 03-04. Tests 8–12 cover plan 03-05 (LLM Key Configuration UI) and require human verification with a running app."
 ---
 
 ## Current Test
@@ -47,12 +48,40 @@ reason: Blocked — phase execution not completing due to XLSX blocker (same roo
 expected: On any Gate Review page (/gate/0/review, /gate/1/review, /gate/2/review), the workspace renders dynamically from the API — no separate "gate pack document" link appears. The inputs, outputs, findings, AI recommendation, and decision history sections are present and populated from live state. Navigation from the Lifecycle view Gate links works correctly.
 result: pass
 
+### 8. Settings page reachable and renders correctly
+expected: Navigate to /settings (or click "Settings" in the sidebar). The page loads with the "AI Configuration" section and the LlmKeyConfigCard. The card shows "No key configured — AI agents cannot run" (red shield icon) when no key has been saved. The input field is type=password (characters masked). No "Show key" toggle exists anywhere on the page.
+result: pending
+
+### 9. LLM Key: Not Set badge visible in header when no key configured
+expected: On any page in the app (e.g. /), the AppShell header shows a red pulsing "LLM Key: Not Set" badge next to the Synthetic POC Data badge. Clicking the badge navigates to /settings.
+result: pending
+
+### 10. Save a valid Anthropic API key via the UI
+expected: On /settings, enter a valid Anthropic key (starting with "sk-ant-") in the password input and click "Save Key". The input clears immediately. A green success message appears: "API key saved and encrypted successfully." The status display changes to show "Key configured" (green shield) with the masked key (e.g. "sk-ant-api0...****") and the save date. The header badge changes to green "LLM Key: Configured". Refreshing the page preserves the configured state.
+result: pending
+
+### 11. Key is never exposed — masked display only after save
+expected: After saving a key, the real key value is never visible anywhere in the UI. The input field is cleared. The status shows only the masked form (first 10 chars + "...****"). Opening browser DevTools → Network → the GET /api/settings/llm-key response contains only { configured: true, maskedKey: "sk-ant-api0...****", updatedAt: "..." } — the full key string is absent from the response body.
+result: pending
+
+### 12. Invalid key format rejected by the UI
+expected: On /settings, enter a key that does not start with "sk-ant-" (e.g. "bad-key-12345678") and click "Save Key". An error message appears: "Invalid Anthropic API key format. Key must start with 'sk-ant-'." The key is not saved — the status remains "No key configured".
+result: pending
+
+### 13. Remove key via UI with confirmation dialog
+expected: With a key already configured, click "Remove Key" on /settings. An AlertDialog appears: "Remove Anthropic API Key?" with a warning that AI agents will stop functioning. Clicking Cancel closes the dialog without removing the key. Clicking "Remove Key" in the dialog removes the key — the status reverts to "No key configured" (red shield) and the header badge reverts to red pulsing "LLM Key: Not Set".
+result: pending
+
+### 14. Phase execute returns 503 with settings link when no key configured
+expected: With no key configured, ensure phase inputs are ready for Phase 0, then click "Run Phase". The Phase Workspace shows an error message. The underlying API response is POST /api/phases/0/execute → 503 { error_code: "LLM_KEY_NOT_CONFIGURED", message: "Anthropic API key is not configured. Go to Settings to add your key.", settings_url: "/settings" }. The UI surfaces this error (not a silent failure).
+result: pending
+
 ## Summary
 
-total: 7
+total: 14
 passed: 3
 issues: 3
-pending: 0
+pending: 7
 skipped: 1
 
 ## Self-Check
@@ -89,19 +118,12 @@ per_test:
 ## Gaps
 
 - truth: "After uploading inputs and clicking Execute Phase, two compact artifacts appear (Opportunity Summary DOCX + Capability Gap Matrix XLSX)"
-  status: failed
-  reason: "User reported: 'Run Phase' button looks active but no action happens after clicking on it."
-  severity: blocker
-  test: 1
-  source: self_check
-  root_cause: "xlsx 0.18.5 XLSX.writeFile() fails inside Next.js App Router server context — Next.js bundles xlsx without fs access; DOCX (writeFileSync) succeeds but XLSX.writeFile throws 'cannot save file'. The artifact generator needs xlsx added to serverExternalPackages in next.config.mjs so Next.js does not bundle it. Evidence: POST /api/phases/0/execute → 500 {error_code: AGENT_FAILED, message: 'cannot save file .../phase0-capability-gap-matrix.xlsx'} after 65s LLM call (confirming LLM succeeded; opportunity-summary.txt written; XLSX step fails)."
-  artifacts:
-    - path: "src/server/artifacts/artifactGenerator.ts"
-      issue: "XLSX.writeFile fails in Next.js server bundle — xlsx not in serverExternalPackages"
-    - path: "next.config.mjs"
-      issue: "Missing serverExternalPackages: ['xlsx']"
-  missing:
-    - "Add serverExternalPackages: ['xlsx'] to next.config.mjs"
-    - "Clean duplicate artifact_registry rows from partial successful runs"
-  debug_session: ""
+  status: closed
+  closed_by: "03-04-PLAN.md — xlsx bundling fix (serverExternalPackages), idempotent artifact registry, Run Phase button wired"
+  original_blocker: "XLSX.writeFile() fails inside Next.js App Router server context — fixed by serverExternalPackages: ['xlsx'] in next.config.mjs and buffer write pattern in artifactGenerator.ts"
+
+- truth: "Anthropic API key must be configurable from UI without editing .env files"
+  status: closed
+  closed_by: "03-05-PLAN.md — LlmKeyConfigCard at /settings, AES-256-GCM encrypted storage in llm_key_config table, BaseAgent reads key from DB at call time"
+  pending_human_verification: "Tests 8–14 in UAT require a running app with a real Anthropic key to fully verify end-to-end"
 
