@@ -96,12 +96,13 @@ Plans:
   4. Gate Review Workspace for Gates 0, 1, and 2 is rendered dynamically from structured state (active inputs, outputs, findings, open actions, AI recommendation, human comments, human decision) — no separate gate-pack artifact is generated; gate decisions are persisted with reviewer role, rationale, timestamp, and artifact versions reviewed.
   5. All six outputs (two per phase) are within compact artifact size limits; XLSX artifacts have ≤10 meaningful rows and 6–10 fields; DOCX/PDF artifacts are ≤2 pages; every artifact carries the synthetic disclaimer and provenance fields.
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
 - [ ] 03-01-PLAN.md — BaseAgent LLM wrapper, artifact generator (disclaimer injection, compact standards), Phase 0 Bid/No-Bid agent, Gate 0 review/decide API
 - [ ] 03-02-PLAN.md — Phase 1 Proposal & Cost agent; Phase 2 Requirements agent + RequirementTestability deterministic check (SI-01: REQ-THERM-004 seeded issue + correction cycle); Gate 1 and Gate 2 routes
 - [ ] 03-03-PLAN.md — Gate Review Workspace (AV-08): AIRecommendationPanel with advisory label, GateDecisionSelector with no pre-selection + AlertDialog, dynamic rendering from ProjectState; Playwright tests for G0–G2
+- [ ] 03-04-PLAN.md — LLM API Key Configuration UI: encrypted key storage (AES-256-GCM) in DB, /settings page with password-style input, masked status badge in AppShell header, BaseAgent patched to read key from DB at call time; key never returned to browser or logged in plaintext
 
 ---
 
@@ -188,7 +189,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-08-16 |
 | 2. Input Intake Framework | 5/5 | Complete | 2026-08-17 |
-| 3. Lifecycle Phases 0–2 Agents | 0/TBD | Not started | - |
+| 3. Lifecycle Phases 0–2 Agents | 0/4 | Not started | - |
 | 4. Lifecycle Phases 3–4 Agents (Flagship) | 0/TBD | Not started | - |
 | 5. Lifecycle Phases 5–7 Agents | 0/TBD | Not started | - |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
