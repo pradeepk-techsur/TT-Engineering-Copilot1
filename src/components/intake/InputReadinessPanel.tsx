@@ -1,4 +1,5 @@
 'use client';
+import React, { useState } from 'react';
 import useSWR from 'swr';
 import { UpIntakeCard } from './UpIntakeCard';
 import { SiIntakeCard } from './SiIntakeCard';
@@ -20,11 +21,47 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
     `/api/phases/${phaseId}/execution-status`, fetcher, { refreshInterval: 3000 }
   );
 
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executeError, setExecuteError] = useState<string | null>(null);
+
   const config = PHASE_CONFIG_MAP[phaseId as keyof typeof PHASE_CONFIG_MAP];
 
   const refresh = () => {
     mutateReadiness();
     mutateStatus();
+  };
+
+  const handleRunPhase = async () => {
+    setIsExecuting(true);
+    setExecuteError(null);
+    try {
+      const res = await fetch(`/api/phases/${phaseId}/execute`, { method: 'POST' });
+
+      // Guard: parse JSON only when the response is actually JSON.
+      // The preview proxy can return a plain-text/HTML error page (e.g. "Preview
+      // unavailable") when the upstream times out — trying to .json() that causes
+      // "Unexpected token P … is not valid JSON".
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!contentType.includes('application/json')) {
+        // Non-JSON response — proxy or server error
+        setExecuteError('Server returned an unexpected response. Check that the app is running.');
+        return;
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        setExecuteError(data.message ?? data.error_code ?? 'Execution failed');
+      } else {
+        // 202 Accepted: execution started in background — SWR on /execution-status
+        // will automatically reflect the Running → AwaitingGate transition.
+        refresh();
+      }
+    } catch (err: any) {
+      setExecuteError(err.message ?? 'Network error during execution');
+    } finally {
+      setIsExecuting(false);
+      refresh();
+    }
   };
 
   if (!config || !readiness) {
@@ -67,13 +104,18 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         {/* Run Phase button — DISABLED until both inputs ready */}
         <Button
           size="sm"
-          disabled={!bothReady || status === 'Processing' || status === 'Complete'}
+          disabled={!bothReady || status === 'Processing' || status === 'Complete' || isExecuting}
           data-testid="run-phase-button"
-          onClick={() => {/* Phase execution triggered by phase agent — not implemented in this plan */}}
+          onClick={handleRunPhase}
         >
-          Run Phase
+          {isExecuting ? 'Running…' : 'Run Phase'}
         </Button>
       </div>
+      {executeError && (
+        <p className="text-xs text-red-400 mt-1" data-testid="execute-error">
+          Execution error: {executeError}
+        </p>
+      )}
 
       {/* External Input Card */}
       <div>

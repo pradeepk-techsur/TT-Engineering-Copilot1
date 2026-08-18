@@ -120,7 +120,10 @@ fi
 # Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
 # here. Empty string when not needed.
 
-# Only patch if user's next.config doesn't already include allowedDevOrigins.
+# Overlay next.config.{js,mjs,ts} to permit dev origins. The overlay only fires
+# if the user's config does NOT already declare `allowedDevOrigins`. The overlay
+# file lives at `.pivota/next.config.pivota.cjs` (CJS suffix for require()
+# interop across Next versions).
 for CFG in next.config.mjs next.config.js next.config.ts; do
   if [[ -f "$CFG" ]]; then
     if ! grep -q "allowedDevOrigins" "$CFG" 2>/dev/null; then
@@ -155,7 +158,7 @@ done
 # a node/prisma migrator would fail with `prisma: not found`; that exact
 # swallowed failure once shipped an empty-DB app). A DB-backed Next.js app
 # provisions its DB via its own docker-compose.yml, where migrate -> seed ->
-# serve run inside the app service command AFTER the image's install step --
+# serve run inside the app service command AFTER the image's install step —
 # see references/runtime-environment.md §3.
 
 # === D-12: idempotent install via lockfile hash + presence check ===

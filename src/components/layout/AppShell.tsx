@@ -1,6 +1,7 @@
 import { Sidebar } from './Sidebar';
 import { Breadcrumb } from './Breadcrumb';
 import { SyntheticBadge } from './SyntheticBadge';
+import { LlmKeyStatusBadge } from '@/components/settings/LlmKeyStatusBadge';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -19,7 +20,8 @@ export function AppShell({ children, phaseId, gateId }: AppShellProps) {
         <span className="text-xs text-[var(--color-text-muted)]">
           EV-INV-800 · EVINV-POC-001
         </span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <LlmKeyStatusBadge />
           <SyntheticBadge />
         </div>
       </header>

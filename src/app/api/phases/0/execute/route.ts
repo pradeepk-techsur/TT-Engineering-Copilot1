@@ -19,29 +19,35 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Both inputs must be ready before phase execution.' }, { status: 409 });
   }
 
-  // Transition to Running
+  // Check LLM key before transitioning state (fast fail — avoids a Running→AwaitingInputs flip)
+  const { getLlmKeyStatus } = await import('@/server/config/llmKeyService');
+  const { configured: keyConfigured } = await getLlmKeyStatus();
+  if (!keyConfigured) {
+    return NextResponse.json({
+      error_code: 'LLM_KEY_NOT_CONFIGURED',
+      message: 'Anthropic API key is not configured. Go to Settings to add your key.',
+      settings_url: '/settings',
+    }, { status: 503 });
+  }
+
+  // Transition to Running and return 202 immediately — the LLM call runs in the background.
+  // The client polls /api/phases/[id]/execution-status (SWR refreshInterval: 3000) and will
+  // see Running → AwaitingGate without waiting for the full LLM response.
   await db.update(phaseStates)
     .set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
     .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
 
-  try {
-    const context = await buildAgentContext(PROJECT_ID, 0);
+  // Fire-and-forget: do NOT await this Promise — the response is already sent.
+  buildAgentContext(PROJECT_ID, 0).then(context => {
     const agent = new BidNoBidAgent();
-    const result = await agent.run(context);
-
-    return NextResponse.json({
-      success: true,
-      phaseId: 0,
-      outputs: result.outputs,
-      aiRecommendation: result.aiRecommendation,
-      findings: result.findings,
-    });
-  } catch (err: any) {
-    // Reset to AwaitingInputs on failure
+    return agent.run(context);
+  }).catch(async (err: unknown) => {
+    const e = err as NodeJS.ErrnoException;
+    console.error('[phase0/execute] agent failed:', e.message);
     await db.update(phaseStates)
       .set({ phaseState: 'AwaitingInputs' })
       .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
+  });
 
-    return NextResponse.json({ error_code: 'AGENT_FAILED', message: err.message }, { status: 500 });
-  }
+  return NextResponse.json({ accepted: true, phaseId: 0, message: 'Phase execution started. Poll /execution-status for progress.' }, { status: 202 });
 }

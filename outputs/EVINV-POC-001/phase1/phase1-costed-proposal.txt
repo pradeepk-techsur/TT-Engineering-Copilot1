@@ -1,0 +1,31 @@
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 1 | Gate: 1
+Generated: 2026-08-18T03:49:20.825Z | Status: Draft — Awaiting Human Approval
+
+# Costed Proposal / Business Case
+
+**Project:** EVINV-POC-001 | **Phase:** 1 — Business Case
+**Customer:** Customer (per RFQ-EV-2026-001)
+**Title:** EV-INV-800 Traction Inverter Development Proposal
+
+## Executive Summary
+TT Electronics proposes to develop the EV-INV-800 traction inverter (800VDC, 150kW continuous, 220kW peak) as an NPI A program. Preliminary costing indicates a total program cost of ~$190K with 28.5% gross margin.
+
+## Cost Summary
+
+| Category | Amount (USD) |
+|---|---|
+| Material Cost (BOM) | $64,000 |
+| Labor Cost | $81,200 |
+| Non-Recurring Engineering | $45,000 |
+| **Total Proposal Value** | **$190,200** |
+| Gross Margin | 28.5% |
+| Proposal Validity | 90 days from issue |
+
+## Key Assumptions
+1. Customer provides ICD within 2 weeks of PO
+2. Functional safety scope limited to ASIL-B
+3. Single-source SiC module accepted for prototype
+
+---
+*Draft — Advisory Only. Requires authorized commercial approval before submission.*

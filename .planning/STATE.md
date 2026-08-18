@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-lifecycle-phases-0-2-agents-02-PLAN.md
-last_updated: "2026-08-17T18:54:25.543Z"
-last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
+stopped_at: Completed 03-lifecycle-phases-0-2-agents-06-PLAN.md
+last_updated: "2026-08-18T03:25:00.000Z"
+last_activity: "2026-08-18 — Phase 3 gap closure complete: OutputsPanel SWR polling replaces static outputs card, /api/artifacts/[artifactId]/download route created, verification re-passed (10/10)"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 16
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-15)
 
 ## Current Position
 
-Phase: 2 of 7 (Input Intake Framework) — COMPLETE
-Plan: 5/5 complete (02-01, 02-02, 02-03, 02-04 gap closure, 02-05 gap closure)
-Status: Complete — ready for Phase 3
-Last activity: 2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed
+Phase: 3 of 7 (Lifecycle Phases 0–2 Agents) — COMPLETE
+Plan: 6/6 complete (03-01 through 03-06)
+Status: Complete — ready for Phase 4
+Last activity: 2026-08-18 — Phase 3 gap closure complete: OutputsPanel SWR polling, /api/artifacts/[artifactId]/download route, re-verification passed (10/10)
 
 Progress: [██████████] 100% (Phase 1)
 
@@ -61,6 +61,8 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 02-input-intake-framework P04 | 8min | 2 tasks | 5 files |
 | Phase 03-lifecycle-phases-0-2-agents P01 | 6min | 2 tasks | 11 files |
 | Phase 03-lifecycle-phases-0-2-agents P02 | 10min | 2 tasks | 14 files |
+| Phase 03-lifecycle-phases-0-2-agents P04 | 6min | 2 tasks | 4 files |
+| Phase 03-lifecycle-phases-0-2-agents P06 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -103,6 +105,12 @@ Recent decisions affecting current work:
 - [Phase 03-lifecycle-phases-0-2-agents]: RequirementTestability check is deterministic (no LLM call) — isTestable() is pure TypeScript on criterion text
 - [Phase 03-lifecycle-phases-0-2-agents]: isRevised=true parameter pattern for correction cycle — flows from API route through agent.run() to runTestabilityCheck()
 - [Phase 03-lifecycle-phases-0-2-agents]: seeded=true flag on findings distinguishes seeded (SI-01) from discovered issues — set at insert time and never modified
+- [Phase 03-lifecycle-phases-0-2-agents]: xlsx buffer write pattern (XLSX.write+writeFileSync) used over XLSX.writeFile — avoids Next.js App Router fs bundling restriction
+- [Phase 03-lifecycle-phases-0-2-agents]: Delete-before-insert idempotency in generateXlsx and generateDocx — prevents duplicate artifact_registry rows on agent retry
+- [Phase 03-lifecycle-phases-0-2-agents]: OutputsPanel 'use client' SWR component (refreshInterval:3000) replaces static config.outputs.map in page.tsx — live DB artifact rows flow to DOM without page reload
+- [Phase 03-lifecycle-phases-0-2-agents]: /api/artifacts/[artifactId]/download — UUID regex + path-traversal guard + streaming via Readable.toWeb(); phaseId<=2 guard on OutputsPanel for phases without outputs routes
+- [Phase 03-lifecycle-phases-0-2-agents]: SWR refreshInterval:3000 matches InputReadinessPanel polling rate — consistent UX for all polling panels
+- [Phase 03-lifecycle-phases-0-2-agents]: Graceful SWR E2E test skips DOM assertion when DB has no outputs — avoids triggering LLM agent in test env
 
 ### Pending Todos
 
@@ -115,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T18:33:24.529Z
-Stopped at: Completed 03-lifecycle-phases-0-2-agents-02-PLAN.md
+Last session: 2026-08-18T03:05:52.273Z
+Stopped at: Completed 03-lifecycle-phases-0-2-agents-06-PLAN.md
 Resume file: None

@@ -218,6 +218,18 @@ export const gateDecisions = pgTable('gate_decisions', {
   idxDecision: index('idx_gate_decisions_decision').on(t.decision),
 }));
 
+// 12. llm_key_config — single-row encrypted LLM API key storage
+// The key is NEVER stored in plaintext. Only ciphertext + iv + authTag are persisted.
+// Encryption uses AES-256-GCM with API_KEY_ENCRYPTION_SECRET from .env.local.
+export const llmKeyConfig = pgTable('llm_key_config', {
+  configId:  uuid('config_id').primaryKey().defaultRandom(),
+  ciphertext: text('ciphertext').notNull(),
+  iv:        text('iv').notNull(),
+  authTag:   text('auth_tag').notNull(),
+  maskedKey: text('masked_key').notNull(),
+  updatedAt: timestamptz('updated_at').notNull().defaultNow(),
+});
+
 // 11. audit_history — append-only; UPDATE/DELETE revoked at DB level
 export const auditHistory = pgTable('audit_history', {
   auditId: uuid('audit_id').primaryKey().defaultRandom(),

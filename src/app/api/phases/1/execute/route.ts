@@ -18,21 +18,29 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Both inputs must be ready before phase execution.' }, { status: 409 });
   }
 
+  // Fast-fail if LLM key not configured — before transitioning state
+  const { getLlmKeyStatus } = await import('@/server/config/llmKeyService');
+  const { configured: keyConfigured } = await getLlmKeyStatus();
+  if (!keyConfigured) {
+    return NextResponse.json({
+      error_code: 'LLM_KEY_NOT_CONFIGURED',
+      message: 'Anthropic API key is not configured. Go to Settings to add your key.',
+      settings_url: '/settings',
+    }, { status: 503 });
+  }
+
+  // Transition to Running and return 202 immediately — LLM runs in background.
   await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
     .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 1 as any)));
 
-  try {
-    const context = await buildAgentContext(PROJECT_ID, 1);
+  buildAgentContext(PROJECT_ID, 1).then(context => {
     const agent = new ProposalCostAgent();
-    const result = await agent.run(context);
-
-    return NextResponse.json({
-      success: true, phaseId: 1,
-      outputs: result.outputs, aiRecommendation: result.aiRecommendation, findings: result.findings,
-    });
-  } catch (err: any) {
+    return agent.run(context);
+  }).catch(async (err: unknown) => {
+    console.error('[phase1/execute] agent failed:', (err as Error).message);
     await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
       .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 1 as any)));
-    return NextResponse.json({ error_code: 'AGENT_FAILED', message: err.message }, { status: 500 });
-  }
+  });
+
+  return NextResponse.json({ accepted: true, phaseId: 1, message: 'Phase execution started. Poll /execution-status for progress.' }, { status: 202 });
 }
