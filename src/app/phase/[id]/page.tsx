@@ -76,7 +76,7 @@ export default async function PhaseWorkspacePage({ params }: Props) {
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
           </CardHeader>
           <CardContent>
-            {phaseId <= 2 ? (
+            {phaseId <= 4 ? (
               <OutputsPanel phaseId={phaseId} />
             ) : (
               <ul className="space-y-2">
