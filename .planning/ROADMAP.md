@@ -125,12 +125,13 @@ Plans:
   4. Synthetic standard EVINV-POC-STD-001 ("EV Traction Inverter Design and Manufacturing Standard, POC Demonstration Edition", Version 1.0) is defined in the system, carries the label "Synthetic POC Standard, not an approved TT or industry standard", and its thresholds are referenced by the clearance and derating deterministic checks — the check results cite EVINV-POC-STD-001 as their source.
   5. After the user uploads a revised design baseline, Phase 4 reruns only the affected checks; the revised run shows all four defects corrected and the Gate 3 coolant-connector action verified closed; original and revised results are both preserved and comparably accessible via the Artifact Viewer with version history; Gate 4 records a Pass after correction.
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
 - [ ] 04-01-PLAN.md — Four deterministic check tools (zero LLM): HVClearance, ComponentDerating, TestPointCoverage, CrossArtifactConsistency; EVINV-POC-STD-001 synthetic standard definition; check runner API
 - [ ] 04-02-PLAN.md — Phase 3 PDR agent (SI-02 coolant connector, Conditional Pass, A3-001 creation); Phase 4 DFM flagship agent (runs 4 checks before LLM, SI-03a–d, A3-001 closure on revised run); Gate 3 and Gate 4 routes
 - [ ] 04-03-PLAN.md — Artifact Viewer (AV-05), Findings & Actions Workspace (AV-07) with blocking action banner, Technical Checklist (AV-06) gated to phases 0/1/3/4; Playwright tests for all three views
+- [ ] 04-04-PLAN.md — Gap closure: Phase 3 phaseInputs seed rows, OutputsPanel guard (phases 3–4), isRevised POST body + button label, deterministic check results card in Gate 4 Review
 
 ---
 
