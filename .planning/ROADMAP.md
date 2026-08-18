@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - ProjectState, gated orchestrator state machine, shared data model, lifecycle breadcrumbs, and Project/Lifecycle views
 - [x] **Phase 2: Input Intake Framework** - User-upload workflow, simulated-system intake workflow, validation, readiness controls, versioning, and intake audit log
 - [ ] **Phase 3: Lifecycle Phases 0–2 Agents** - Phase Workspaces for Gates 0–2; synthetic samples and seeded issues; Opportunity Summary, Gap Matrix, Costed Proposal, Schedule, RTM, and Testability Report outputs
-- [ ] **Phase 4: Lifecycle Phases 3–4 Agents (Flagship)** - Phase Workspaces for Gates 3–4; deterministic tool layer (clearance, derating, test-point coverage, cross-artifact consistency); EVINV-POC-STD-001; Conditional Pass for Gate 3; multi-issue correction cycle for Gate 4
+- [x] **Phase 4: Lifecycle Phases 3–4 Agents (Flagship)** - Phase Workspaces for Gates 3–4; deterministic tool layer (clearance, derating, test-point coverage, cross-artifact consistency); EVINV-POC-STD-001; Conditional Pass for Gate 3; multi-issue correction cycle for Gate 4
 - [ ] **Phase 5: Lifecycle Phases 5–7 Agents** - Phase Workspaces for Gates 5–7; Cpk check; seeded issues and correction cycles; V&V Matrix, Gate 5 Summary, MRL Scorecard, PPAP/FAI Index, Lessons-Learned Register, Transfer Report
 - [ ] **Phase 6: Lifecycle Phases 8–9 Agents** - Phase Workspaces for Gates 8–9; EOL storyline triggered by fictional discontinuance notice; institutional memory output; project closure
 - [ ] **Phase 7: Cross-Cutting Views and Demo Polish** - Gate Review Workspace (dynamic from state), Technical Checklist Workspace, Audit View, Artifact Viewer with version history; full happy-path demo script and final polish pass
@@ -111,7 +111,9 @@ Plans:
 
 ### Phase 4: Lifecycle Phases 3–4 Agents (Flagship)
 
-**Status**: In Progress
+**Status**: completed (2026-08-18)
+**Last Updated**: 2026-08-18T14:35:00Z
+**Completed**: 2026-08-18
 **Goal**: Users can execute Phase 3 (Preliminary Design Review) and Phase 4 (Detailed Design / CDR) end-to-end, with the full deterministic tool layer operational — clearance comparison, derating calculation, test-point coverage check, and cross-artifact consistency check running outside the LLM against EVINV-POC-STD-001 — demonstrating G3 Conditional Pass (coolant-connector action tracked), the multi-issue correction cycle for G4 (four seeded defects found in the initial design, then verified corrected in the revised design including closure of the G3 action), and G4 Pass after correction.
 
 **Depends on**: Phase 3
@@ -200,7 +202,7 @@ Plans:
 | 1. Foundation | 4/4 | Complete | 2026-08-16 |
 | 2. Input Intake Framework | 5/5 | Complete | 2026-08-17 |
 | 3. Lifecycle Phases 0–2 Agents | 6/6 | Complete | 2026-08-18 |
-| 4. Lifecycle Phases 3–4 Agents (Flagship) | 0/TBD | Not started | - |
+| 4. Lifecycle Phases 3–4 Agents (Flagship) | 4/4 | Complete | 2026-08-18 |
 | 5. Lifecycle Phases 5–7 Agents | 0/TBD | Not started | - |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
 | 7. Cross-Cutting Views and Demo Polish | 0/TBD | Not started | - |
