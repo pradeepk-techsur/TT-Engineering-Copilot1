@@ -3,13 +3,13 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-lifecycle-phases-3-4-agents-flagship-04-PLAN.md
-last_updated: "2026-08-18T14:35:00.000Z"
-last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button, deterministicChecks card; verification passed (5/5)"
+stopped_at: Completed 05-lifecycle-phases-5-7-agents-01-PLAN.md
+last_updated: "2026-08-18T20:28:34.743Z"
+last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)"
 progress:
-  total_phases: 7
-  completed_phases: 4
-  total_plans: 19
+  total_phases: 8
+  completed_phases: 3
+  total_plans: 22
   completed_plans: 19
   percent: 100
 ---
@@ -67,6 +67,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 04-lifecycle-phases-3-4-agents-flagship P02 | 37min | 2 tasks | 21 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P03 | 22min | 2 tasks | 14 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P04 | 15min | 2 tasks | 5 files |
+| Phase 05-lifecycle-phases-5-7-agents P01 | 7min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,8 @@ Recent decisions affecting current work:
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: phaseId<=4 guard in page.tsx — phases 0–4 use OutputsPanel SWR; phases 5–9 use static config.outputs
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: isRevised derived from readiness.internal?.activeVersion > 1 with ?? 0 fallback — safe before readiness data loads
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: check.checkId (not checkResultId) in GateReviewWorkspace — Drizzle schema PK is checkId
+- [Phase 05-lifecycle-phases-5-7-agents]: itemsChecked cast as any[] — CpkItem lacks index signature to satisfy CheckItem; consistent with hvClearanceCheck pattern
+- [Phase 05-lifecycle-phases-5-7-agents]: VVAgent LLM-after-deterministic: check results written to DB before LLM call; prompt explicitly says do NOT recalculate
 
 ### Pending Todos
 
@@ -136,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-18T04:59:11.723Z
-Stopped at: Completed 04-lifecycle-phases-3-4-agents-flagship-03-PLAN.md
+Last session: 2026-08-18T20:28:34.742Z
+Stopped at: Completed 05-lifecycle-phases-5-7-agents-01-PLAN.md
 Resume file: None
