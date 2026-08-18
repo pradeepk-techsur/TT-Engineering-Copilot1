@@ -154,7 +154,7 @@ done
 # NB: no migrate hook here. This slot runs BEFORE `npm ci` (no node_modules —
 # a node/prisma migrator would fail with `prisma: not found`; that exact
 # swallowed failure once shipped an empty-DB app). A DB-backed Next.js app
-# provisions its DB via its own docker-compose.yml, where migrate -> seed ->
+# provisions its DB via its own docker-compose.yml, where migrate → seed →
 # serve run inside the app service command AFTER the image's install step —
 # see references/runtime-environment.md §3.
 
