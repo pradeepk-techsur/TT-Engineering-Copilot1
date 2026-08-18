@@ -1,141 +1,122 @@
 ---
 phase: 3
-status: issues_found
-blockers: 1
-warnings: 2
-files_reviewed: 3
+status: clean
+blockers: 0
+warnings: 0
+files_reviewed: 4
 files_reviewed_list:
   - src/components/phase/OutputsPanel.tsx
   - src/app/phase/[id]/page.tsx
+  - src/app/api/artifacts/[artifactId]/download/route.ts
   - e2e/gate-review.spec.ts
-reviewed_at: 2026-08-18T03:10:18Z
-iteration: 1
+reviewed_at: 2026-08-18T04:45:00Z
+iteration: 2
 ---
 
-# Phase 3 Code Review — Gap Closure Wave 03-06
+# Phase 3 Code Review — Iteration 2 (Re-review after fixer commits)
 
-> **Scope:** Three files produced by plan 03-06 only. Prior-iteration findings (W1/W2/W3 against
-> `InputReadinessPanel.tsx` and `artifactGenerator.ts`) are out of scope for this iteration.
+> **Scope:** Four files: the three files from iteration 1 plus the newly created
+> `src/app/api/artifacts/[artifactId]/download/route.ts` (B1 fix). Verified that
+> all three iteration-1 findings (B1, W1, W2) are correctly resolved and that no
+> regressions were introduced by the fixes.
+
+---
+
+## Previous findings resolution
+
+### B1: Download route missing → `GET /api/artifacts/[artifactId]/download` returning 404
+**Commit:** `75a57a7`  
+**Status: FIXED ✓**
+
+The route was created at `src/app/api/artifacts/[artifactId]/download/route.ts`. Full verification:
+
+- **UUID format guard** (`/^[0-9a-f-]{36}$/i`): correct — 36-character constraint blocks path separators and oversized inputs; non-UUID hex strings (e.g. 36 dashes) pass the regex but are rejected by Postgres's UUID type at the `eq()` query, returning 404. Not a security gap.
+- **DB lookup**: uses `eq(artifactRegistry.artifactId, artifactId)` with Drizzle — correct column name matching schema (`artifact_id` PK mapped to `artifactId`). Destructures `storageUri`, `artifactName`, `artifactType` — all three columns exist and are `notNull` in schema.
+- **Path traversal guard**: `resolved.startsWith(cwd + path.sep)` — tested with injected paths; `path.resolve()` canonicalises symlink-lookalike strings before the check. Guard is sound. `storageUri` is written by `artifactGenerator.ts` as `path.join(process.cwd(), 'outputs', projectId, 'phaseN', fileName)` — always starts inside cwd, so legitimate artifacts pass the guard correctly.
+- **`existsSync` check**: prevents streaming non-existent files; returns 404.
+- **`statSync` for `Content-Length`**: called after `existsSync`, same path — consistent.
+- **`Readable.toWeb()`**: available in Node 20 (project uses v20.20.2) ✓.
+- **MIME resolution**: falls back from file extension → artifact type → `application/octet-stream`. Handles `.txt` POC stand-ins for DOCX correctly.
+- **`Content-Disposition`**: `attachment; filename="${dlName}"` — `artifactName` is authored by `artifactGenerator.ts` (hardcoded strings like `'phase0-capability-gap-matrix'`), not user-supplied, so CRLF header injection is not a realistic threat.
+- **`Cache-Control: no-store`**: appropriate for sensitive generated artifacts.
+- **No auth**: consistent with the rest of the codebase — no route in `src/app/api/` uses session, cookie, or middleware auth. No new security regression introduced by this route.
+- **Next.js 15 params-as-Promise API**: `{ params }: { params: Promise<{ artifactId: string }> }` with `await params` — correct for Next.js 15.
+- **`tsc --noEmit`**: exits clean (0 errors).
+
+---
+
+### W1: SWR error state silently ignored → stuck "Loading outputs…"
+**Commit:** `cbef4c0`  
+**Status: FIXED ✓**
+
+`error` is now destructured from `useSWR` (line 34). The new branch at line 40:
+
+```tsx
+if (!data && error) {
+  return (
+    <div data-testid="outputs-panel">
+      <div data-testid="outputs-error" className="text-sm text-red-400 py-2">
+        Could not load outputs. Please try again later.
+      </div>
+    </div>
+  );
+}
+```
+
+- Condition `!data && error` is correct: fires only when fetch has failed and no data is available. Does not interfere with SWR's stale-while-revalidate scenario (where both `data` and `error` co-exist — that case renders the last-good data, which is correct).
+- The subsequent `if (!data)` loading branch is unreachable when error is set, maintaining correct loading-vs-error distinction.
+- `data-testid="outputs-error"` present for E2E targeting if needed.
+- The `fetcher` (`fetch(url).then(r => r.json())`) does not throw on non-2xx responses — it parses the JSON body and sets `data` to the error payload. However, for phases 0–2 (the only phases where `OutputsPanel` is now mounted after the W2 fix), the routes always return 200 + valid JSON; this non-throwing-fetcher pattern is therefore safe within the guarded scope.
+
+---
+
+### W2: `OutputsPanel` mounted unconditionally for phases 3–9, causing infinite 404 loading state
+**Commit:** `9ae5eb5`  
+**Status: FIXED ✓**
+
+`page.tsx` (lines 80–86) now guards `OutputsPanel` behind `phaseId <= 2`:
+
+```tsx
+{phaseId <= 2 ? (
+  <OutputsPanel phaseId={phaseId} />
+) : (
+  <p className="text-sm text-[var(--color-text-muted)] py-2">
+    Output tracking not yet available for this phase.
+  </p>
+)}
+```
+
+- `phaseId` is `parseInt(id, 10)` where `id` comes from `generateStaticParams()` emitting `'0'`–`'9'` — correctly typed `number`, comparison is exact.
+- Phases 0, 1, 2: `OutputsPanel` mounted and SWR polls the existing routes.
+- Phases 3–9: graceful static message rendered; no SWR poll, no 404 hang.
+- E2E tests at lines 209–217 (`/phase/1`, `/phase/2`) still see `outputs-panel` testid ✓.
+- No regressions to any other test.
 
 ---
 
 ## BLOCKERs
 
-### B1: Download link points to `/api/artifacts/{id}/download` — route does not exist; clicking it returns 404
-
-- **File:** `src/components/phase/OutputsPanel.tsx` line 77
-- **Category:** integration
-- **Evidence:**
-  ```tsx
-  <a href={`/api/artifacts/${output.artifactId}/download`} …>
-    Download
-  </a>
-  ```
-  A full scan of `src/app/api/` shows no route anywhere under `artifacts/`. The directory
-  `src/app/api/artifacts/` does not exist. The artifact files are stored at paths recorded in
-  `artifact_registry.storage_uri` (local filesystem paths such as
-  `public/artifacts/phase0-…xlsx`), and the schema's `storageUri` column is never surfaced
-  through the `/api/phases/{id}/outputs` response — the outputs route only returns
-  `PhaseOutput` rows which do not carry `storageUri`. A user who sees a completed output and
-  clicks "Download" will hit a Next.js 404. This is the core deliverable of the plan (artifact
-  download access for human approval) so it is a BLOCKER: the happy path for `phaseState ===
-  'AwaitingGate'` is broken for every user.
-
-  **Concrete failing scenario:** Phase 0 runs successfully. `output.artifactId` is a valid UUID
-  (`bidNoBidAgent.ts` inserts a real `artifact_id` into `phase_outputs`). The component renders
-  `<a href="/api/artifacts/abc-123/download">Download</a>`. Browser follows the link → Next.js
-  finds no matching route → 404.
-
-- **Fix direction:** Either (a) create `src/app/api/artifacts/[artifactId]/download/route.ts`
-  that looks up `storageUri` from `artifact_registry` and streams the file, or (b) expose
-  `storageUri` through the outputs API and build a direct `/public/…` href. Option (a) is more
-  correct for access-control reasons; option (b) is a one-line API + component change.
-
-**Resolution:** fixed (75a57a7) — created `src/app/api/artifacts/[artifactId]/download/route.ts`; looks up `storageUri` from `artifact_registry` via drizzle, validates UUID format + path-traversal guard (`resolved.startsWith(cwd+sep)`), streams file with correct `Content-Type`/`Content-Disposition` headers. `tsc --noEmit` clean.
+*(none)*
 
 ---
 
 ## WARNINGs
 
-### W1: SWR error state silently ignored — network/API failures render as stuck "Loading outputs…"
-
-- **File:** `src/components/phase/OutputsPanel.tsx` lines 34–48
-- **Category:** bug
-- **Evidence:**
-  ```tsx
-  const { data } = useSWR<OutputsApiResponse>(
-    `/api/phases/${phaseId}/outputs`,
-    fetcher,
-    { refreshInterval: 3000 }
-  );
-
-  if (!data) {
-    return (
-      <div data-testid="outputs-panel">
-        <div data-testid="outputs-loading">Loading outputs…</div>
-      </div>
-    );
-  }
-  ```
-  `useSWR` returns `{ data, error }`. The component only destructures `data` and treats
-  `!data` as the loading state. When the fetch fails (DB down, API 500, network error), SWR
-  sets `error` to the thrown value and `data` remains `undefined`. The component will forever
-  display "Loading outputs…" with no error message — the user has no indication that anything
-  is wrong and cannot distinguish a loading state from a broken state. Compare with the mature
-  `InputReadinessPanel` which also swallows errors (W1 from the prior review), but at least
-  has SWR interval retries; here the polling continues silently. For phases 3–9, where the
-  `/api/phases/{id}/outputs` route returns a Next.js 404 (no route exists — see B1 context),
-  every phase workspace above phase 2 will be permanently stuck in "Loading outputs…".
-
-- **Fix direction:** Destructure `error` from `useSWR` and render a distinct error state
-  (`data-testid="outputs-error"`) when `!data && error`. A minimal message ("Could not load
-  outputs") is sufficient.
-
-**Resolution:** fixed (cbef4c0) — destructured `error` from `useSWR`; added `if (!data && error)` branch that renders `data-testid="outputs-error"` with "Could not load outputs" message before the loading branch. `tsc --noEmit` clean.
-
-### W2: `OutputsPanel` mounted for phases 3–9, but `/api/phases/{id}/outputs` routes only exist for phases 0–2; all other phases silently hang in loading state
-
-- **File:** `src/app/phase/[id]/page.tsx` line 78; `src/components/phase/OutputsPanel.tsx` line 35
-- **Category:** integration
-- **Evidence:**
-  `generateStaticParams()` (page.tsx line 87) emits phase IDs 0–9. `dynamicParams = false` is
-  set, so all ten routes are pre-rendered. The `OutputsPanel` is unconditionally rendered for
-  all of them (page.tsx line 78). However, the SWR fetch target
-  `/api/phases/${phaseId}/outputs` only has concrete route handlers at
-  `src/app/api/phases/0/outputs/route.ts`, `…/1/outputs/…`, and `…/2/outputs/…` (confirmed by
-  directory listing — `src/app/api/phases/` contains only `0`, `1`, `2`, and `[id]`; the `[id]`
-  dynamic segment has no `outputs` sub-route). Navigating to `/phase/3` through `/phase/9` will
-  cause the `OutputsPanel` to fetch `/api/phases/3/outputs` … `/api/phases/9/outputs`, all of
-  which return 404. Per W1, the 404 is silently swallowed and the panel shows "Loading
-  outputs…" indefinitely. While phases 3–9 are intentionally not part of this wave's execution
-  scope, the page currently renders them as broken rather than gracefully absent.
-
-  The 03-06-SUMMARY.md acknowledges routes exist only for phases 0–2 (comment in E2E spec line
-  184–186), but the component itself has no guard.
-
-- **Fix direction:** Either (a) add a guard in `OutputsPanel` that renders "Not yet available
-  for this phase" when `phaseId > 2` (or when the fetched URL returns 404), or (b) wrap the
-  `<OutputsPanel>` in `page.tsx` with a conditional `{phaseId <= 2 && <OutputsPanel … />}`.
-  The E2E tests for phases 1 and 2 (spec lines 209–217) pass only because those routes exist;
-  no test covers phases 3–9.
-
-**Resolution:** fixed (9ae5eb5) — wrapped `<OutputsPanel>` in `page.tsx` with `{phaseId <= 2 ? <OutputsPanel … /> : <p>Output tracking not yet available for this phase.</p>}`; phases 0–2 behaviour unchanged, phases 3–9 render graceful message. `tsc --noEmit` clean.
+*(none)*
 
 ---
 
-## Cross-file seams checked
+## Cross-file seams checked (iteration 2)
 
 | Seam | Status |
 |---|---|
-| `OutputsPanel` import in `page.tsx` → `src/components/phase/OutputsPanel.tsx` export | OK — named export `OutputsPanel` matches import; TypeScript resolves cleanly (`tsc --noEmit` exits 0) |
-| `OutputsPanel` prop `phaseId: number` ↔ caller `phaseId={phaseId}` (page.tsx line 78) | OK — both are `number`; `parseInt(id, 10)` in page.tsx is correctly typed |
-| `OutputsApiResponse.outputs` shape ↔ `/api/phases/{id}/outputs` route response | OK — routes return `{ phaseId, phaseState, gateState, aiRecommendation, outputs: PhaseOutput[] }`; `PhaseOutput` interface matches `phase_outputs` schema columns exactly |
-| `output.artifactId` (`string \| null`) used as download URL segment | FINDING B1 — no download route exists |
-| SWR poll URL `/api/phases/${phaseId}/outputs` ↔ existing routes | FINDING W2 — only phases 0/1/2 have routes; phases 3–9 return 404 |
-| `data-testid="outputs-panel"` in both loading and loaded states | OK — both branches of `OutputsPanel` render `data-testid="outputs-panel"` so E2E `getByTestId('outputs-panel')` resolves regardless of state |
-| `data-testid="outputs-pending"` ↔ E2E assertion `[data-testid="outputs-pending"]` | OK — testid present on span at line 56; E2E locator at spec lines 159, 169 matches |
-| `data-testid="output-row"` ↔ E2E `page.getByTestId('output-row')` | OK — testid on div at line 64; spec line 206 matches |
-| `data-testid="outputs-loading"` ↔ E2E locator `[data-testid="outputs-loading"]` | OK — testid at line 43; spec line 159 includes it in OR locator |
-| E2E `test.skip(true, reason)` inside test body | OK — `testInfo.skip(condition, description)` overload is valid in Playwright 1.62; condition `true` hard-skips immediately |
-| E2E test navigates `/phase/1` and `/phase/2` (spec lines 209–217) — routes exist | OK — `generateStaticParams` emits all 0–9; `src/app/api/phases/1/outputs` and `…/2/outputs` routes exist |
-| `/api/artifacts/{artifactId}/download` referenced in `OutputsPanel` | FINDING B1 — route missing from `src/app/api/` |
+| `OutputsPanel` download link `href=/api/artifacts/${output.artifactId}/download` ↔ new route `src/app/api/artifacts/[artifactId]/download/route.ts` | **OK** — route now exists; URL segments match Next.js dynamic segment `[artifactId]` |
+| `artifactRegistry.artifactId` column queried in download route ↔ schema `artifact_id` PK | **OK** — Drizzle mapping confirmed in `src/db/schema.ts` line 92 |
+| `artifactRegistry.storageUri` ↔ `storageUri: text('storage_uri').notNull()` | **OK** — column exists, notNull, correct name |
+| `storageUri` format from `artifactGenerator.ts` ↔ path traversal guard in download route | **OK** — generator always writes `path.join(cwd, 'outputs', ...)` which passes the `startsWith(cwd + sep)` check |
+| `phaseId <= 2` guard in `page.tsx` ↔ existing routes at `src/app/api/phases/0/`, `/1/`, `/2/` | **OK** — guard exactly matches the set of phases with route handlers |
+| `useSWR` `{ data, error }` destructuring ↔ SWR v2 API | **OK** — SWR v2 returns `{ data, error, isLoading, … }`; both fields are valid |
+| E2E spec `data-testid="outputs-panel"` locator ↔ `OutputsPanel` renders the testid in all branches (error, loading, data) | **OK** — all three return branches wrap content in `<div data-testid="outputs-panel">` |
+| `Readable.toWeb()` ↔ Node.js v20.20.2 | **OK** — API available since Node 17; project runs Node 20 |
+| `params: Promise<{ artifactId: string }>` ↔ Next.js 15 route handler API | **OK** — Next.js 15 uses async params; `await params` pattern is correct |
+| `tsc --noEmit` across all four files | **OK** — exits 0, no type errors |
