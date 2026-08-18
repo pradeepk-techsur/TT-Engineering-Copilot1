@@ -82,7 +82,7 @@ Plans:
 
 ### Phase 3: Lifecycle Phases 0–2 Agents
 
-**Status**: executing
+**Status**: completed (2026-08-18)
 **Goal**: Users can execute the first three lifecycle phases (Phase 0 – Opportunity Assessment, Phase 1 – Proposal/Quoting, Phase 2 – Requirements Definition) end-to-end through their Phase Workspaces, with correct synthetic inputs pre-loaded, correct outputs generated, the seeded Phase 2 issue surfaced, and human gate decisions recorded — demonstrating G0 Pass, G1 Pass, and G2 Pass-after-clarification on the happy path.
 
 **Depends on**: Phase 2
@@ -99,12 +99,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — BaseAgent LLM wrapper, artifact generator (disclaimer injection, compact standards), Phase 0 Bid/No-Bid agent, Gate 0 review/decide API
-- [ ] 03-02-PLAN.md — Phase 1 Proposal & Cost agent; Phase 2 Requirements agent + RequirementTestability deterministic check (SI-01: REQ-THERM-004 seeded issue + correction cycle); Gate 1 and Gate 2 routes
-- [ ] 03-03-PLAN.md — Gate Review Workspace (AV-08): AIRecommendationPanel with advisory label, GateDecisionSelector with no pre-selection + AlertDialog, dynamic rendering from ProjectState; Playwright tests for G0–G2
+- [x] 03-01-PLAN.md — BaseAgent LLM wrapper, artifact generator (disclaimer injection, compact standards), Phase 0 Bid/No-Bid agent, Gate 0 review/decide API
+- [x] 03-02-PLAN.md — Phase 1 Proposal & Cost agent; Phase 2 Requirements agent + RequirementTestability deterministic check (SI-01: REQ-THERM-004 seeded issue + correction cycle); Gate 1 and Gate 2 routes
+- [x] 03-03-PLAN.md — Gate Review Workspace (AV-08): AIRecommendationPanel with advisory label, GateDecisionSelector with no pre-selection + AlertDialog, dynamic rendering from ProjectState; Playwright tests for G0–G2
 - [x] 03-04-PLAN.md — Gap closure: xlsx bundling fix (serverExternalPackages), idempotent artifact registry (delete-before-insert), Run Phase button wired to POST /api/phases/{id}/execute
-- [ ] 03-05-PLAN.md — LLM API Key Configuration UI: encrypted key storage (AES-256-GCM) in DB, /settings page with password-style input, masked status badge in AppShell header, BaseAgent patched to read key from DB at call time; key never returned to browser or logged in plaintext
-- [ ] 03-06-PLAN.md — Gap closure: OutputsPanel client component with SWR polling of /api/phases/{id}/outputs; replaces static phaseConfig placeholder in page.tsx; closes UAT Tests 1, 4, 5
+- [x] 03-05-PLAN.md — LLM API Key Configuration UI: encrypted key storage (AES-256-GCM) in DB, /settings page with password-style input, masked status badge in AppShell header, BaseAgent patched to read key from DB at call time; key never returned to browser or logged in plaintext
+- [x] 03-06-PLAN.md — Gap closure: OutputsPanel client component with SWR polling of /api/phases/{id}/outputs; replaces static phaseConfig placeholder in page.tsx; closes UAT Tests 1, 4, 5
 
 ---
 
@@ -191,7 +191,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-08-16 |
 | 2. Input Intake Framework | 5/5 | Complete | 2026-08-17 |
-| 3. Lifecycle Phases 0–2 Agents | 1/5 | executing | - |
+| 3. Lifecycle Phases 0–2 Agents | 6/6 | Complete | 2026-08-18 |
 | 4. Lifecycle Phases 3–4 Agents (Flagship) | 0/TBD | Not started | - |
 | 5. Lifecycle Phases 5–7 Agents | 0/TBD | Not started | - |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
