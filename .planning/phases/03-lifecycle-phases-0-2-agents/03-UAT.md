@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-lifecycle-phases-0-2-agents
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md, 03-05-PLAN.md
 started: 2026-08-17T19:03:46Z
@@ -147,4 +147,20 @@ per_test:
   status: closed
   closed_by: "03-05-PLAN.md — LlmKeyConfigCard at /settings, AES-256-GCM encrypted storage in llm_key_config table, BaseAgent reads key from DB at call time"
   pending_human_verification: "Tests 8–14 in UAT require a running app with a real Anthropic key to fully verify end-to-end"
+
+- truth: "After clicking Run Phase and execution completes, two compact artifact outputs appear in the Phase Workspace"
+  status: failed
+  reason: "User reported: button looks active but no action happens after clicking on it (Phase 0, 1, 2 all affected)"
+  severity: blocker
+  test: 1
+  source: user
+  root_cause: "src/app/phase/[id]/page.tsx outputs panel is entirely static — renders hardcoded placeholder strings from phaseConfig.ts with no API call. GET /api/phases/{id}/outputs exists and works; agent writes real artifacts to DB; but the page never fetches or renders them. The button fires correctly (server log shows compile+execute triggered) — the silent sensation comes from the outputs panel never updating."
+  artifacts:
+    - path: "src/app/phase/[id]/page.tsx"
+      issue: "Outputs panel renders static placeholder strings from phaseConfig.ts; never calls /api/phases/{id}/outputs"
+  missing:
+    - "Extract OutputsPanel as client component with SWR fetch of /api/phases/{phaseId}/outputs, refreshInterval: 3000"
+    - "Render real output names, summary, and download links when phaseState === 'AwaitingGate'"
+    - "Show 'Pending phase execution' only when outputs.length === 0"
+  debug_session: ".planning/debug/run-phase-button-silent-no-execute.md"
 
