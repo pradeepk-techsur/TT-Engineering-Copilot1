@@ -96,7 +96,7 @@ Plans:
   4. Gate Review Workspace for Gates 0, 1, and 2 is rendered dynamically from structured state (active inputs, outputs, findings, open actions, AI recommendation, human comments, human decision) — no separate gate-pack artifact is generated; gate decisions are persisted with reviewer role, rationale, timestamp, and artifact versions reviewed.
   5. All six outputs (two per phase) are within compact artifact size limits; XLSX artifacts have ≤10 meaningful rows and 6–10 fields; DOCX/PDF artifacts are ≤2 pages; every artifact carries the synthetic disclaimer and provenance fields.
 
-**Plans:** 5 plans
+**Plans:** 6 plans
 
 Plans:
 - [ ] 03-01-PLAN.md — BaseAgent LLM wrapper, artifact generator (disclaimer injection, compact standards), Phase 0 Bid/No-Bid agent, Gate 0 review/decide API
@@ -104,6 +104,7 @@ Plans:
 - [ ] 03-03-PLAN.md — Gate Review Workspace (AV-08): AIRecommendationPanel with advisory label, GateDecisionSelector with no pre-selection + AlertDialog, dynamic rendering from ProjectState; Playwright tests for G0–G2
 - [x] 03-04-PLAN.md — Gap closure: xlsx bundling fix (serverExternalPackages), idempotent artifact registry (delete-before-insert), Run Phase button wired to POST /api/phases/{id}/execute
 - [ ] 03-05-PLAN.md — LLM API Key Configuration UI: encrypted key storage (AES-256-GCM) in DB, /settings page with password-style input, masked status badge in AppShell header, BaseAgent patched to read key from DB at call time; key never returned to browser or logged in plaintext
+- [ ] 03-06-PLAN.md — Gap closure: OutputsPanel client component with SWR polling of /api/phases/{id}/outputs; replaces static phaseConfig placeholder in page.tsx; closes UAT Tests 1, 4, 5
 
 ---
 
