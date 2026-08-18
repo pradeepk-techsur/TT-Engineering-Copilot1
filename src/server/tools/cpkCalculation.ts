@@ -30,9 +30,12 @@ const INITIAL_PROCESS_DATA: Omit<CpkItem, 'cpk' | 'threshold' | 'status'>[] = [
   // SI-06: SOLDER_JOINT_SHEAR_HV_BUS — seeded below-threshold Cpk
   { characteristic_id: 'SOLDER_JOINT_SHEAR_HV_BUS', characteristic_name: 'HV Bus Solder Joint Shear Strength', sample_size: 30, mean: 29.1, std_dev: 2.8, usl: 35.0, lsl: 28.0, unit: 'N' },
   // Others pass
-  { characteristic_id: 'HV_BUS_PRESS_FIT', characteristic_name: 'HV Bus Press-Fit Insertion Force', sample_size: 25, mean: 548.0, std_dev: 28.0, usl: 650.0, lsl: 450.0, unit: 'N' },
-  { characteristic_id: 'BRACKET_TORQUE_MOP012', characteristic_name: 'Bracket Torque (MOP-012)', sample_size: 20, mean: 3.45, std_dev: 0.61, usl: 4.0, lsl: 3.0, unit: 'N·m' },
-  { characteristic_id: 'OUTPUT_POWER_ACCURACY', characteristic_name: 'Output Power Accuracy', sample_size: 50, mean: 150.4, std_dev: 0.7, usl: 152.0, lsl: 148.0, unit: 'kW' },
+  { characteristic_id: 'HV_BUS_PRESS_FIT', characteristic_name: 'HV Bus Press-Fit Insertion Force', sample_size: 25, mean: 550.0, std_dev: 24.0, usl: 650.0, lsl: 450.0, unit: 'N' },
+  // mean=550, std=24: Cpk = min((650-550)/72, (550-450)/72) = min(1.389, 1.389) = 1.389 ≥ 1.33 ✓
+  { characteristic_id: 'BRACKET_TORQUE_MOP012', characteristic_name: 'Bracket Torque (MOP-012)', sample_size: 20, mean: 3.5, std_dev: 0.1, usl: 4.0, lsl: 3.0, unit: 'N·m' },
+  // mean=3.5, std=0.1: Cpk = min((4-3.5)/0.3, (3.5-3)/0.3) = min(1.667, 1.667) = 1.667 ≥ 1.33 ✓
+  { characteristic_id: 'OUTPUT_POWER_ACCURACY', characteristic_name: 'Output Power Accuracy', sample_size: 50, mean: 150.4, std_dev: 0.4, usl: 152.0, lsl: 148.0, unit: 'kW' },
+  // mean=150.4, std=0.4: Cpk = min((152-150.4)/1.2, (150.4-148)/1.2) = min(1.333, 2.0) = 1.333 ≥ 1.33 ✓
 ];
 
 // Revised data — after corrective action, solder joint process improved
@@ -100,11 +103,16 @@ export async function runCpkCalculation(
         seeded: fail.characteristic_id === 'SOLDER_JOINT_SHEAR_HV_BUS', // SI-06
       }).onConflictDoNothing();
     }
-  } else if (overallStatus === 'Pass') {
-    const { eq } = await import('drizzle-orm');
-    await db.update(findings)
-      .set({ status: 'VerifiedClosed', closedAt: new Date().toISOString() })
-      .where(eq(findings.findingId, 'F6-001-SOLDER_JOINT_SHEAR_HV_BUS'));
+  } else {
+    // Close F6-001 when SOLDER_JOINT_SHEAR_HV_BUS passes on revised run,
+    // regardless of overall status (other characteristics are not seeded SI-06 issues).
+    const solderJointResult = computed.find(c => c.characteristic_id === 'SOLDER_JOINT_SHEAR_HV_BUS');
+    if (solderJointResult && solderJointResult.status === 'Pass') {
+      const { eq } = await import('drizzle-orm');
+      await db.update(findings)
+        .set({ status: 'VerifiedClosed', closedAt: new Date().toISOString() })
+        .where(eq(findings.findingId, 'F6-001-SOLDER_JOINT_SHEAR_HV_BUS'));
+    }
   }
 
   return {
