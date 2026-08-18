@@ -139,7 +139,8 @@ Plans:
 
 ### Phase 5: Lifecycle Phases 5–7 Agents
 
-**Status**: passed
+**Status**: Complete
+**Completed**: 2026-08-18
 **Goal**: Users can execute Phase 5 (Validation), Phase 6 (Manufacturing Readiness), and Phase 7 (Transfer and Lessons Learned) end-to-end, with the Cpk deterministic check operational for Phase 6, seeded issues surfaced and resolved with correction cycles in Phases 5 and 6, and Gate 5 Pass-after-correction, Gate 6 Pass-after-correction, and Gate 7 Pass recorded on the happy path.
 
 **Depends on**: Phase 4
@@ -156,10 +157,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — CpkCalculation deterministic check (zero LLM, formula: min((USL-μ)/(3σ), (μ-LSL)/(3σ))); Phase 5 V&V agent (SI-05: TP-CASE-1 91°C > 85°C, correction cycle, original result preserved); Gate 5 routes
-- [ ] 05-02-PLAN.md — Phase 6 MRL/PPAP agent (Cpk check before LLM; SI-06: SOLDER_JOINT_SHEAR_HV_BUS Cpk 0.87 < 1.33; revised synthetic sample; Gate 6 routes)
-- [ ] 05-03-PLAN.md — Phase 7 Lessons-Learned agent (SI-07: MOP-012 torque variation, F7-001 seeded=true; Gate 7 routes); Playwright tests for Phases 5–7 intake configurations and prohibited labels
-- [ ] 05-04-PLAN.md — Gap closure: OutputsPanel guard phaseId<=4→<=7 (Tests 2, 6, 8); cpkCalculation.ts data fix (3 unintended failures) + targeted F6-001 closure condition (Test 7)
+- [x] 05-01-PLAN.md — CpkCalculation deterministic check (zero LLM, formula: min((USL-μ)/(3σ), (μ-LSL)/(3σ))); Phase 5 V&V agent (SI-05: TP-CASE-1 91°C > 85°C, correction cycle, original result preserved); Gate 5 routes
+- [x] 05-02-PLAN.md — Phase 6 MRL/PPAP agent (Cpk check before LLM; SI-06: SOLDER_JOINT_SHEAR_HV_BUS Cpk 0.87 < 1.33; revised synthetic sample; Gate 6 routes)
+- [x] 05-03-PLAN.md — Phase 7 Lessons-Learned agent (SI-07: MOP-012 torque variation, F7-001 seeded=true; Gate 7 routes); Playwright tests for Phases 5–7 intake configurations and prohibited labels
+- [x] 05-04-PLAN.md — Gap closure: OutputsPanel guard phaseId<=4→<=7 (Tests 2, 6, 8); cpkCalculation.ts data fix (3 unintended failures) + targeted F6-001 closure condition (Test 7)
 
 ---
 
@@ -210,6 +211,6 @@ Plans:
 | 2. Input Intake Framework | 5/5 | Complete | 2026-08-17 |
 | 3. Lifecycle Phases 0–2 Agents | 6/6 | Complete | 2026-08-18 |
 | 4. Lifecycle Phases 3–4 Agents (Flagship) | 4/4 | Complete | 2026-08-18 |
-| 5. Lifecycle Phases 5–7 Agents | 0/TBD | Not started | - |
+| 5. Lifecycle Phases 5–7 Agents | 4/4 | Complete | 2026-08-18 |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
 | 7. Cross-Cutting Views and Demo Polish | 0/TBD | Not started | - |
