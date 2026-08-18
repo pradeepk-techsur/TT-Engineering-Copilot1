@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-lifecycle-phases-3-4-agents-flagship
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md
 started: 2026-08-18T05:09:44Z
-updated: 2026-08-18T05:14:00Z
+updated: 2026-08-18T05:18:00Z
 ---
 
 ## Current Test
@@ -110,10 +110,18 @@ per_test:
   severity: major
   test: 8
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Two bugs: (1) seed.ts never inserts phase_inputs rows for Phase 3, so extReady/intReady are always false → 409 INPUTS_NOT_READY blocks execute (src/app/api/phases/3/execute/route.ts:11-19). (2) page.tsx uses phaseId<=2 guard so Phase 3 uses static output list instead of OutputsPanel SWR component — even after agent writes to phaseOutputs, page never fetches them (src/app/phase/[id]/page.tsx:79)."
+  artifacts:
+    - path: "src/db/seed.ts"
+      issue: "No db.insert(phaseInputs) rows for Phase 3 — external and internal inputs never seeded as ready"
+    - path: "src/app/phase/[id]/page.tsx:79"
+      issue: "Condition phaseId<=2 excludes Phase 3 from OutputsPanel SWR; Phase 3 output API route exists at /api/phases/3/outputs but page never calls it"
+    - path: "src/app/api/phases/3/execute/route.ts:11-19"
+      issue: "Correctly checks phaseInputs readiness — but rows don't exist after seed"
+  missing:
+    - "Add Phase 3 phaseInputs seed rows (external='Synthetic System Input Ready', internal='User Input Ready') to src/db/seed.ts"
+    - "Change phaseId<=2 to phaseId<=4 in src/app/phase/[id]/page.tsx:79 so OutputsPanel renders for phases 3 and 4"
+  debug_session: ".planning/debug/run-phase-button-silent-no-execute.md"
 
 - truth: "There is a clear UI path to trigger revised Phase 4 run and view deterministic check results in the phase workspace"
   status: failed
@@ -121,7 +129,18 @@ per_test:
   severity: major
   test: 10
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Three UI gaps: (1) InputReadinessPanel.tsx:38 sends no body on Run Phase fetch, so isRevised is always false regardless of upload state (src/components/intake/InputReadinessPanel.tsx:38). (2) GateReviewWorkspace.tsx receives deterministicChecks in SWR data from /api/gates/4/review but JSX never renders it (src/components/gate/GateReviewWorkspace.tsx:32-99). (3) No UX copy explaining revised baseline workflow. Server-side is 100% complete."
+  artifacts:
+    - path: "src/components/intake/InputReadinessPanel.tsx:38"
+      issue: "fetch POST sends no body — isRevised never passed, always false. Button never changes to 'Run Revised Phase'."
+    - path: "src/components/gate/GateReviewWorkspace.tsx:32-99"
+      issue: "data.deterministicChecks arrives from SWR but is never referenced in JSX — check results silently dropped"
+    - path: "src/app/api/gates/4/review/route.ts"
+      issue: "Correct — fetches and returns deterministicChecks array"
+    - path: "src/app/api/phases/4/execute/route.ts:12"
+      issue: "Correct — reads body.isRevised, awaiting body from UI"
+  missing:
+    - "InputReadinessPanel.tsx: detect activeVersion>1 on internal input to derive isRevised, pass in POST body, rename button 'Run Revised Phase'"
+    - "GateReviewWorkspace.tsx: add 'Deterministic Check Results' card rendering data.deterministicChecks[] with Pass/Fail badges per check type"
+    - "Add UX copy explaining revised baseline workflow near upload zone"
+  debug_session: ".planning/debug/phase4-revised-run-discoverability.md"
