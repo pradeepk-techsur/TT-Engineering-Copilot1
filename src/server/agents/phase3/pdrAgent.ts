@@ -60,7 +60,9 @@ Format response as JSON: {"pdrSummary": "...", "gateOutcome": "Conditional Pass"
       },
     ];
 
-    const summaryContent = parsed?.pdrSummary ?? `# PDR Readiness Summary — Phase 3
+    const summaryContent = (typeof parsed?.pdrSummary === 'string' && parsed.pdrSummary.length > 0)
+      ? parsed.pdrSummary
+      : `# PDR Readiness Summary — Phase 3
 
 **Project:** EVINV-POC-001 | **Phase:** 3 — Preliminary Design | **Gate:** 3 — PDR
 
