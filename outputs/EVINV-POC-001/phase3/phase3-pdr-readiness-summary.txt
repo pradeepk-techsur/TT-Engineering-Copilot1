@@ -1,0 +1,5 @@
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 3 | Gate: 3
+Generated: 2026-08-18T13:22:49.734Z | Status: Draft — Awaiting Human Approval
+
+[object Object]

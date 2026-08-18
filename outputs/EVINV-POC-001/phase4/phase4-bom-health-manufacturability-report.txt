@@ -1,0 +1,27 @@
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 4 | Gate: 4
+Generated: 2026-08-18T13:03:02.208Z | Status: Draft — Awaiting Human Approval
+
+# BOM Health and Manufacturability Report
+
+**Project:** EVINV-POC-001 | **Phase:** 4 — Detailed Design | **Gate:** 4 — CDR
+**Run:** Initial Design Baseline
+
+## Deterministic Check Summary (Outside LLM)
+
+| Check Type | Status | Finding(s) |
+|---|---|---|
+| Cross-Artifact Consistency | Fail | F4-004: C_HV_1 footprint mismatch 0805 vs 1206 |
+| HV Clearance | Fail | F4-001: VBUS+ to GND_SHIELD 6.2mm < 8.0mm |
+| Component Derating | Fail | F4-002: C_BULK_3 derating 4.4% < 50% |
+| Test-Point Coverage | Fail | F4-003: DIAG_TEMP_IGBT_CASE has no test point |
+
+**Overall: 0 Pass / 4 Fail**
+**Phase 3 A3-001 (Coolant Connector):** OPEN — verification required
+
+## CDR Readiness Assessment
+
+⚠ 4 check(s) failed. A3-001 status: Open. RECOMMENDATION: Upload corrected design before design freeze.
+
+*All checks run deterministically outside LLM. Source: EVINV-POC-STD-001 (Synthetic POC Standard, not an approved TT or industry standard).
+This report is advisory; design freeze decision requires authorized human approval.*
