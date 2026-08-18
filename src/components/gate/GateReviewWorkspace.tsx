@@ -83,7 +83,7 @@ export function GateReviewWorkspace({ gateId }: { gateId: number }) {
                 </p>
                 {(data.deterministicChecks as any[]).map((check: any, idx: number) => (
                   <div
-                    key={check.checkResultId ?? idx}
+                    key={check.checkId ?? idx}
                     className="flex items-center justify-between text-xs py-1.5 border-b border-[var(--color-border)]/50 last:border-0"
                     data-testid={`check-result-row-${idx}`}
                   >
