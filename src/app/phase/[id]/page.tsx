@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { InputReadinessPanel } from '@/components/intake/InputReadinessPanel';
+import { OutputsPanel } from '@/components/phase/OutputsPanel';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,20 +69,13 @@ export default async function PhaseWorkspacePage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Outputs panel (placeholder — populated by phase agents in later plans) */}
+        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
           <CardHeader>
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {config.outputs.map((outputName, i) => (
-                <div key={i} className="flex items-center justify-between text-sm py-2 border-b border-[var(--color-border)]/50 last:border-0">
-                  <span>{outputName}</span>
-                  <span className="text-xs text-[var(--color-text-muted)]">Pending phase execution</span>
-                </div>
-              ))}
-            </div>
+            <OutputsPanel phaseId={phaseId} />
           </CardContent>
         </Card>
       </div>
