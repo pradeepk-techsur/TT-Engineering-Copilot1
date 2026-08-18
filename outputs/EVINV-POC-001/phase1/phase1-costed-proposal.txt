@@ -1,6 +1,6 @@
 Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
 Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 1 | Gate: 1
-Generated: 2026-08-18T03:49:20.825Z | Status: Draft — Awaiting Human Approval
+Generated: 2026-08-18T12:53:10.149Z | Status: Draft — Awaiting Human Approval
 
 # Costed Proposal / Business Case
 
@@ -9,7 +9,7 @@ Generated: 2026-08-18T03:49:20.825Z | Status: Draft — Awaiting Human Approval
 **Title:** EV-INV-800 Traction Inverter Development Proposal
 
 ## Executive Summary
-TT Electronics proposes to develop the EV-INV-800 traction inverter (800VDC, 150kW continuous, 220kW peak) as an NPI A program. Preliminary costing indicates a total program cost of ~$190K with 28.5% gross margin.
+This advisory costed proposal covers Phase 1 (Business Case) for EVINV-POC-001, an 800VDC, dual-rated 150kW/220kW EV traction inverter POC. Synthetic cost modelling yields a total project cost of ~$110K (material $1,183/unit, labor $64K, NRE $45K) against a revenue target of ~$154K, achieving a 28.5% gross margin at stated quantities. No upstream gates have been approved; Gate G0 authorization by human reviewers is prerequisite to any resource commitment. All figures are preliminary estimates for decision-support only and must be validated against live supplier quotes, confirmed labor allocations, and approved SOW prior to proposal release to customer.
 
 ## Cost Summary
 
@@ -23,9 +23,9 @@ TT Electronics proposes to develop the EV-INV-800 traction inverter (800VDC, 150
 | Proposal Validity | 90 days from issue |
 
 ## Key Assumptions
-1. Customer provides ICD within 2 weeks of PO
-2. Functional safety scope limited to ASIL-B
-3. Single-source SiC module accepted for prototype
+1. SiC MOSFET module pricing held at Q2-2025 spot reference; subject to change if lead times exceed 16 weeks or allocation constraints apply — buyer validation required.
+2. 150kW and 220kW ratings share a common hardware platform with firmware-configurable power limits; no separate tooling assumed for dual-rating.
+3. Customer-supplied 800VDC test source and load bank available at TT Electronics test facility by Week 10; schedule critical-path dependency acknowledged.
 
 ---
 *Draft — Advisory Only. Requires authorized commercial approval before submission.*

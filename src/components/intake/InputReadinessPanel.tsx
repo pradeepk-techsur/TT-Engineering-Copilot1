@@ -35,7 +35,11 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
     setIsExecuting(true);
     setExecuteError(null);
     try {
-      const res = await fetch(`/api/phases/${phaseId}/execute`, { method: 'POST' });
+      const res = await fetch(`/api/phases/${phaseId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isRevised }),
+      });
 
       // Guard: parse JSON only when the response is actually JSON.
       // The preview proxy can return a plain-text/HTML error page (e.g. "Preview
@@ -73,6 +77,11 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
   const bothReady = execStatus?.bothReady === true;
   const status: string = execStatus?.status ?? 'Waiting for User Input';
 
+  // isRevised: true when the internal input has been revised (version > 1)
+  // The DFM flagship agent re-runs only affected checks and auto-closes A3-001 on revised run.
+  const internalVersion: number = readiness?.internal?.activeVersion ?? 0;
+  const isRevised = internalVersion > 1;
+
   // Helper to determine sample file name
   const sampleFileName = (role: 'external' | 'internal') => {
     const key = `${phaseId}-${role}`;
@@ -108,12 +117,19 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
           data-testid="run-phase-button"
           onClick={handleRunPhase}
         >
-          {isExecuting ? 'Running…' : 'Run Phase'}
+          {isExecuting ? 'Running…' : isRevised ? 'Run Revised Phase' : 'Run Phase'}
         </Button>
       </div>
       {executeError && (
         <p className="text-xs text-red-400 mt-1" data-testid="execute-error">
           Execution error: {executeError}
+        </p>
+      )}
+      {phaseId === 4 && !isRevised && (
+        <p className="text-xs text-[var(--color-text-muted)] mt-1" data-testid="revised-run-hint">
+          To trigger a revised Phase 4 run after correcting design issues, upload a new version of the
+          Released Detailed Design Baseline Package above. The button will change to "Run Revised Phase"
+          and the agent will re-run only the affected deterministic checks against the corrected design.
         </p>
       )}
 

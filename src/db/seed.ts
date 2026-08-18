@@ -1,5 +1,5 @@
 import { db } from './index';
-import { projectState, phaseStates } from './schema';
+import { projectState, phaseStates, phaseInputs } from './schema';
 import { sql, getTableColumns } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -77,6 +77,31 @@ async function seed() {
       },
     });
   }
+
+  // Seed Phase 3 phaseInputs rows — required so POST /api/phases/3/execute does not return
+  // 409 INPUTS_NOT_READY. onConflictDoNothing makes this idempotent on container restart.
+  await db.insert(phaseInputs).values([
+    {
+      projectId: 'EVINV-POC-001',
+      phaseId: 3 as any,
+      inputRole: 'external',
+      logicalName: 'Design Rules and Manufacturing Capabilities Package',
+      intakeBehavior: 'SI',
+      systemRepresented: 'Standards Library, Manufacturing-Capability Repository',
+      readinessStatus: 'Synthetic System Input Ready',
+      validationIssues: [],
+    },
+    {
+      projectId: 'EVINV-POC-001',
+      phaseId: 3 as any,
+      inputRole: 'internal',
+      logicalName: 'Preliminary Design Package',
+      intakeBehavior: 'UP',
+      systemRepresented: null,
+      readinessStatus: 'User Input Ready',
+      validationIssues: [],
+    },
+  ]).onConflictDoNothing();
 
   // Revoke UPDATE/DELETE on audit_history from app_role (run as superuser)
   await db.execute(sql`
