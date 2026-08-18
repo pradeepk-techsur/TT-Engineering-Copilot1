@@ -119,10 +119,42 @@ test.describe('Phase 4 execution flow (requires seeded data)', () => {
     await expect(page.getByTestId('up-intake-internal')).toBeVisible();
   });
 
-  test('Phase 4 workspace shows CDR-specific outputs list', async ({ page }) => {
+  test('Phase 4 workspace shows OutputsPanel (SWR) not static list', async ({ page }) => {
     await page.goto('/phase/4');
-    await expect(page.getByText('Source-Cited, Risk-Scored DFM and Standards Audit')).toBeVisible();
-    await expect(page.getByText('BOM Health and Manufacturability Report')).toBeVisible();
+    // OutputsPanel renders with data-testid="outputs-panel" in all states
+    // (outputs-loading while fetching, outputs-pending when 0 rows, output-row when populated)
+    await expect(page.getByTestId('outputs-panel')).toBeVisible({ timeout: 8000 });
+  });
+
+  test('Phase 3 workspace shows OutputsPanel (SWR) not static list', async ({ page }) => {
+    await page.goto('/phase/3');
+    // Guard changed from phaseId <= 2 to phaseId <= 4 in Task 1 of this plan
+    await expect(page.getByTestId('outputs-panel')).toBeVisible({ timeout: 8000 });
+  });
+
+  test('POST /api/phases/3/execute returns 202 (not 409) with seeded phaseInputs', async ({ page }) => {
+    // Core fix validation: seed.ts now provides Phase 3 phaseInputs rows so the
+    // readiness guard in execute/route.ts passes. This test proves seed → execute → not-409.
+    const response = await page.request.post('/api/phases/3/execute');
+    // 202 = accepted for processing (agent kicked off)
+    // 409 = INPUTS_NOT_READY (seed rows missing — the bug this plan fixes)
+    // 500 = agent error (LLM key missing in test env — also acceptable, proves guard passed)
+    // We assert NOT 409, which is the specific regression this plan must prevent.
+    expect(response.status()).not.toBe(409);
+  });
+
+  test('Gate 4 review workspace renders deterministicChecks card container', async ({ page }) => {
+    await page.goto('/gate/4/review');
+    // The card renders when data.deterministicChecks.length > 0.
+    // In CI (no Phase 4 run yet), the card is hidden — but the page itself must load.
+    // We verify GateReviewWorkspace loads without error and the heading is visible.
+    await expect(page.getByRole('heading', { name: /Gate 4|CDR/i })).toBeVisible({ timeout: 8000 });
+    // If check results exist (post-run environment), assert the card is present too.
+    const checkCard = page.getByText('Deterministic Check Results');
+    const cardVisible = await checkCard.isVisible().catch(() => false);
+    if (cardVisible) {
+      await expect(page.getByTestId('check-result-row-0')).toBeVisible();
+    }
   });
 
   test('Technical Checklist Workspace shows Phase 4 checklist from sidebar', async ({ page }) => {

@@ -73,6 +73,41 @@ export function GateReviewWorkspace({ gateId }: { gateId: number }) {
             </CardContent>
           </Card>
 
+          {/* Deterministic Check Results — SI-03 four checks (initial + revised runs) */}
+          {(data.deterministicChecks ?? []).length > 0 && (
+            <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+              <CardHeader><CardTitle className="text-sm">Deterministic Check Results</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-xs text-[var(--color-text-muted)] mb-2">
+                  Results from deterministic tools (no LLM). Each check cites EVINV-POC-STD-001.
+                </p>
+                {(data.deterministicChecks as any[]).map((check: any, idx: number) => (
+                  <div
+                    key={check.checkResultId ?? idx}
+                    className="flex items-center justify-between text-xs py-1.5 border-b border-[var(--color-border)]/50 last:border-0"
+                    data-testid={`check-result-row-${idx}`}
+                  >
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="font-medium truncate">{check.checkType}</span>
+                      {check.sourceReference && (
+                        <span className="text-[var(--color-text-muted)] truncate">{check.sourceReference}</span>
+                      )}
+                    </div>
+                    <Badge
+                      className={`text-xs border ml-2 shrink-0 ${
+                        check.status === 'Pass'
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                          : 'bg-red-500/10 text-red-400 border-red-500/20'
+                      }`}
+                    >
+                      {check.status ?? 'Unknown'}
+                    </Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Gate decision history */}
           {(data.decisionHistory ?? []).length > 0 && (
             <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
