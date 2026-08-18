@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-lifecycle-phases-3-4-agents-flagship-03-PLAN.md
-last_updated: "2026-08-18T04:59:11.724Z"
-last_activity: "2026-08-18 — Phase 3 gap closure complete: OutputsPanel SWR polling, /api/artifacts/[artifactId]/download route, re-verification passed (10/10)"
+stopped_at: Completed 04-lifecycle-phases-3-4-agents-flagship-04-PLAN.md
+last_updated: "2026-08-18T14:35:00.000Z"
+last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button, deterministicChecks card; verification passed (5/5)"
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 18
-  completed_plans: 17
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 19
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-15)
 
 ## Current Position
 
-Phase: 3 of 7 (Lifecycle Phases 0–2 Agents) — COMPLETE
-Plan: 6/6 complete (03-01 through 03-06)
-Status: Complete — ready for Phase 4
-Last activity: 2026-08-18 — Phase 3 gap closure complete: OutputsPanel SWR polling, /api/artifacts/[artifactId]/download route, re-verification passed (10/10)
+Phase: 4 of 7 (Lifecycle Phases 3–4 Agents — Flagship) — COMPLETE
+Plan: 4/4 complete (04-01 through 04-04)
+Status: Complete — ready for Phase 5
+Last activity: 2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)
 
 Progress: [██████████] 100% (Phase 1)
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 04-lifecycle-phases-3-4-agents-flagship P01 | 5min | 2 tasks | 9 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P02 | 37min | 2 tasks | 21 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P03 | 22min | 2 tasks | 14 files |
+| Phase 04-lifecycle-phases-3-4-agents-flagship P04 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -119,7 +120,10 @@ Recent decisions affecting current work:
 - [Phase 04-lifecycle-phases-3-4-agents-flagship]: Phase 4 DFMStandardsAgent runs all 4 deterministic checks via Promise.all BEFORE callLLM — ordering verified by vitest source index test (T-04-05 tamper mitigation)
 - [Phase 04-lifecycle-phases-3-4-agents-flagship]: A3-001 cross-phase blocking action: created at Gate 3 Conditional Pass with blocking=true, dueGate=4; Gate 4 decide returns 409 BLOCKING_ACTIONS_OPEN if not VerifiedClosed
 - [Phase 04-lifecycle-phases-3-4-agents-flagship]: API slug renamed from [id] to [artifactId] — Next.js 15 enforces consistent slug names across same-depth dynamic segments
-- [Phase 04-lifecycle-phases-3-4-agents-flagship]: Phase Workspace outputs for phases 3-9 rendered from phaseConfig.ts config (not SWR); /api/phases/[id]/outputs routes only exist for phases 0-2
+  - [Phase 04-lifecycle-phases-3-4-agents-flagship]: Phase Workspace outputs for phases 3-9 rendered from phaseConfig.ts config (not SWR); /api/phases/[id]/outputs routes only exist for phases 0-2
+  - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: phaseId<=4 guard in page.tsx — phases 0–4 use OutputsPanel SWR; phases 5–9 use static config.outputs
+  - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: isRevised derived from readiness.internal?.activeVersion > 1 with ?? 0 fallback — safe before readiness data loads
+  - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: check.checkId (not checkResultId) in GateReviewWorkspace — Drizzle schema PK is checkId
 
 ### Pending Todos
 
