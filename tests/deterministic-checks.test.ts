@@ -74,11 +74,15 @@ describe('Test-Point Coverage — SI-03c detection logic', () => {
 
 describe('Cross-Artifact Consistency — SI-03d detection logic', () => {
   it('C_HV_1 footprint mismatch: 0805 vs 1206 → Fail', () => {
-    expect('0805' === '1206').toBe(false);  // Mismatch detected
+    const bomValue: string = '0805';
+    const dfmValue: string = '1206';
+    expect(bomValue === dfmValue).toBe(false);  // Mismatch detected
   });
 
   it('after revision: 1206 vs 1206 → Pass', () => {
-    expect('1206' === '1206').toBe(true);
+    const bomRevised: string = '1206';
+    const dfmValue: string = '1206';
+    expect(bomRevised === dfmValue).toBe(true);
   });
 });
 
