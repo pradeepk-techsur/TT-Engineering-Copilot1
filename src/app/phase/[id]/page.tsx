@@ -69,13 +69,21 @@ export default async function PhaseWorkspacePage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR */}
+        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR.
+            Route handlers only exist for phases 0–2; for later phases we show
+            a graceful "not yet available" message instead of a broken loading state. */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
           <CardHeader>
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
           </CardHeader>
           <CardContent>
-            <OutputsPanel phaseId={phaseId} />
+            {phaseId <= 2 ? (
+              <OutputsPanel phaseId={phaseId} />
+            ) : (
+              <p className="text-sm text-[var(--color-text-muted)] py-2">
+                Output tracking not yet available for this phase.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
