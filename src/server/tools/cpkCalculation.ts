@@ -103,7 +103,7 @@ export async function runCpkCalculation(
   } else if (overallStatus === 'Pass') {
     const { eq } = await import('drizzle-orm');
     await db.update(findings)
-      .set({ status: 'VerifiedClosed', closedAt: new Date() })
+      .set({ status: 'VerifiedClosed', closedAt: new Date().toISOString() })
       .where(eq(findings.findingId, 'F6-001-SOLDER_JOINT_SHEAR_HV_BUS'));
   }
 
@@ -115,6 +115,6 @@ export async function runCpkCalculation(
     status: overallStatus,
     sourceReference: `${EVINV_POC_STD_001.cpk.clause} — ${POC_STD_LABEL}`,
     limitation: 'Synthetic sample data; normal distribution assumed; no MSA performed.',
-    itemsChecked: computed, runAt,
+    itemsChecked: computed as any[], runAt,
   };
 }
