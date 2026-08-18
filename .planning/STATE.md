@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-lifecycle-phases-0-2-agents-04-PLAN.md
-last_updated: "2026-08-17T19:51:11.155Z"
+stopped_at: Completed 03-lifecycle-phases-0-2-agents-06-PLAN.md
+last_updated: "2026-08-18T03:05:52.274Z"
 last_activity: "2026-08-17 — Phase 2 gap closure complete: disclaimer removed from intake cards, Version History heading added, fileValidator false MISMATCH fixed"
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  completed_phases: 2
+  total_plans: 15
+  completed_plans: 14
   percent: 100
 ---
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 03-lifecycle-phases-0-2-agents P01 | 6min | 2 tasks | 11 files |
 | Phase 03-lifecycle-phases-0-2-agents P02 | 10min | 2 tasks | 14 files |
 | Phase 03-lifecycle-phases-0-2-agents P04 | 6min | 2 tasks | 4 files |
+| Phase 03-lifecycle-phases-0-2-agents P06 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Recent decisions affecting current work:
 - [Phase 03-lifecycle-phases-0-2-agents]: seeded=true flag on findings distinguishes seeded (SI-01) from discovered issues — set at insert time and never modified
 - [Phase 03-lifecycle-phases-0-2-agents]: xlsx buffer write pattern (XLSX.write+writeFileSync) used over XLSX.writeFile — avoids Next.js App Router fs bundling restriction
 - [Phase 03-lifecycle-phases-0-2-agents]: Delete-before-insert idempotency in generateXlsx and generateDocx — prevents duplicate artifact_registry rows on agent retry
+- [Phase 03-lifecycle-phases-0-2-agents]: SWR refreshInterval:3000 matches InputReadinessPanel polling rate — consistent UX for all polling panels
+- [Phase 03-lifecycle-phases-0-2-agents]: Graceful SWR E2E test skips DOM assertion when DB has no outputs — avoids triggering LLM agent in test env
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-17T19:51:11.154Z
-Stopped at: Completed 03-lifecycle-phases-0-2-agents-04-PLAN.md
+Last session: 2026-08-18T03:05:52.273Z
+Stopped at: Completed 03-lifecycle-phases-0-2-agents-06-PLAN.md
 Resume file: None
