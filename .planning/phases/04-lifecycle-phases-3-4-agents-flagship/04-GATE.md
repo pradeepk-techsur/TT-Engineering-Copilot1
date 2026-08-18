@@ -14,6 +14,9 @@ waves:
     tests: pass
     fix_attempts: 0
 boot_smoke: skipped
+review_blockers_open: 0
+review_warnings: 2
+review_warnings_resolved: 2
 ---
 
 ## Wave 1
@@ -39,7 +42,14 @@ boot_smoke: skipped
 
 ### Changes verified
 - seed.ts: Phase 3 phaseInputs rows inserted (onConflictDoNothing)
-- page.tsx: `phaseId <= 4` guard (phases 3+4 use OutputsPanel SWR)
+- page.tsx: `phaseId <= 4` guard (phases 3+4 use OutputsPanel SWR); comment updated
 - InputReadinessPanel.tsx: isRevised derived from activeVersion > 1, passed in POST body, button label "Run Revised Phase"
-- GateReviewWorkspace.tsx: deterministicChecks card renders Pass/Fail badges
+- GateReviewWorkspace.tsx: deterministicChecks card renders Pass/Fail badges; checkId field name corrected (code-review W1)
 - e2e/flagship-phase4.spec.ts: replaced static-text test with OutputsPanel data-testid assertion; +3 new tests
+
+## Phase gate (final regression)
+
+- Build: `npm run build` → pass
+- Tests: `npm test` → pass (61/61 tests passing: 7 test files)
+- Fix attempts: 0/2
+- Code review: 0 BLOCKERs, 2 WARNINGs, both resolved (checkId field name, stale comment)
