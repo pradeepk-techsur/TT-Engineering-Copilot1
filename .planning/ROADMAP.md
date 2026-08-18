@@ -111,7 +111,7 @@ Plans:
 
 ### Phase 4: Lifecycle Phases 3–4 Agents (Flagship)
 
-**Status**: failed
+**Status**: executing
 **Goal**: Users can execute Phase 3 (Preliminary Design Review) and Phase 4 (Detailed Design / CDR) end-to-end, with the full deterministic tool layer operational — clearance comparison, derating calculation, test-point coverage check, and cross-artifact consistency check running outside the LLM against EVINV-POC-STD-001 — demonstrating G3 Conditional Pass (coolant-connector action tracked), the multi-issue correction cycle for G4 (four seeded defects found in the initial design, then verified corrected in the revised design including closure of the G3 action), and G4 Pass after correction.
 
 **Depends on**: Phase 3
