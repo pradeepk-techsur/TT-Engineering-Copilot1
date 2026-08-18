@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-lifecycle-phases-5-7-agents-02-PLAN.md
-last_updated: "2026-08-18T20:28:58.709Z"
+stopped_at: Completed 05-lifecycle-phases-5-7-agents-03-PLAN.md
+last_updated: "2026-08-18T20:49:25.054Z"
 last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)"
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 100
 ---
 
@@ -69,6 +69,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 04-lifecycle-phases-3-4-agents-flagship P04 | 15min | 2 tasks | 5 files |
 | Phase 05-lifecycle-phases-5-7-agents P01 | 7min | 2 tasks | 9 files |
 | Phase 05-lifecycle-phases-5-7-agents P02 | 7min | 1 tasks | 8 files |
+| Phase 05-lifecycle-phases-5-7-agents P03 | 15min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,8 @@ Recent decisions affecting current work:
 - [Phase 05-lifecycle-phases-5-7-agents]: VVAgent LLM-after-deterministic: check results written to DB before LLM call; prompt explicitly says do NOT recalculate
 - [Phase 05-lifecycle-phases-5-7-agents]: MRLPPAPAgent calls runCpkCalculation before callLLM — ordering enforced by source line order
 - [Phase 05-lifecycle-phases-5-7-agents]: Phase 6 external=UP customer production-readiness, internal=SI MES/quality simulated connector — reversed from Phase 5
+- [Phase 05-lifecycle-phases-5-7-agents]: LessonsLearnedAgent uses LLM-only pattern (no deterministic check) — Phase 7 is lessons capture, not process validation; no correction cycle
+- [Phase 05-lifecycle-phases-5-7-agents]: Docker compose rebuild required for new routes to be live — reuseExistingServer in playwright hits the running container, new files need image rebuild
 
 ### Pending Todos
 
@@ -142,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-18T20:28:58.708Z
-Stopped at: Completed 05-lifecycle-phases-5-7-agents-02-PLAN.md
+Last session: 2026-08-18T20:49:25.053Z
+Stopped at: Completed 05-lifecycle-phases-5-7-agents-03-PLAN.md
 Resume file: None
