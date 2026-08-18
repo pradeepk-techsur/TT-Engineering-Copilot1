@@ -70,8 +70,7 @@ export default async function PhaseWorkspacePage({ params }: Props) {
         </Card>
 
         {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR.
-            Route handlers only exist for phases 0–2; for later phases we show
-            a graceful "not yet available" message instead of a broken loading state. */}
+            Route handlers exist for phases 0–2; for later phases show config outputs list. */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
           <CardHeader>
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
@@ -80,9 +79,14 @@ export default async function PhaseWorkspacePage({ params }: Props) {
             {phaseId <= 2 ? (
               <OutputsPanel phaseId={phaseId} />
             ) : (
-              <p className="text-sm text-[var(--color-text-muted)] py-2">
-                Output tracking not yet available for this phase.
-              </p>
+              <ul className="space-y-2">
+                {(config.outputs as readonly string[]).map((output: string) => (
+                  <li key={output} className="text-sm text-[var(--color-text-primary)] flex items-start gap-2">
+                    <span className="text-[var(--color-text-muted)] mt-0.5">•</span>
+                    <span>{output}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </CardContent>
         </Card>

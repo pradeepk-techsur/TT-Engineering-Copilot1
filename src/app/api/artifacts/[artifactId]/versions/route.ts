@@ -5,14 +5,14 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ artifactId: string }> }
 ) {
-  const { id } = await params;
+  const { artifactId } = await params;
 
   const [artifact] = await db
     .select()
     .from(artifactRegistry)
-    .where(eq(artifactRegistry.artifactId, id));
+    .where(eq(artifactRegistry.artifactId, artifactId));
 
   if (!artifact) {
     return NextResponse.json({ versions: [] });
