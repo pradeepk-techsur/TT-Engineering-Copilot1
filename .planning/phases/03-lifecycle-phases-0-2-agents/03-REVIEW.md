@@ -51,6 +51,8 @@ iteration: 1
   `storageUri` through the outputs API and build a direct `/public/…` href. Option (a) is more
   correct for access-control reasons; option (b) is a one-line API + component change.
 
+**Resolution:** fixed (75a57a7) — created `src/app/api/artifacts/[artifactId]/download/route.ts`; looks up `storageUri` from `artifact_registry` via drizzle, validates UUID format + path-traversal guard (`resolved.startsWith(cwd+sep)`), streams file with correct `Content-Type`/`Content-Disposition` headers. `tsc --noEmit` clean.
+
 ---
 
 ## WARNINGs
@@ -89,6 +91,8 @@ iteration: 1
   (`data-testid="outputs-error"`) when `!data && error`. A minimal message ("Could not load
   outputs") is sufficient.
 
+**Resolution:** fixed (cbef4c0) — destructured `error` from `useSWR`; added `if (!data && error)` branch that renders `data-testid="outputs-error"` with "Could not load outputs" message before the loading branch. `tsc --noEmit` clean.
+
 ### W2: `OutputsPanel` mounted for phases 3–9, but `/api/phases/{id}/outputs` routes only exist for phases 0–2; all other phases silently hang in loading state
 
 - **File:** `src/app/phase/[id]/page.tsx` line 78; `src/components/phase/OutputsPanel.tsx` line 35
@@ -114,6 +118,8 @@ iteration: 1
   `<OutputsPanel>` in `page.tsx` with a conditional `{phaseId <= 2 && <OutputsPanel … />}`.
   The E2E tests for phases 1 and 2 (spec lines 209–217) pass only because those routes exist;
   no test covers phases 3–9.
+
+**Resolution:** fixed (9ae5eb5) — wrapped `<OutputsPanel>` in `page.tsx` with `{phaseId <= 2 ? <OutputsPanel … /> : <p>Output tracking not yet available for this phase.</p>}`; phases 0–2 behaviour unchanged, phases 3–9 render graceful message. `tsc --noEmit` clean.
 
 ---
 
