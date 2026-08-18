@@ -1,0 +1,27 @@
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 2 | Gate: 2
+Generated: 2026-08-18T03:56:08.736Z | Status: Draft — Awaiting Human Approval
+
+# Requirements Quality and Testability Report
+
+**Project:** EVINV-POC-001 | **Phase:** 2 — Requirements Definition | **Gate:** 2
+
+## Testability Check Results (DETERMINISTIC — Outside LLM)
+
+| Metric | Value |
+|---|---|
+| Total Requirements Checked | 8 |
+| Testable | 7 |
+| Non-Testable (requires action) | 1 |
+| Overall Check Status | **Fail** |
+
+## Non-Testable Requirements (Action Required)
+
+- **REQ-THERM-004:** Criterion is not measurable: "TBD — no measurable criterion defined" — no numeric threshold, unit, or test condition
+
+## Corrective Action Required
+One or more requirements lack measurable acceptance criteria. Upload revised requirements package after correction.
+
+---
+*Testability check run by RequirementTestability deterministic tool — not LLM inference.
+Source: EVINV-POC-STD-001 §1.1. This report is advisory; human reviewer confirms requirements baseline.*
