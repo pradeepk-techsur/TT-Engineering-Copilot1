@@ -8,6 +8,13 @@
       "when": 1786897630073,
       "tag": "0000_low_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787000000000,
+      "tag": "0001_llm_key_config",
+      "breakpoints": true
     }
   ]
 }

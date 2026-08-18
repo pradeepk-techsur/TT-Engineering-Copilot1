@@ -1,12 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { AgentContext } from '@/shared/types/projectState';
 import { AgentResult, AIRecommendation } from './agentTypes';
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  timeout: 120000,    // 2 minute timeout for long generations
-  maxRetries: 0,      // own retry loop below
-});
+import { getLlmApiKey } from '@/server/config/llmKeyService';
 
 export abstract class BaseAgent {
   protected phaseId: number;
@@ -34,6 +29,26 @@ export abstract class BaseAgent {
     const MAX_RETRIES = 3;
     const RETRY_DELAYS = [2000, 4000, 8000];
     let lastError: Error | null = null;
+
+    // Retrieve key from DB at call time — never from process.env
+    let apiKey: string;
+    try {
+      apiKey = await getLlmApiKey();
+    } catch (err: unknown) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === 'LLM_KEY_NOT_CONFIGURED') {
+        const notConfigured = new Error(e.message);
+        (notConfigured as NodeJS.ErrnoException).code = 'LLM_KEY_NOT_CONFIGURED';
+        throw notConfigured;
+      }
+      throw err;
+    }
+
+    const client = new Anthropic({
+      apiKey,
+      timeout: 120000,
+      maxRetries: 0,
+    });
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {

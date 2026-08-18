@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, GitBranch,
-  AlertTriangle, History
+  AlertTriangle, History, Settings
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/lifecycle', label: 'Lifecycle', icon: GitBranch },
   { href: '/findings-actions', label: 'Findings & Actions', icon: AlertTriangle },
   { href: '/audit', label: 'Audit Log', icon: History },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 const PHASE_SHORTCUTS = Array.from({ length: 10 }, (_, i) => ({

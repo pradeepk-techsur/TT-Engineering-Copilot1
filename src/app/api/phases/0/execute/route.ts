@@ -36,12 +36,21 @@ export async function POST(_req: NextRequest) {
       aiRecommendation: result.aiRecommendation,
       findings: result.findings,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const e = err as NodeJS.ErrnoException;
     // Reset to AwaitingInputs on failure
     await db.update(phaseStates)
       .set({ phaseState: 'AwaitingInputs' })
       .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
 
-    return NextResponse.json({ error_code: 'AGENT_FAILED', message: err.message }, { status: 500 });
+    if (e.code === 'LLM_KEY_NOT_CONFIGURED') {
+      return NextResponse.json({
+        error_code: 'LLM_KEY_NOT_CONFIGURED',
+        message: e.message,
+        settings_url: '/settings',
+      }, { status: 503 });
+    }
+
+    return NextResponse.json({ error_code: 'AGENT_FAILED', message: (err as Error).message }, { status: 500 });
   }
 }

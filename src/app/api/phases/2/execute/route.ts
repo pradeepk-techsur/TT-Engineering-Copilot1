@@ -35,9 +35,13 @@ export async function POST(req: NextRequest) {
       findings: result.findings,
       seededIssueDetected: result.findings.some(f => f.seeded && f.findingId.includes('F2-001')),
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const e = err as NodeJS.ErrnoException;
     await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
       .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 2 as any)));
-    return NextResponse.json({ error_code: 'AGENT_FAILED', message: err.message }, { status: 500 });
+    if (e.code === 'LLM_KEY_NOT_CONFIGURED') {
+      return NextResponse.json({ error_code: 'LLM_KEY_NOT_CONFIGURED', message: e.message, settings_url: '/settings' }, { status: 503 });
+    }
+    return NextResponse.json({ error_code: 'AGENT_FAILED', message: (err as Error).message }, { status: 500 });
   }
 }
