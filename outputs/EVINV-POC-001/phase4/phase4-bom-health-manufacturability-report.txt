@@ -1,6 +1,6 @@
 Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
 Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 4 | Gate: 4
-Generated: 2026-08-18T13:03:02.208Z | Status: Draft — Awaiting Human Approval
+Generated: 2026-08-18T19:54:08.533Z | Status: Draft — Awaiting Human Approval
 
 # BOM Health and Manufacturability Report
 
