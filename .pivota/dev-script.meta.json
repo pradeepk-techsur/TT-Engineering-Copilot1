@@ -1,14 +1,16 @@
 {
   "generator_version": "init-dev-server@1",
-  "catalog_entry": "react-next",
-  "generated_at": "2026-08-18T20:57:03Z",
-  "inspection_inputs_hash": "9872c0dc09958299b5f68b538cf1e6966a224d7ccf6ecd8e2c66340719c53648",
+  "catalog_entry": null,
+  "generated_at": "2026-08-19T01:08:11Z",
+  "inspection_inputs_hash": "231aff6cbaa48a4847b1cb086b1d5ca9fe1ad74bbf3170e936f3eacd184cefac",
   "inspection_inputs": {
     "matched_globs": [
+      "docker-compose.yml",
       "next.config.mjs",
       "package.json"
     ],
     "manifest_signatures": [
+      "docker-compose.yml:services:app,db,redis",
       "package.json:dep:next@^15.0.0",
       "package.json:dev-script:next dev -H 0.0.0.0"
     ],
