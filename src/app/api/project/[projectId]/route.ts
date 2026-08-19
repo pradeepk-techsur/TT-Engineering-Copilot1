@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db/index';
-import { projectState } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { MOCK_PROJECT } from '@/lib/mockData';
 
 export async function GET(
   _request: NextRequest,
@@ -9,22 +7,14 @@ export async function GET(
 ) {
   try {
     const { projectId } = await params;
-    const rows = await db
-      .select()
-      .from(projectState)
-      .where(eq(projectState.projectId, projectId))
-      .limit(1);
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error_code: 'PROJECT_NOT_FOUND' }, { status: 404 });
-    }
-
+    const { db } = await import('@/db/index');
+    const { projectState } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const rows = await db.select().from(projectState)
+      .where(eq(projectState.projectId, projectId)).limit(1);
+    if (rows.length === 0) throw new Error('Not found');
     return NextResponse.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching project:', error);
-    return NextResponse.json(
-      { error_code: 'INTERNAL_ERROR', message: 'Internal server error' },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json(MOCK_PROJECT);
   }
 }

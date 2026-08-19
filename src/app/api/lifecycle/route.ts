@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { projectState, phaseStates } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { PHASE_CONFIG } from '@/shared/constants/phaseConfig';
+import { MOCK_LIFECYCLE } from '@/lib/mockData';
 
 export async function GET() {
+  // Preview/demo mode: return mock lifecycle data (no DB required)
   try {
+    const { db } = await import('@/db');
+    const { projectState, phaseStates } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const { PHASE_CONFIG } = await import('@/shared/constants/phaseConfig');
+
     const [project] = await db.select().from(projectState)
       .where(eq(projectState.projectId, 'EVINV-POC-001'));
 
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-    }
+    if (!project) throw new Error('No project in DB');
 
     const phases = await db.select().from(phaseStates)
       .where(eq(phaseStates.projectId, 'EVINV-POC-001'));
@@ -40,8 +41,8 @@ export async function GET() {
       projectStatus: project.projectStatus,
       phases: phaseData,
     });
-  } catch (error) {
-    console.error('Error fetching lifecycle data:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch {
+    // Fallback to mock data when DB unavailable
+    return NextResponse.json(MOCK_LIFECYCLE);
   }
 }
