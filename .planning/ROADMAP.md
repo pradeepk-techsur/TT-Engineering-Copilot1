@@ -168,7 +168,7 @@ Plans:
 
 ### Phase 6: Lifecycle Phases 8–9 Agents
 
-**Status**: failed
+**Status**: executing
 **Goal**: Users can execute Phase 8 (Product Health Monitoring) and Phase 9 (End of Life) end-to-end, with the fictional discontinuance notice triggering the EOL storyline, Gate 8 Pass initiating Phase 9, the EOL decision and project closure recorded, and project status set to Closed after Gate 9 Pass — completing the full happy-path gate storyline.
 
 **Depends on**: Phase 5
