@@ -205,7 +205,11 @@ Plans:
   4. The Artifact Viewer shows version history and provenance for any artifact; selecting a prior version displays the original content alongside the revised content; corrected Phase 4 inputs, revised Phase 5 validation evidence, and revised Phase 6 manufacturing data are all navigable with their version histories intact.
   5. All nine application views are accessible from breadcrumbs; TT Electronics Product Lifecycle Process terminology is used throughout (no generic chatbot language); the terms "replacement input," "Connected to [SYSTEM]," and "Live [SYSTEM] Data" do not appear in any view, label, log entry, or tooltip; a complete walk of the happy-path demo from Gate 0 to Gate 9 completes without errors.
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Audit View (AV-09) with immutable badge, 9-field intake event log, filter controls, audit API; generic /api/gates/[id]/review dynamic route for all 10 gates; Playwright tests for all 9 views accessibility
+- [ ] 07-02-PLAN.md — PhaseExecutionProgress animated component; LifecycleSummaryBanner (G0–G9 outcomes + PROJECT CLOSED); final full-demo-walk Playwright test (22-path prohibited terminology scan, all 10 phase workspaces, all 10 gate reviews)
 
 ---
 
