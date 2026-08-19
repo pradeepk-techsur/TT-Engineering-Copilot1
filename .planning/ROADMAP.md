@@ -180,7 +180,11 @@ Plans:
   3. After Gate 9, the Product Lifecycle View displays all ten phases as Completed and all ten gates as Passed (with Gate 3 showing Conditional Pass closure evidence and Gates 5 and 6 showing correction cycle resolution); the happy-path gate storyline (G0 Pass → G1 Pass → G2 Pass-after-clarification → G3 Conditional Pass → G4 Pass-after-correction → G5 Pass-after-correction → G6 Pass-after-correction → G7 Pass → G8 Pass → G9 Pass and Closed) is fully represented in ProjectState and visible in the UI.
   4. Both Phase 8 and Phase 9 outputs carry the synthetic disclaimer and provenance fields; the institutional-memory output in Phase 9 is within compact artifact limits; project Closed status does not revert on page reload — it is persisted in ProjectState.
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Phase 8 Obsolescence Radar agent (both inputs SI; SI-08: IGBT-HV-800-A PDN triggers EOL; Gate 8 Pass initiates Phase 9)
+- [ ] 06-02-PLAN.md — Phase 9 EOL & Memory agent (UP external + SI internal; Gate 9 Pass sets projectStatus=Closed in DB); Playwright tests verifying Phase 8/9 workspaces, all-page "replacement input" absence, SYNTHETIC disclaimer on all 10 phases
 
 ---
 
