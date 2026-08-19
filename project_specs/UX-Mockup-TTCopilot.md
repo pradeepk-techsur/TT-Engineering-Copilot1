@@ -22,10 +22,21 @@ The Web Gate Cockpit is the **sole** human-in-the-loop interface. It is purpose-
 | 2 | **Status before detail** | Every view surfaces the current phase/gate state and blocking issues before detailed content. |
 | 3 | **No silent actions** | Simulated ingestion, corrective action approval, and gate recording always require explicit user clicks with confirmation dialogs. |
 | 4 | **Synthetic is always labeled** | The disclaimer banner and "Preloaded Synthetic Sample" / "Simulated Connector" labels appear wherever synthetic data is displayed. Never "Connected to", "Retrieved from", or "Live … Data". |
-| 5 | **Breadcrumb as navigation spine** | The persistent breadcrumb on all nine views is the primary wayfinding mechanism — every phase is reachable without going back to the home screen. |
+| 5 | **Phase Stepper as journey indicator** | A horizontal Phase 0–9 stepper replaces the flat sidebar phase list. Current phase is highlighted; completed phases show a check icon; each step is clickable and has a hover tooltip with the full phase name. No separate sidebar phase shortcuts. |
 | 6 | **Progressive disclosure** | Summary cards surface the most critical signals (blocked, fail, awaiting decision); detail is one click away. |
-| 7 | **Immutable audit identity** | Audit View (AV-09) is visually distinct from all write-capable views — read-only icon, no edit controls, "Immutable Record — Append Only" label always visible. |
+| 7 | **Immutable audit identity** | Audit View (AV-09) is visually distinct from all write-capable views — read-only icon, no edit controls, "Immutable Record — Append Only" label always visible. Findings & Actions is a tab within Audit View, not a separate sidebar item. |
 | 8 | **Intake mode clarity** | User-Provided File (UP) and Simulated External-System Intake (SI) inputs are visually differentiated by icon and badge, never conflated. |
+| 9 | **Acronyms always have tooltips** | Technical review acronyms (SLR, PDR, CDR, Kickoff) display on hover tooltips with full expansion. No unexplained jargon visible to PMs, execs, or auditors. |
+| 10 | **Theme toggle in top bar** | Light/dark mode switch is always visible; preference is persisted to localStorage. Dark is the default. |
+| 11 | **Four semantic colors maximum** | Pass=green, Fail=red, Awaiting/Conditional=amber, Synthetic=violet. No separate color for AI advisory (use slate text). No orange. Professional tool aesthetics. |
+| 12 | **Breadcrumb does not repeat product identity** | Breadcrumb starts with "Phase N: Name" — never "EV-INV-800 > Phase N". The top bar and stepper already show product identity. |
+
+### Views Removed (design simplification)
+
+| View | Reason for removal |
+|------|-------------------|
+| **Technical Checklist Workspace (AV-06)** | Never populated by any agent or user action during the workflow. All checklist items were static display only. Removing eliminates a confusing empty view. The `/phase/[id]/checklist` route is removed from all navigation. |
+| **Findings & Actions (AV-07 as separate view)** | Merged as the "Findings & Actions" tab inside Audit View. The distinction between "Audit Log" and "Findings & Actions" was not meaningful to users — both show evidence of what happened. Combined view is more useful. Sidebar entry renamed "Audit & Findings". |
 
 ### Terminology Constraints (Hard Rules)
 
@@ -62,24 +73,28 @@ The Web Gate Cockpit must follow current (2025–2026) professional web applicat
 Use a neutral-first palette with semantic status colors. Tailwind CSS custom tokens:
 
 ```
---color-background:     #0f1117   (dark) / #ffffff   (light)
---color-surface:        #1a1d27   (dark) / #f8f9fa   (light)
---color-border:         #2d3148   (dark) / #e2e8f0   (light)
---color-text-primary:   #f1f5f9   (dark) / #0f172a   (light)
---color-text-muted:     #94a3b8   (both)
+/* Neutral base */
+--color-background:   #0c0e14   (dark) / #f8f9fc   (light)
+--color-surface:      #161820   (dark) / #ffffff   (light)
+--color-surface-2:    #1e2028   (dark) / #f1f3f8   (light)  ← elevated cards
+--color-border:       #2a2d3a   (dark) / #dde1ec   (light)
+--color-text-primary: #e8eaf0   (dark) / #111827   (light)
+--color-text-muted:   #8b8fa8   (dark) / #6b7280   (light)
 
-/* Semantic / status */
---color-pass:           #22c55e   (green-500)
---color-conditional:    #f97316   (orange-500)
---color-fail:           #ef4444   (red-500)
---color-awaiting:       #f59e0b   (amber-500)
---color-upcoming:       #64748b   (slate-500)
---color-synthetic:      #8b5cf6   (violet-500)   ← synthetic data badge
---color-advisory:       #3b82f6   (blue-500)     ← AI recommendation
---color-blocked:        #dc2626   (red-600)
+/* 4 semantic colors — all others use text-muted or these four */
+--color-pass:      #22c55e  (green-500 dark) / #16a34a  (green-700 light)
+--color-fail:      #ef4444  (red-500 dark)   / #dc2626  (red-600 light)
+--color-awaiting:  #f59e0b  (amber-500)      — used for BOTH pending decisions AND Conditional Pass
+--color-synthetic: #8b5cf6  (violet-500)     — synthetic data only
 ```
 
-**Default mode:** Dark (matches engineering tool conventions; Linear, Vercel, Figma all ship dark-first). Light mode supported via `class="light"` on `<html>`.
+**Removed color tokens:** `--color-conditional` (orange) merged into `--color-awaiting` (amber). `--color-advisory` (blue) and `--color-upcoming` (slate) removed — use `text-[--color-text-muted]` instead. `--color-blocked` removed — use `--color-fail`.
+
+**Why fewer colors:** Too many semantic colors create visual noise and require users to memorize a legend. Amber covers both "awaiting human decision" and "conditional pass" — both mean "proceed with caution." Slate text is sufficient for non-critical informational states.
+
+**Theme toggle:** Light/dark switch is in the top bar (Sun/Moon icon). Default = dark. Preference persisted to `localStorage`. Toggle adds/removes `class="light"` on `<html>`.
+
+**Default mode:** Dark-first. Light mode via `class="light"` on `<html>` (user-toggleable).
 
 ### Typography Scale
 
