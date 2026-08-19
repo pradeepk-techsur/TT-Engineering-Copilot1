@@ -3,9 +3,9 @@ import { MOCK_INPUTS } from '@/lib/mockData';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const { id } = await params;
+  const rawP = await Promise.resolve(context.params); const id = (rawP as { id: string }).id;
   const phaseId = parseInt(id);
   try {
     const { db } = await import('@/db');
