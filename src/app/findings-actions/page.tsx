@@ -1,16 +1,6 @@
-import { AppShell } from '@/components/layout/AppShell';
-import { FindingsActionsWorkspace } from '@/components/findings/FindingsActionsWorkspace';
+import { redirect } from 'next/navigation';
 
+// Findings & Actions merged into Audit View — redirect for backwards compatibility
 export default function FindingsActionsPage() {
-  return (
-    <AppShell>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Findings and Actions</h1>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          All findings and actions across the EV-INV-800 lifecycle
-        </p>
-        <FindingsActionsWorkspace />
-      </div>
-    </AppShell>
-  );
+  redirect('/audit?tab=findings');
 }

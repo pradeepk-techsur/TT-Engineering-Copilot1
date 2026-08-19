@@ -2,10 +2,11 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LifecycleSummaryBanner } from '@/components/lifecycle/LifecycleSummaryBanner';
+import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
 import Link from 'next/link';
 
 async function getLifecycleData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/lifecycle`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3010'}/api/lifecycle`, {
     cache: 'no-store',
   });
   if (!res.ok) return null;
@@ -52,11 +53,9 @@ export default async function LifecycleViewPage() {
                     >
                       Phase {phase.phaseId}: {phase.phaseName}
                     </Link>
-                    {/* Technical review — ONLY show for phases 0, 1, 3, 4 (null for others) */}
+                    {/* Technical review — with tooltip for acronym expansion */}
                     {phase.technicalReview && (
-                      <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                        {phase.technicalReview}
-                      </Badge>
+                      <TechReviewBadge review={phase.technicalReview} />
                     )}
                     <PhaseStateBadge state={phase.phaseState} />
                   </div>

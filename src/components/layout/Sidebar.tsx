@@ -1,69 +1,70 @@
 'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import {
-  LayoutDashboard, GitBranch,
-  AlertTriangle, History, Settings
-} from 'lucide-react';
+import { LayoutDashboard, GitBranch, BookOpen, Settings } from 'lucide-react';
 
+// Streamlined navigation — Findings & Actions merged into Audit; Checklist removed
 const NAV_ITEMS = [
   { href: '/', label: 'Project Overview', icon: LayoutDashboard },
   { href: '/lifecycle', label: 'Lifecycle', icon: GitBranch },
-  { href: '/findings-actions', label: 'Findings & Actions', icon: AlertTriangle },
-  { href: '/audit', label: 'Audit Log', icon: History },
+  { href: '/audit', label: 'Audit & Findings', icon: BookOpen },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
-
-const PHASE_SHORTCUTS = Array.from({ length: 10 }, (_, i) => ({
-  href: `/phase/${i}`,
-  label: `Phase ${i}`,
-}));
 
 export function Sidebar() {
   const pathname = usePathname();
 
+  // Determine active nav item — /audit matches both /audit and /findings-actions (redirected)
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    if (href === '/audit') return pathname === '/audit' || pathname === '/findings-actions';
+    return pathname.startsWith(href);
+  };
+
   return (
     <aside
-      className="w-60 flex-shrink-0 flex flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] h-full"
+      className="w-52 flex-shrink-0 flex flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] h-full"
       aria-label="Main navigation"
     >
-      <nav className="flex flex-col gap-1 p-3">
+      <nav className="flex flex-col gap-0.5 p-2 pt-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
               'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
-              pathname === href
+              isActive(href)
                 ? 'bg-white/10 text-[var(--color-text-primary)]'
                 : 'text-[var(--color-text-muted)] hover:bg-white/5 hover:text-[var(--color-text-primary)]'
             )}
-            aria-current={pathname === href ? 'page' : undefined}
+            aria-current={isActive(href) ? 'page' : undefined}
           >
-            <Icon size={16} />
+            <Icon size={15} />
             {label}
           </Link>
         ))}
       </nav>
 
-      <div className="px-3 pb-2">
-        <p className="text-xs text-[var(--color-text-muted)] px-3 py-1.5 uppercase tracking-wide">
+      {/* Phase quick links — kept but slimmer */}
+      <div className="px-2 pb-2 mt-1 border-t border-[var(--color-border)]">
+        <p className="text-[10px] text-[var(--color-text-muted)] px-3 py-2 uppercase tracking-widest font-medium">
           Phases
         </p>
-        <div className="flex flex-col gap-0.5">
-          {PHASE_SHORTCUTS.map(({ href, label }) => (
+        <div className="grid grid-cols-2 gap-0.5">
+          {Array.from({ length: 10 }, (_, i) => (
             <Link
-              key={href}
-              href={href}
+              key={i}
+              href={`/phase/${i}`}
               className={cn(
-                'px-3 py-1.5 rounded-md text-xs transition-colors',
-                pathname.startsWith(href) && href !== '/'
+                'px-2 py-1 rounded text-[11px] text-center transition-colors',
+                pathname === `/phase/${i}`
                   ? 'bg-white/10 text-[var(--color-text-primary)]'
-                  : 'text-[var(--color-text-muted)] hover:bg-white/5'
+                  : 'text-[var(--color-text-muted)] hover:bg-white/5 hover:text-[var(--color-text-primary)]'
               )}
             >
-              {label}
+              P{i}
             </Link>
           ))}
         </div>

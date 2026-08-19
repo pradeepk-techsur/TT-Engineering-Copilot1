@@ -5,20 +5,20 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* ── TT Engineering Copilot dark-first color tokens (UX-Mockup §1a) ── */
-  --color-surface:      #1a1d27;
-  --color-text-primary: #f1f5f9;
-  --color-text-muted:   #94a3b8;
+  /* ── TT Engineering Copilot dark-first color tokens ── */
+  --color-surface:      #161820;
+  --color-surface-2:    #1e2028;
+  --color-text-primary: #e8eaf0;
+  --color-text-muted:   #8b8fa8;
 
-  /* Semantic status colors */
-  --color-pass:        #22c55e;
-  --color-conditional: #f97316;
-  --color-fail:        #ef4444;
-  --color-awaiting:    #f59e0b;
-  --color-upcoming:    #64748b;
-  --color-synthetic:   #8b5cf6;
-  --color-advisory:    #3b82f6;
-  --color-blocked:     #dc2626;
+  /* 4 semantic colors only — professional, minimal */
+  --color-pass:      #22c55e;   /* green  — gate pass, valid, complete */
+  --color-fail:      #ef4444;   /* red    — gate fail, error, blocked */
+  --color-awaiting:  #f59e0b;   /* amber  — pending decision AND conditional pass */
+  --color-synthetic: #8b5cf6;   /* violet — synthetic data badges only */
+  /* Removed: --color-conditional (orange), --color-advisory (blue), --color-upcoming (slate), --color-blocked (red-600) */
+  /* Conditional Pass → use --color-awaiting (amber) */
+  /* AI Advisory labels → text-[--color-text-muted], no badge color */
 
   /* ── shadcn/ui CSS variables (dark theme by default) ── */
   --background: oklch(0.09 0.02 264);
@@ -62,15 +62,38 @@
 }
 
 .light {
-  --color-background: #ffffff;
-  --color-surface:    #f8f9fa;
-  --color-border:     #e2e8f0;
-  --color-text-primary: #0f172a;
-  --color-text-muted:   #94a3b8;
-  --color-pass:        #16a34a;
-  --color-conditional: #ea580c;
-  --color-fail:        #dc2626;
-  --color-awaiting:    #d97706;
+  --color-background: #f4f6fb;
+  --color-surface:    #ffffff;
+  --color-surface-2:  #f1f3f8;
+  --color-border:     #dde1ec;
+  --color-text-primary: #111827;
+  --color-text-muted:   #6b7280;
+  --color-pass:      #16a34a;
+  --color-fail:      #dc2626;
+  --color-awaiting:  #d97706;
+  --color-synthetic: #7c3aed;
+
+  /* shadcn/ui light overrides */
+  --background: oklch(0.97 0.005 264);
+  --foreground: oklch(0.15 0.02 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 264);
+  --primary: oklch(0.25 0.02 264);
+  --primary-foreground: oklch(0.97 0.005 264);
+  --secondary: oklch(0.93 0.01 264);
+  --secondary-foreground: oklch(0.25 0.02 264);
+  --muted: oklch(0.93 0.01 264);
+  --muted-foreground: oklch(0.5 0.02 264);
+  --accent: oklch(0.93 0.01 264);
+  --accent-foreground: oklch(0.25 0.02 264);
+  --border: oklch(0.87 0.01 264);
+  --input: oklch(0.87 0.01 264);
+  --ring: oklch(0.5 0.02 264);
+  --sidebar: oklch(0.97 0.005 264);
+  --sidebar-foreground: oklch(0.25 0.02 264);
+  --sidebar-border: oklch(0.87 0.01 264);
 }
 
 @theme inline {
