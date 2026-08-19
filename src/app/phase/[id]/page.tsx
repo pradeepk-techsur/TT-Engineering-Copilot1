@@ -70,13 +70,13 @@ export default async function PhaseWorkspacePage({ params }: Props) {
         </Card>
 
         {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR.
-            Route handlers exist for phases 0–4; for later phases show config outputs list. */}
+            Route handlers exist for phases 0–7; for phases 8–9 show config outputs list. */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
           <CardHeader>
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
           </CardHeader>
           <CardContent>
-            {phaseId <= 4 ? (
+            {phaseId <= 7 ? (
               <OutputsPanel phaseId={phaseId} />
             ) : (
               <ul className="space-y-2">

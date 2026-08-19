@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-lifecycle-phases-3-4-agents-flagship-04-PLAN.md
-last_updated: "2026-08-18T14:35:00.000Z"
-last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button, deterministicChecks card; verification passed (5/5)"
+stopped_at: Completed 05-lifecycle-phases-5-7-agents-05-PLAN.md
+last_updated: "2026-08-19T02:13:53.394Z"
+last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 24
+  completed_plans: 23
   percent: 100
 ---
 
@@ -67,6 +67,11 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 04-lifecycle-phases-3-4-agents-flagship P02 | 37min | 2 tasks | 21 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P03 | 22min | 2 tasks | 14 files |
 | Phase 04-lifecycle-phases-3-4-agents-flagship P04 | 15min | 2 tasks | 5 files |
+| Phase 05-lifecycle-phases-5-7-agents P01 | 7min | 2 tasks | 9 files |
+| Phase 05-lifecycle-phases-5-7-agents P02 | 7min | 1 tasks | 8 files |
+| Phase 05-lifecycle-phases-5-7-agents P03 | 15min | 2 tasks | 7 files |
+| Phase 05-lifecycle-phases-5-7-agents P04 | 2min | 2 tasks | 2 files |
+| Phase 05-lifecycle-phases-5-7-agents P05 | 7min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -124,6 +129,15 @@ Recent decisions affecting current work:
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: phaseId<=4 guard in page.tsx — phases 0–4 use OutputsPanel SWR; phases 5–9 use static config.outputs
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: isRevised derived from readiness.internal?.activeVersion > 1 with ?? 0 fallback — safe before readiness data loads
   - [Phase 04-lifecycle-phases-3-4-agents-flagship gap closure]: check.checkId (not checkResultId) in GateReviewWorkspace — Drizzle schema PK is checkId
+- [Phase 05-lifecycle-phases-5-7-agents]: itemsChecked cast as any[] — CpkItem lacks index signature to satisfy CheckItem; consistent with hvClearanceCheck pattern
+- [Phase 05-lifecycle-phases-5-7-agents]: VVAgent LLM-after-deterministic: check results written to DB before LLM call; prompt explicitly says do NOT recalculate
+- [Phase 05-lifecycle-phases-5-7-agents]: MRLPPAPAgent calls runCpkCalculation before callLLM — ordering enforced by source line order
+- [Phase 05-lifecycle-phases-5-7-agents]: Phase 6 external=UP customer production-readiness, internal=SI MES/quality simulated connector — reversed from Phase 5
+- [Phase 05-lifecycle-phases-5-7-agents]: LessonsLearnedAgent uses LLM-only pattern (no deterministic check) — Phase 7 is lessons capture, not process validation; no correction cycle
+- [Phase 05-lifecycle-phases-5-7-agents]: Docker compose rebuild required for new routes to be live — reuseExistingServer in playwright hits the running container, new files need image rebuild
+- [Phase 05-lifecycle-phases-5-7-agents]: phaseId <= 7 guard in page.tsx extends OutputsPanel SWR to phases 5–7; targeted solderJointResult closure in cpkCalculation.ts closes F6-001 when specific characteristic passes
+- [Phase 05-lifecycle-phases-5-7-agents]: allowRevise=isReady===true — Ingest Revised available whenever SI is ready, generic for all correction cycles
+- [Phase 05-lifecycle-phases-5-7-agents]: E2E tests check outputs-pending testid — aligns with OutputsPanel design showing 'Pending phase execution' before any phase runs
 
 ### Pending Todos
 
@@ -136,6 +150,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-18T04:59:11.723Z
-Stopped at: Completed 04-lifecycle-phases-3-4-agents-flagship-03-PLAN.md
+Last session: 2026-08-19T02:13:53.393Z
+Stopped at: Completed 05-lifecycle-phases-5-7-agents-05-PLAN.md
 Resume file: None

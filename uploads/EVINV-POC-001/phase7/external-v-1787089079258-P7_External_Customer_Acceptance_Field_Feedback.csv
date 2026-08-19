@@ -1,0 +1,7 @@
+Feedback ID,Date,Build,Feedback Type,Description,Severity,Requirement Ref,Customer Disposition,Required Action,Evidence
+FB-001,2029-06-10,Pilot-01,Acceptance,CAN message set accepted,Low,SYS-005,Accepted,None,ACC-001
+FB-002,2029-06-12,Pilot-01,Field-like trial,Connector access acceptable after redesign,Low,P3-D03,Accepted,Close action,ACC-002
+FB-003,2029-06-15,Pilot-02,Acceptance,Thermal correction verified,Low,SYS-006,Accepted,Close action,ACC-003
+FB-004,2029-06-18,Pilot-02,Observation,Mounting torque records show variation,Medium,PROC-03,Review requested,Verify tool and WI,ACC-004
+FB-005,2029-06-20,Pilot-02,Acceptance,Leak test passed,Low,SYS-008,Accepted,None,ACC-005
+FB-006,2029-06-22,Pilot-03,Acceptance,Efficiency target met,Low,SYS-004,Accepted,None,ACC-006
