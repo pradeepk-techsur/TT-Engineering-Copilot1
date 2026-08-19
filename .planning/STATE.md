@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-lifecycle-phases-8-9-agents-01-PLAN.md
-last_updated: "2026-08-19T02:58:32.232Z"
+stopped_at: Completed 06-lifecycle-phases-8-9-agents-02-PLAN.md
+last_updated: "2026-08-19T03:12:06.920Z"
 last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)"
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 100
 ---
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 05-lifecycle-phases-5-7-agents P04 | 2min | 2 tasks | 2 files |
 | Phase 05-lifecycle-phases-5-7-agents P05 | 7min | 2 tasks | 4 files |
 | Phase 06-lifecycle-phases-8-9-agents P01 | 2min | 1 tasks | 6 files |
+| Phase 06-lifecycle-phases-8-9-agents PP02 | 10min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,8 @@ Recent decisions affecting current work:
 - [Phase 05-lifecycle-phases-5-7-agents]: E2E tests check outputs-pending testid — aligns with OutputsPanel design showing 'Pending phase execution' before any phase runs
 - [Phase 06-lifecycle-phases-8-9-agents]: Phase 8 uses both-SI pattern — execute route checks Synthetic System Input Ready for BOTH inputs (no UP for Phase 8)
 - [Phase 06-lifecycle-phases-8-9-agents]: Gate 8 Pass explicitly sets Phase 9 phaseState=AwaitingInputs in gate 8 decide route to initiate EOL storyline
+- [Phase 06-lifecycle-phases-8-9-agents]: Gate 9 Pass sets projectStatus='Closed' in project_state DB table (not UI state) — DB-persisted, survives page reload; Gate 9 decide uses updatedAt: new Date().toISOString() for timestamptz mode:string column
+- [Phase 06-lifecycle-phases-8-9-agents]: Playwright strict-mode: use getByRole('heading').first() and exact: true instead of bare getByText() when sidebar links share same text as page headings
 
 ### Pending Todos
 
@@ -153,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-19T02:58:32.231Z
-Stopped at: Completed 06-lifecycle-phases-8-9-agents-01-PLAN.md
+Last session: 2026-08-19T03:12:06.918Z
+Stopped at: Completed 06-lifecycle-phases-8-9-agents-02-PLAN.md
 Resume file: None
