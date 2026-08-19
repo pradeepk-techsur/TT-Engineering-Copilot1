@@ -154,13 +154,14 @@ Plans:
   4. All six outputs (two per phase) conform to compact artifact standards; the Cpk check result does not rely on LLM computation — it runs as a deterministic tool and its structured result is distinguishable from AI-generated narrative in the UI.
   5. The Cpk check result is accessible even if Phase 6 completes and the user later navigates back — version history and provenance are preserved in the Artifact Viewer; the "below-threshold" finding from the initial run is retained alongside the corrected-run result so that no long-running result is silently lost.
 
-**Plans:** 4 plans
+**Plans:** 5 plans
 
 Plans:
 - [x] 05-01-PLAN.md — CpkCalculation deterministic check (zero LLM, formula: min((USL-μ)/(3σ), (μ-LSL)/(3σ))); Phase 5 V&V agent (SI-05: TP-CASE-1 91°C > 85°C, correction cycle, original result preserved); Gate 5 routes
 - [x] 05-02-PLAN.md — Phase 6 MRL/PPAP agent (Cpk check before LLM; SI-06: SOLDER_JOINT_SHEAR_HV_BUS Cpk 0.87 < 1.33; revised synthetic sample; Gate 6 routes)
 - [x] 05-03-PLAN.md — Phase 7 Lessons-Learned agent (SI-07: MOP-012 torque variation, F7-001 seeded=true; Gate 7 routes); Playwright tests for Phases 5–7 intake configurations and prohibited labels
 - [x] 05-04-PLAN.md — Gap closure: OutputsPanel guard phaseId<=4→<=7 (Tests 2, 6, 8); cpkCalculation.ts data fix (3 unintended failures) + targeted F6-001 closure condition (Test 7)
+- [ ] 05-05-PLAN.md — Gap closure: SiIntakeCard "Ingest Revised Sample" button (Phase 6 correction cycle UI); E2E test alignment for OutputsPanel pending state
 
 ---
 
