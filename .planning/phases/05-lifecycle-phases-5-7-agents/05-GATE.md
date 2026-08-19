@@ -3,7 +3,7 @@ phase: 5
 gate_status: passed
 build_command: "npm run build"
 test_command: "npx vitest run"
-last_updated: 2026-08-18T23:49:30Z
+last_updated: 2026-08-19T02:15:00Z
 boot_smoke: pass
 waves:
   - wave: 1
@@ -11,6 +11,10 @@ waves:
     tests: pass
     fix_attempts: 0
   - wave: gap-closure
+    build: pass
+    tests: pass
+    fix_attempts: 0
+  - wave: gap-closure-2
     build: pass
     tests: pass
     fix_attempts: 0
@@ -46,3 +50,17 @@ waves:
 | F6-001 closure condition (overallStatus→solderJointResult) | 7 | `grep 'solderJointResult' cpkCalculation.ts` | closed (repro constructed) |
 
 All gaps: closed (repro constructed)
+
+## Gap Redrive Wave 2 (--gaps-only, Plan 05-05)
+
+| Gap | Redrive Check | Result |
+|-----|---------------|--------|
+| SiIntakeCard "Ingest Revised Sample" missing (Test 3) | `grep -n 'ingest-revised' SiIntakeCard.tsx` → lines 65,205,222; `grep -n 'allowRevise' InputReadinessPanel.tsx` → lines 165,199 | closed (repro constructed) |
+| E2E tests assert static output names before execution (self_check) | `grep 'outputs-pending' e2e/phases-5-7.spec.ts e2e/intake-framework.spec.ts` → 4 occurrences; old static name assertions absent | closed (repro constructed) |
+
+## Gap Closure Wave 2 (Plan 05-05)
+
+- Build: `npm run build` → ✓ Compiled successfully
+- Tests: `npx vitest run` → pass (67/67)
+- Fix attempts: 0/3
+- Notes: SiIntakeCard allowRevise prop + handleIngestRevised wired to /ingest-revised; 4 E2E tests updated to check outputs-pending testid
