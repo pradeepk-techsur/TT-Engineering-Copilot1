@@ -162,6 +162,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
             readyStatus={readiness.external?.readyStatus ?? 'Waiting for Synthetic Sample Ingestion'}
             activeVersion={readiness.external?.activeVersion ?? null}
             onSuccess={refresh}
+            allowRevise={readiness.external?.isReady === true}
           />
         )}
       </div>
@@ -195,6 +196,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
             readyStatus={readiness.internal?.readyStatus ?? 'Waiting for Synthetic Sample Ingestion'}
             activeVersion={readiness.internal?.activeVersion ?? null}
             onSuccess={refresh}
+            allowRevise={readiness.internal?.isReady === true}
           />
         )}
       </div>

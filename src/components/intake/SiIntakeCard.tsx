@@ -22,13 +22,15 @@ interface SiIntakeCardProps {
   readyStatus: string;
   activeVersion: number | null;
   onSuccess: () => void;
+  allowRevise?: boolean;
 }
 
 export function SiIntakeCard({
   phaseId, inputRole, logicalName, systemRepresented, sampleFileName,
-  isReady, readyStatus, activeVersion, onSuccess
+  isReady, readyStatus, activeVersion, onSuccess, allowRevise
 }: SiIntakeCardProps) {
   const [ingesting, setIngesting] = useState(false);
+  const [ingestingRevised, setIngestingRevised] = useState(false);
 
   const handleIngest = async () => {
     setIngesting(true);
@@ -53,6 +55,31 @@ export function SiIntakeCard({
       toast.error('Ingestion failed. Please try again.');
     } finally {
       setIngesting(false);
+    }
+  };
+
+  const handleIngestRevised = async () => {
+    setIngestingRevised(true);
+    try {
+      const res = await fetch(
+        `/api/phases/${phaseId}/inputs/${inputRole}/ingest-revised`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirm_viewed: true }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message ?? 'Revised ingestion failed.');
+      } else {
+        toast.success(`${logicalName} — Revised Synthetic Sample ingested. Version updated.`);
+        onSuccess();
+      }
+    } catch {
+      toast.error('Revised ingestion failed. Please try again.');
+    } finally {
+      setIngestingRevised(false);
     }
   };
 
@@ -165,9 +192,41 @@ export function SiIntakeCard({
         )}
 
         {isReady && (
-          <div className="flex items-center gap-2 text-xs text-green-400">
-            <CheckCircle size={12} />
-            <span>Synthetic System Input Ready — ingested from {systemRepresented}.</span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs text-green-400">
+              <CheckCircle size={12} />
+              <span>Synthetic System Input Ready — ingested from {systemRepresented}.</span>
+            </div>
+            {allowRevise && (
+              <AlertDialog>
+                <AlertDialogTrigger
+                  className="w-full h-7 gap-1 rounded-lg px-2.5 text-[0.8rem] text-xs bg-amber-600/80 text-white hover:bg-amber-600 inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50"
+                  disabled={ingestingRevised}
+                  data-testid={`ingest-revised-sample-${inputRole}`}
+                >
+                  {ingestingRevised ? 'Ingesting...' : 'Ingest Revised Sample'}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Ingest Revised Synthetic Sample</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You are about to ingest a revised version of the Preloaded Synthetic Sample representing{' '}
+                      <strong>{systemRepresented}</strong>. This will create a new input version and invalidate affected results.
+                      No live connection to {systemRepresented} is being used.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleIngestRevised}
+                      data-testid={`confirm-ingest-revised-${inputRole}`}
+                    >
+                      Confirm Ingest Revised Sample
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         )}
       </CardContent>
