@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-lifecycle-phases-5-7-agents
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md
 started: 2026-08-19T01:20:11Z
-updated: 2026-08-19T01:25:00Z
+updated: 2026-08-19T01:28:00Z
 ---
 
 ## Current Test
@@ -83,7 +83,12 @@ per_test:
   severity: major
   test: 3
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "SiIntakeCard.tsx:136 renders the Ingest button only when !isReady. Once Phase 6 internal SI input is ingested (isReady=true, version=1), the button is hidden and replaced with 'Synthetic System Input Ready'. No 'Ingest Revised Sample' button is shown anywhere in the UI, even though the backend route /api/phases/[id]/inputs/[type]/ingest-revised exists. Phase 6's correction cycle (Cpk fix for SI-06) requires re-ingesting revised REVISED_PROCESS_DATA, but the UI prevents this."
+  artifacts:
+    - path: "src/components/intake/SiIntakeCard.tsx"
+      issue: "Line 136: {!isReady && <AlertDialog>} hides Ingest button once input is ready. No conditional for showing 'Ingest Revised Sample' when isReady=true and correction cycle is possible."
+    - path: "src/app/api/phases/[id]/inputs/[type]/ingest-revised/route.ts"
+      issue: "Backend route exists but no UI entry point in SiIntakeCard calls it"
+  missing:
+    - "Add an 'Ingest Revised Sample' button (or similar) to SiIntakeCard when isReady=true, wired to /api/phases/{id}/inputs/{type}/ingest-revised. Phase 4 has a similar pattern (revision hint at InputReadinessPanel:128-131) for UP inputs — apply same pattern for SI inputs in phases with correction cycles."
   debug_session: ""
