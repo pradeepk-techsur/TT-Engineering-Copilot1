@@ -1,0 +1,59 @@
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+Project: EVINV-POC-001 | Product: EV-INV-800 | Phase: 8 | Gate: 8
+Generated: 2026-08-19T09:37:12.379Z | Status: Draft — Awaiting Human Approval
+
+# Yield, Quality, and Financial-Anomaly Report
+
+**Project:** EVINV-POC-001 | **Phase:** 8 — Production & Sustaining | **Gate:** 8
+**Gate 8 EOL Recommendation**
+
+## Gate 8 EOL Assessment
+
+# Phase 8 Yield & Obsolescence Radar — Gate 8 EOL Recommendation
+**Program:** EVINV-POC-001 (EV-INV-800) | **Finding:** SI-08 | **Component:** IGBT-HV-800-A
+
+---
+
+## Gate 8 EOL Recommendation Paragraph
+
+> The discontinuance trigger for EVINV-POC-001 (EV-INV-800) is the receipt of Product Discontinuance Notice **PDN-2026-IGBT001** for critical component **IGBT-HV-800-A**, with distributor remaining stock limited to **420 units** and a hard last-order date of **2027-03-31**, beyond which supply is unrecoverable. EOL rationale is grounded in demand economics: current and projected program demand does not justify the cost or schedule burden of an **18–24 month full redesign program** required to qualify any alternate device, rendering continued investment technically and commercially non-viable. Accordingly, **Gate 8 PASS is recommended** to formally close the active development phase and initiate the **Phase 9 End-of-Life process**, including customer notification, final-buy planning against available stock, and controlled program wind-down activities.
+
+---
+
+## Supporting Summary Table
+
+| Field | Detail |
+|---|---|
+| Program ID | EVINV-POC-001 (EV-INV-800) |
+| Critical Finding | SI-08 |
+| Component | IGBT-HV-800-A |
+| PDN Reference | PDN-2026-IGBT001 *(fictional)* |
+| Remaining Stock | 420 units (simulated) |
+| Last Order Date | 2027-03-31 (simulated) |
+| Alternate Path | Full redesign — 18–24 months |
+| Demand Justification | Insufficient vs. redevelopment cost |
+| Gate 8 Outcome | **PASS → Initiate Phase 9 EOL** |
+| Recommended Next Phase | Phase 9 End-of-Life Process |
+
+---
+
+> ⚠️ **Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.**
+> All findings are advisory. PDN-2026-IGBT001 is a fictional reference for POC simulation purposes only. Human reviewers make all gate decisions. No live system connectivity implied or claimed.
+
+## Production Health Summary
+
+| Metric | Value |
+|---|---|
+| Production Status | Active (monitoring) |
+| Critical Obsolescence Alert | IGBT-HV-800-A — PDN received (PDN-2026-IGBT001) |
+| Last Order Date | 2027-03-31 |
+| Distributor Stock | 420 units |
+| Redevelopment Feasibility | No — 18–24 months; demand insufficient |
+| Recommended Action | Initiate Phase 9 End-of-Life |
+
+## Gate 8 Recommendation
+
+**AI Recommendation: Pass — Initiate End-of-Life (Phase 9)**
+*Advisory Only — Human decision required.*
+
+Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.

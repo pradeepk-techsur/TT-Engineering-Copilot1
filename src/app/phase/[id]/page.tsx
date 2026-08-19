@@ -69,25 +69,13 @@ export default async function PhaseWorkspacePage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR.
-            Route handlers exist for phases 0–7; for phases 8–9 show config outputs list. */}
+        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR for all phases 0–9. */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
           <CardHeader>
             <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
           </CardHeader>
           <CardContent>
-            {phaseId <= 7 ? (
-              <OutputsPanel phaseId={phaseId} />
-            ) : (
-              <ul className="space-y-2">
-                {(config.outputs as readonly string[]).map((output: string) => (
-                  <li key={output} className="text-sm text-[var(--color-text-primary)] flex items-start gap-2">
-                    <span className="text-[var(--color-text-muted)] mt-0.5">•</span>
-                    <span>{output}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <OutputsPanel phaseId={phaseId} />
           </CardContent>
         </Card>
       </div>
