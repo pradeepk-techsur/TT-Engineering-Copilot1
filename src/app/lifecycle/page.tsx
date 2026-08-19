@@ -1,6 +1,7 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LifecycleSummaryBanner } from '@/components/lifecycle/LifecycleSummaryBanner';
 import Link from 'next/link';
 
 async function getLifecycleData() {
@@ -25,6 +26,9 @@ export default async function LifecycleViewPage() {
             ENG 001 v4.1 — Phase 0 through Phase 9 · Gate 0 through Gate 9
           </p>
         </div>
+
+        {/* G0–G9 gate outcome summary banner */}
+        <LifecycleSummaryBanner />
 
         {/* Lifecycle timeline — all 10 phases */}
         <div className="grid gap-3">

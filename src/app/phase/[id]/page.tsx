@@ -1,6 +1,7 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { InputReadinessPanel } from '@/components/intake/InputReadinessPanel';
 import { OutputsPanel } from '@/components/phase/OutputsPanel';
+import { PhaseExecutionProgress } from '@/components/execution/PhaseExecutionProgress';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,6 +59,9 @@ export default async function PhaseWorkspacePage({ params }: Props) {
             </Link>
           </div>
         </div>
+
+        {/* Phase execution progress — polls every 2s */}
+        <PhaseExecutionProgress phaseId={phaseId} />
 
         {/* Input Readiness Panel — both inputs */}
         <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
