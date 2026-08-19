@@ -6,7 +6,7 @@ import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
 import Link from 'next/link';
 
 async function getLifecycleData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3010'}/api/lifecycle`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3001'}/api/lifecycle`, {
     cache: 'no-store',
   });
   if (!res.ok) return null;
