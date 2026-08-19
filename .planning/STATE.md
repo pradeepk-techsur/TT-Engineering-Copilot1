@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-lifecycle-phases-8-9-agents-03-PLAN.md
-last_updated: "2026-08-19T10:36:37.290Z"
+stopped_at: Completed 07-cross-cutting-views-and-demo-polish-02-PLAN.md
+last_updated: "2026-08-19T12:49:02.601Z"
 last_activity: "2026-08-18 — Phase 4 gap closure complete: phaseInputs seed rows, OutputsPanel guard phaseId<=4, isRevised POST body + button label, deterministicChecks card; verification passed (5/5)"
 progress:
-  total_phases: 10
-  completed_phases: 5
-  total_plans: 27
-  completed_plans: 26
+  total_phases: 12
+  completed_phases: 6
+  total_plans: 29
+  completed_plans: 28
   percent: 100
 ---
 
@@ -75,6 +75,8 @@ Progress: [██████████] 100% (Phase 1)
 | Phase 06-lifecycle-phases-8-9-agents P01 | 2min | 1 tasks | 6 files |
 | Phase 06-lifecycle-phases-8-9-agents PP02 | 10min | 2 tasks | 7 files |
 | Phase 06-lifecycle-phases-8-9-agents PP03 | 15min | 2 tasks | 3 files |
+| Phase 07-cross-cutting-views-and-demo-polish P01 | 10min | 2 tasks | 6 files |
+| Phase 07-cross-cutting-views-and-demo-polish P02 | 16min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -147,6 +149,8 @@ Recent decisions affecting current work:
 - [Phase 06-lifecycle-phases-8-9-agents]: Playwright strict-mode: use getByRole('heading').first() and exact: true instead of bare getByText() when sidebar links share same text as page headings
 - [Phase 06-lifecycle-phases-8-9-agents]: OutputsPanel rendered unconditionally for all phaseIds 0–9 — SWR pending state is correct UX before phase runs
 - [Phase 06-lifecycle-phases-8-9-agents]: AlertDialogAction wraps AlertDialogPrimitive.Close with render={<Button/>} — same pattern as AlertDialogCancel; onClick handler fires before dismiss
+- [Phase 07-cross-cutting-views-and-demo-polish]: Generic gate route placed in src/app/api/gates/[id]/review/ following Phase 2/3 decision (all routes in src/app/api/); Next.js 15 async params used; Playwright locators use getByRole(heading) + .first() to avoid strict-mode violations
+- [Phase 07-cross-cutting-views-and-demo-polish]: Playwright sidebar navigation uses aside[aria-label='Main navigation'] locator — aside element carries label, inner nav does not
 
 ### Pending Todos
 
@@ -159,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-19T10:36:37.289Z
-Stopped at: Completed 06-lifecycle-phases-8-9-agents-03-PLAN.md
+Last session: 2026-08-19T12:49:02.600Z
+Stopped at: Completed 07-cross-cutting-views-and-demo-polish-02-PLAN.md
 Resume file: None
