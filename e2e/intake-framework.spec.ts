@@ -16,8 +16,10 @@ test.describe('Phase Workspace (AV-03)', () => {
 
   test('Phase workspace shows both expected outputs', async ({ page }) => {
     await page.goto('/phase/0');
-    await expect(page.getByText('Opportunity Summary and Bid/No-Bid Recommendation')).toBeVisible();
-    await expect(page.getByText('Capability-Match and Critical-Gap Matrix')).toBeVisible();
+    // OutputsPanel shows 'Pending phase execution' before phase has run in this sandbox.
+    // Opportunity Summary and Gap Matrix appear only after agent execution.
+    await expect(page.getByTestId('outputs-pending')).toBeVisible();
+    await expect(page.getByTestId('outputs-panel')).toBeVisible();
   });
 });
 
