@@ -34,7 +34,6 @@ pnpm-debug.log*
 # ── Next.js ──
 .next/
 out/
-tsconfig.tsbuildinfo
 
 # ── Vite / Rollup / generic JS bundlers ──
 dist/
