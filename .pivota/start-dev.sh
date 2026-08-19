@@ -120,7 +120,6 @@ fi
 # Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
 # here. Empty string when not needed.
 
-# --- react-next pre-exec: allowedDevOrigins overlay ---
 # Only patch if user's next.config doesn't already include allowedDevOrigins.
 for CFG in next.config.mjs next.config.js next.config.ts; do
   if [[ -f "$CFG" ]]; then
@@ -152,64 +151,18 @@ EOF
   fi
 done
 
-# --- .env.local seeding (this project uses .env.local, not .env) ---
-# The standard template seeds .env from .env.example; this project uses
-# .env.local / .env.local.example instead. Apply the same injection-safe logic.
-if [[ ! -f .env.local && -f .env.local.example ]]; then
-  echo "[pivota] seeding .env.local from .env.local.example (preserving platform-injected vars)"
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    trimmed="${line#"${line%%[![:space:]]*}"}"
-    if [[ "$trimmed" == \#* || -z "$trimmed" || "$trimmed" != *"="* ]]; then
-      printf '%s\n' "$line"; continue
-    fi
-    key="${trimmed#export }"; key="${key%%=*}"; key="${key//[[:space:]]/}"
-    if [[ -n "${!key+x}" ]]; then
-      printf '# [pivota] %s omitted — provided by platform environment\n' "$key"
-      continue
-    fi
-    if [[ "$line" != *\"* && "$line" != *\'* ]]; then
-      line="$(printf '%s' "$line" | sed -E 's/[[:space:]]+#.*$//')"
-    fi
-    value="${line#*=}"
-    value_lc="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
-    if [[ "$value_lc" == change_me* || "$value_lc" == changeme* || "$value_lc" == your-* ]]; then
-      generated="$(head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9')"
-      printf '%s=%s\n' "$key" "${generated:0:48}"
-      echo "[pivota] generated random value for placeholder $key" >&2
-    else
-      printf '%s\n' "$line"
-    fi
-  done < .env.local.example > .env.local
-fi
-
-# --- Start compose DB/Redis services (postgres + redis required by the app) ---
-# The project declares postgres + redis in docker-compose.yml. Since this
-# wrapper runs the Next.js dev server natively (not via compose), we bring up
-# only the DB/Redis services (not the 'app' service) so the app can connect.
-# --no-recreate: idempotent — no-ops if already running.
-if docker info >/dev/null 2>&1; then
-  echo "[pivota] starting compose DB/Redis services (db, redis)..."
-  docker compose up -d --no-recreate db redis 2>&1 || true
-  # Wait for DB to be healthy (up to 60s)
-  for i in $(seq 1 12); do
-    if docker compose ps db 2>/dev/null | grep -q "healthy"; then
-      echo "[pivota] postgres is healthy"
-      break
-    fi
-    echo "[pivota] waiting for postgres to be healthy (attempt $i/12)..."
-    sleep 5
-  done
-  # Run drizzle migrations after install (in exec section below, after npm ci).
-  # Recorded here for clarity — actual migrate runs after node_modules is ready.
-else
-  echo "[pivota] WARN docker unavailable in this sandbox — DB/Redis services cannot be started; app may fail if DB is unreachable" >&2
-fi
+# NB: no migrate hook here. This slot runs BEFORE `npm ci` (no node_modules —
+# a node/prisma migrator would fail with `prisma: not found`; that exact
+# swallowed failure once shipped an empty-DB app). A DB-backed Next.js app
+# provisions its DB via its own docker-compose.yml, where migrate -> seed ->
+# serve run inside the app service command AFTER the image's install step —
+# see references/runtime-environment.md §3.
 
 # === D-12: idempotent install via lockfile hash + presence check ===
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH="package-lock.json"
 INSTALL_PRESENCE_CHECK="node_modules"
-INSTALL_CMD='npm ci || npm install'
+INSTALL_CMD='npm ci || npm install'   # single-quoted: catalog must escape internal quotes correctly
 
 run_install() {
   echo "[pivota] running install: $INSTALL_CMD"
@@ -272,16 +225,6 @@ elif [[ -n "$INSTALL_CMD" ]]; then
     run_install
     touch "$SENTINEL"
   fi
-fi
-
-# --- Run drizzle migrations after install (node_modules now available) ---
-# Keeps migrate ordering correct: AFTER npm ci (so npx tsx/drizzle-kit exists),
-# BEFORE the dev server starts. Non-fatal if DB unreachable — logs loudly.
-if docker info >/dev/null 2>&1; then
-  echo "[pivota] running drizzle migrations..."
-  npx tsx src/db/migrate.ts 2>&1 || echo "[pivota] WARN drizzle migration exited non-zero — app may boot onto an empty/partial schema; check /tmp/pivota-dev.log" >&2
-else
-  echo "[pivota] WARN docker unavailable — skipping drizzle migrations (DB not reachable)" >&2
 fi
 
 # === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
