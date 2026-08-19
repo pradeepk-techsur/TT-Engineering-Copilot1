@@ -20,8 +20,13 @@ test.describe('Phase 8 Workspace (Yield & Obsolescence)', () => {
 
   test('Phase 8 shows correct expected outputs', async ({ page }) => {
     await page.goto('/phase/8');
-    await expect(page.getByText('Obsolescence and Supply-Risk Forecast')).toBeVisible();
-    await expect(page.getByText('Yield, Quality, and Financial-Anomaly Report')).toBeVisible();
+    // OutputsPanel SWR is now used for all phases — before phase runs, shows 'Pending phase execution'
+    // (output names appear as download links only after Phase 8 agent has run)
+    await expect(page.getByTestId('outputs-panel')).toBeVisible();
+    // Either outputs-pending (phase not yet run) or output rows (phase has run) should be present
+    const pending = page.getByTestId('outputs-pending');
+    const outputRows = page.getByTestId('output-row');
+    await expect(pending.or(outputRows.first())).toBeVisible();
   });
 
   test('Phase 8 has no technical review', async ({ page }) => {
@@ -48,8 +53,13 @@ test.describe('Phase 9 Workspace (End of Life)', () => {
 
   test('Phase 9 shows correct expected outputs', async ({ page }) => {
     await page.goto('/phase/9');
-    await expect(page.getByText('EOL and Last-Time-Buy Decision Pack')).toBeVisible();
-    await expect(page.getByText('Project Closure and Institutional-Memory Record')).toBeVisible();
+    // OutputsPanel SWR is now used for all phases — before phase runs, shows 'Pending phase execution'
+    // (output names appear as download links only after Phase 9 agent has run)
+    await expect(page.getByTestId('outputs-panel')).toBeVisible();
+    // Either outputs-pending (phase not yet run) or output rows (phase has run) should be present
+    const pending = page.getByTestId('outputs-pending');
+    const outputRows = page.getByTestId('output-row');
+    await expect(pending.or(outputRows.first())).toBeVisible();
   });
 });
 
@@ -199,5 +209,41 @@ test.describe('Sidebar Navigation — All Views Accessible', () => {
     for (let i = 0; i <= 9; i++) {
       await expect(page.getByRole('link', { name: `Phase ${i}` }).first()).toBeVisible();
     }
+  });
+});
+
+test.describe('AlertDialog auto-close on Confirm — Gate Decision Selector', () => {
+  test('Confirm button closes the AlertDialog (structural: Record Decision button requires selection before dialog opens)', async ({ page }) => {
+    // Navigate to Gate 8 review — gateState will be Locked (seed default),
+    // so record-decision-button is disabled. This test verifies the AlertDialog
+    // structure: once a selection is made and the dialog opens, clicking Confirm
+    // (AlertDialogPrimitive.Close) dismisses it.
+    //
+    // Full end-to-end close behavior (gateState=Open) requires Phase 8 to have
+    // run first — verified manually per UAT Test 5 (human confirmed post-fix).
+    // This test guards the structural fix: AlertDialogAction must NOT render a
+    // plain <button> outside the AlertDialog close context.
+    await page.goto('/gate/8/review');
+    await expect(page.getByTestId('gate-decision-selector')).toBeVisible();
+
+    // Fill in reviewer role and select an outcome to enable the Record Decision button
+    await page.getByTestId('reviewer-role-input').fill('Program Manager');
+    await page.getByLabel('Pass', { exact: true }).first().click();
+
+    // Record Decision button should now be enabled (gate is Locked so canRecord passes,
+    // blockingActionsOpen is false for Gate 8)
+    const recordBtn = page.getByTestId('record-decision-button');
+    await expect(recordBtn).toBeEnabled();
+
+    // Click to open AlertDialog
+    await recordBtn.click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+
+    // Click Confirm — with AlertDialogPrimitive.Close fix, dialog must dismiss
+    await page.getByTestId('confirm-gate-decision').click();
+
+    // Dialog must close automatically (the API call will fail since phase hasn't run,
+    // but AlertDialogPrimitive.Close fires the dismiss before the async handler settles)
+    await expect(page.getByRole('alertdialog')).not.toBeVisible({ timeout: 3000 });
   });
 });
