@@ -48,7 +48,7 @@ export function AuditLogTable() {
 
       {/* Filters */}
       <div className="flex gap-3 flex-wrap">
-        <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+        <Select value={eventTypeFilter} onValueChange={(v) => setEventTypeFilter(v ?? 'all')}>
           <SelectTrigger className="w-48 text-xs h-8">
             <SelectValue placeholder="Event type" />
           </SelectTrigger>
@@ -60,7 +60,7 @@ export function AuditLogTable() {
           </SelectContent>
         </Select>
 
-        <Select value={phaseFilter} onValueChange={setPhaseFilter}>
+        <Select value={phaseFilter} onValueChange={(v) => setPhaseFilter(v ?? 'all')}>
           <SelectTrigger className="w-36 text-xs h-8">
             <SelectValue placeholder="Phase" />
           </SelectTrigger>
