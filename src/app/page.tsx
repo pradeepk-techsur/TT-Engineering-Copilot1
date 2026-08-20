@@ -35,7 +35,7 @@ function nextAction(phase: { phaseId: number; phaseState: string } | undefined) 
       };
     case 'AwaitingInputs':
       return {
-        tone: 'info' as const,
+        tone: 'warn' as const,
         title: `Phase ${phase.phaseId} is waiting for its inputs`,
         body: 'Both the external-source and internal-artifact inputs must be ready before the phase can run.',
         cta: 'Open intake',

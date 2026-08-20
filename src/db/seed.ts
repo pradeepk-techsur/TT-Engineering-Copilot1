@@ -1,8 +1,24 @@
-import { db } from './index';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
 import { projectState, phaseStates, phaseInputs } from './schema';
-import { sql, getTableColumns } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
+
+/**
+ * The pool is built here rather than imported from './index' on purpose.
+ *
+ * ESM hoists imports, so `import { db } from './index'` evaluated that module —
+ * and its top-level `new Pool({ connectionString: process.env.DATABASE_URL })` —
+ * before this file's `dotenv.config()` had a chance to run. DATABASE_URL was
+ * undefined at pool construction, so `npm run db:seed` died with
+ * "SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string" for
+ * anyone who had not already exported it into their shell. migrate.ts builds
+ * its pool after loading dotenv for exactly this reason; seed now matches.
+ */
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema });
 
 const PHASE_CONFIG = [
   { phaseId: 0, phaseName: 'Project Initiation', technicalReview: 'Kickoff' },
