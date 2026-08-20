@@ -147,15 +147,37 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         ? PlayCircle
         : CircleDashed;
 
-  // Explain the disabled Run button rather than leaving a dead control — but
-  // only when the explanation adds something. For Processing, Complete and
-  // Awaiting Human Decision, EXPLAIN above already says exactly why the button
-  // is inert, and the old copy ("Both inputs must be ready…") actively
-  // contradicted it once execution had finished.
-  const runBlockedReason =
-    !isExecuting && !bothReady && status !== 'Awaiting Human Decision' && status !== 'Complete'
-      ? 'Both inputs must be ready before the phase can run.'
-      : null;
+  /**
+   * The run bar used to state one fact three times: an "PHASE EXECUTION"
+   * label, a plain-language sentence, a status pill, and then a second
+   * sentence ("Both inputs must be ready before the phase can run") — five
+   * elements for "the input isn't here, so you can't run".
+   *
+   * The second sentence was not pure duplication, though: EXPLAIN keys off the
+   * execution status, which reports a single blocking reason, so on a fresh
+   * phase where BOTH inputs are outstanding it said only "Upload the required
+   * input file" and the generic sentence was quietly covering for it. Fixing
+   * the first sentence removes the need for the second.
+   */
+  const extReady = readiness.external?.isReady ?? false;
+  const intReady = readiness.internal?.isReady ?? false;
+  const bothOutstanding = !extReady && !intReady && !bothReady;
+
+  const explanation = bothOutstanding
+    ? 'Neither input is in yet — provide both below to unblock this phase.'
+    : (EXPLAIN[status] ?? 'Waiting on the next step.');
+
+  // Kept only as the disabled button's tooltip, so a dead control still
+  // explains itself on hover without spending a line of the row.
+  const runBlockedTitle = isExecuting
+    ? undefined
+    : status === 'Processing'
+      ? 'This phase is already running.'
+      : status === 'Complete'
+        ? 'This phase is already complete.'
+        : !bothReady
+          ? 'Both inputs must be ready before the phase can run.'
+          : undefined;
 
   // Helper to determine sample file name
   const sampleFileName = (role: 'external' | 'internal') => {
@@ -190,28 +212,21 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
             size={16}
             strokeWidth={2}
           />
-          <div className="min-w-0 flex-1">
-            <p className="text-[10.5px] font-semibold tracking-[0.08em] text-fg-muted uppercase">
-              Phase execution
-            </p>
-            <p className="mt-0.5 text-[12.5px] text-fg-2">
-              {EXPLAIN[status] ?? 'Waiting on the next step.'}
-            </p>
-          </div>
+          {/* No "PHASE EXECUTION" caption: this row sits under a heading that
+              already says Input readiness, and it carries a status pill and a
+              Run button. It could not be anything else, and the caption pushed
+              the one sentence worth reading onto a second line. */}
+          <p className="min-w-0 flex-1 text-[12.5px] text-fg-2">{explanation}</p>
 
           <PhaseExecutionStatusBadge status={status} />
 
           <div className="flex items-center gap-3">
-            {runBlockedReason && (
-              <span className="hidden text-[11.5px] text-fg-muted lg:block">
-                {runBlockedReason}
-              </span>
-            )}
             {/* Run Phase button — DISABLED until both inputs ready */}
             <Button
               size="sm"
               variant={phaseSettled ? 'outline' : 'default'}
               disabled={runDisabled}
+              title={runBlockedTitle}
               data-testid="run-phase-button"
               onClick={handleRunPhase}
             >
