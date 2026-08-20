@@ -1,12 +1,16 @@
-import { Badge } from '@/components/ui/badge';
+import { FlaskConical } from 'lucide-react';
+import { StatusPill } from '@/components/ui/status-pill';
 
 export function SyntheticBadge() {
   return (
-    <Badge
-      className="bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-medium"
+    <StatusPill
+      tone="synthetic"
+      className="gap-1.5 font-semibold tracking-[0.04em] uppercase"
+      title="Synthetic POC Data — not real TT Electronics product data"
       aria-label="Synthetic POC data — not real TT Electronics product data"
     >
-      SYNTHETIC POC
-    </Badge>
+      <FlaskConical size={11} strokeWidth={2.5} />
+      Synthetic POC
+    </StatusPill>
   );
 }

@@ -2,11 +2,11 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
+import { Upload, CheckCircle2, AlertCircle, Loader2, FileUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { readinessStyle, styleFor } from '@/lib/status';
 
 interface UpIntakeCardProps {
   phaseId: number;
@@ -50,13 +50,20 @@ export function UpIntakeCard({
       if (!res.ok) {
         const issues = data.validationResult?.issues ?? [{ code: data.error_code, message: data.message }];
         setLocalErrors(issues);
-        toast.error(`Validation failed: ${issues.map((i: { code: string }) => i.code).join(', ')}`);
+        toast.error('File failed validation', {
+          description: `${issues.map((i: { code: string }) => i.code).join(', ')} — see the details on the card.`,
+        });
       } else {
-        toast.success(`${logicalName} received and validated. Version ${data.versionId ? 'active' : '1'} active.`);
+        toast.success(`${logicalName} received`, {
+          description: `Validated. Version ${data.versionId ? 'active' : '1'} active.`,
+        });
         onSuccess();
       }
     } catch {
       setLocalErrors([{ code: 'UPLOAD_ERROR', message: 'Upload failed. Please try again.' }]);
+      toast.error('Upload failed', {
+        description: 'Could not reach the server. Check your connection and try again.',
+      });
     } finally {
       setUploading(false);
     }
@@ -68,48 +75,51 @@ export function UpIntakeCard({
     disabled: uploading,
   });
 
+  const status = styleFor(readinessStyle, readyStatus);
+
   return (
-    <Card className="bg-[var(--color-surface)] border-[var(--color-border)]" data-testid={`up-intake-${inputRole}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">{logicalName}</CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              User-Provided File
-            </Badge>
-            {isReady ? (
-              <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20">
-                Ready ✓
-              </Badge>
-            ) : (
-              <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Not Ready
-              </Badge>
-            )}
+    <Card data-testid={`up-intake-${inputRole}`}>
+      <CardHeader>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle>{logicalName}</CardTitle>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-fg-muted">
+              <span>
+                Format <span className="font-mono text-fg-2">{format}</span>
+              </span>
+              <span aria-hidden className="text-fg-faint">·</span>
+              <span>
+                Size <span className="text-fg-2">{sizeGuidance}</span>
+              </span>
+              {activeVersion && (
+                <>
+                  <span aria-hidden className="text-fg-faint">·</span>
+                  <span>
+                    Version <span className="font-mono text-fg-2">{activeVersion}</span> active
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <StatusPill tone="info" size="sm">User-Provided File</StatusPill>
+            <StatusPillFor status={status} size="sm" />
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* Status */}
-        <div className="text-xs text-[var(--color-text-muted)]">
-          Status: <span className="text-[var(--color-text-primary)]">{readyStatus}</span>
-          {activeVersion && <span className="ml-2">· Version {activeVersion} active</span>}
-        </div>
-
-        {/* Format and size guidance */}
-        <div className="grid grid-cols-2 gap-2 text-xs text-[var(--color-text-muted)]">
-          <div>Format: <span className="text-[var(--color-text-primary)]">{format}</span></div>
-          <div>Size: <span className="text-[var(--color-text-primary)]">{sizeGuidance}</span></div>
-        </div>
-
         {/* Validation errors */}
         {allErrors.length > 0 && (
-          <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 space-y-1">
+          <div className="space-y-1.5 rounded-lg border border-fail-line bg-fail-soft p-3">
             {allErrors.map((issue, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs text-red-400">
-                <AlertCircle size={12} className="flex-shrink-0 mt-0.5" />
-                <span><code className="font-mono">{issue.code}</code>: {issue.message}</span>
+              <div key={i} className="flex items-start gap-2 text-[12px] text-fail">
+                <AlertCircle size={12} strokeWidth={2} className="mt-0.5 shrink-0" />
+                <span>
+                  <code className="font-mono font-semibold">{issue.code}</code>
+                  {': '}
+                  {issue.message}
+                </span>
               </div>
             ))}
           </div>
@@ -119,29 +129,47 @@ export function UpIntakeCard({
         <div
           {...getRootProps()}
           className={cn(
-            'border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors',
+            'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-[1.5px] border-dashed px-4 py-7 text-center transition-colors',
             isDragActive
-              ? 'border-blue-500/50 bg-blue-500/5'
-              : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]',
-            uploading && 'opacity-50 cursor-not-allowed'
+              ? 'border-accent-solid bg-accent-soft'
+              : 'border-line-strong bg-raised/40 hover:border-accent-line hover:bg-hover',
+            uploading && 'cursor-not-allowed opacity-60'
           )}
           data-testid={`dropzone-${inputRole}`}
         >
           <input {...getInputProps()} data-testid={`file-input-${inputRole}`} />
-          <Upload size={20} className="mx-auto mb-2 text-[var(--color-text-muted)]" />
-          <p className="text-xs text-[var(--color-text-muted)]">
-            {uploading ? 'Uploading...' : isDragActive ? 'Drop file here' : (
+          <span
+            className={cn(
+              'flex size-9 items-center justify-center rounded-lg border border-line bg-surface',
+              isDragActive ? 'text-accent-solid' : 'text-fg-muted'
+            )}
+          >
+            {uploading ? (
+              <Loader2 size={16} strokeWidth={2} className="animate-spin" />
+            ) : isDragActive ? (
+              <FileUp size={16} strokeWidth={2} />
+            ) : (
+              <Upload size={16} strokeWidth={2} />
+            )}
+          </span>
+          <span className="text-[12.5px] font-medium text-fg">
+            {uploading ? 'Uploading…' : isDragActive ? 'Drop file here' : (
               isReady
                 ? `Upload Revised Version of ${logicalName}`
                 : `Upload ${logicalName}`
             )}
-          </p>
+          </span>
           {/* CRITICAL: correct label per FRD — Upload Revised Version, never replacement */}
+          {!uploading && !isDragActive && (
+            <span className="text-[11.5px] text-fg-muted">
+              Drag a file here, or click to browse · {format}
+            </span>
+          )}
         </div>
 
         {isReady && (
-          <div className="flex items-center gap-2 text-xs text-green-400">
-            <CheckCircle size={12} />
+          <div className="flex items-start gap-2 text-[12.5px] text-pass">
+            <CheckCircle2 size={13} strokeWidth={2} className="mt-px shrink-0" />
             <span>{logicalName} received and validated.</span>
           </div>
         )}

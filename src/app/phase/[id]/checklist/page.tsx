@@ -1,6 +1,9 @@
+import { ArrowLeft } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { TechnicalChecklistWorkspace } from '@/components/checklist/TechnicalChecklistWorkspace';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
+import { PageHeader } from '@/components/ui/page-header';
+import { ButtonLink } from '@/components/ui/button-link';
 
 export const dynamicParams = false;
 
@@ -15,13 +18,17 @@ export default async function TechnicalChecklistPage({ params }: Props) {
 
   return (
     <AppShell phaseId={phaseId}>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Technical Checklist Workspace</h1>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Phase {phaseId}: {config?.phaseName ?? `Phase ${phaseId}`}
-        </p>
-        <TechnicalChecklistWorkspace phaseId={phaseId} />
-      </div>
+      <PageHeader
+        title="Technical Checklist Workspace"
+        subtitle={`Phase ${phaseId}: ${config?.phaseName ?? `Phase ${phaseId}`} — each item needs named evidence before the review can close.`}
+        actions={
+          <ButtonLink size="sm" href={`/phase/${phaseId}`}>
+            <ArrowLeft size={14} strokeWidth={2} />
+            Phase workspace
+          </ButtonLink>
+        }
+      />
+      <TechnicalChecklistWorkspace phaseId={phaseId} />
     </AppShell>
   );
 }

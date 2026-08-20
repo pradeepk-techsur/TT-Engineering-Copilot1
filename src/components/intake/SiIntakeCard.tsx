@@ -1,16 +1,19 @@
 'use client';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
 import { Button } from '@/components/ui/button';
+import { ButtonAnchor } from '@/components/ui/button-link';
+import { Callout } from '@/components/ui/callout';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Database, Eye, Download, CheckCircle } from 'lucide-react';
+import { Database, Eye, Download, CheckCircle2, Loader2, PlugZap, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { readinessStyle, styleFor } from '@/lib/status';
 
 interface SiIntakeCardProps {
   phaseId: number;
@@ -46,13 +49,19 @@ export function SiIntakeCard({
       );
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.message ?? 'Ingestion failed.');
+        toast.error('Sample was not ingested', {
+          description: data.message ?? 'The server rejected the ingest. Please try again.',
+        });
       } else {
-        toast.success(`${logicalName} (Synthetic System Input) ingested from ${systemRepresented}. Version active.`);
+        toast.success(`${logicalName} ingested`, {
+          description: `Synthetic System Input from ${systemRepresented}. Version active.`,
+        });
         onSuccess();
       }
     } catch {
-      toast.error('Ingestion failed. Please try again.');
+      toast.error('Sample was not ingested', {
+        description: 'Could not reach the server. Check your connection and try again.',
+      });
     } finally {
       setIngesting(false);
     }
@@ -71,141 +80,151 @@ export function SiIntakeCard({
       );
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.message ?? 'Revised ingestion failed.');
+        toast.error('Revised sample was not ingested', {
+          description: data.message ?? 'The server rejected the ingest. Please try again.',
+        });
       } else {
-        toast.success(`${logicalName} — Revised Synthetic Sample ingested. Version updated.`);
+        toast.success(`${logicalName} — revised sample ingested`, {
+          description: 'A new input version is now active.',
+        });
         onSuccess();
       }
     } catch {
-      toast.error('Revised ingestion failed. Please try again.');
+      toast.error('Revised sample was not ingested', {
+        description: 'Could not reach the server. Check your connection and try again.',
+      });
     } finally {
       setIngestingRevised(false);
     }
   };
 
+  const status = styleFor(readinessStyle, readyStatus);
+
   return (
-    <Card
-      className="bg-[var(--color-surface)] border-[var(--color-border)]"
-      data-testid={`si-intake-${inputRole}`}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">{logicalName}</CardTitle>
-          <div className="flex items-center gap-2">
+    <Card data-testid={`si-intake-${inputRole}`}>
+      <CardHeader>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle>{logicalName}</CardTitle>
             {/* CORRECT label per FRD: "Simulated Connector" — prohibited: system link labels */}
-            <Badge className="text-xs bg-violet-500/10 text-violet-400 border border-violet-500/20">
-              Simulated Connector
-            </Badge>
-            {isReady ? (
-              <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20">
-                Ready ✓
-              </Badge>
-            ) : (
-              <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Not Ready
-              </Badge>
-            )}
+            <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-fg-muted">
+              <Database size={11} strokeWidth={2} className="shrink-0 text-synthetic" />
+              System Represented:
+              <span className="text-synthetic">{systemRepresented}</span>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <StatusPill tone="synthetic" size="sm">Simulated Connector</StatusPill>
+            <StatusPillFor status={status} size="sm" />
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* System represented — CORRECT label */}
-        <div className="flex items-center gap-2 text-xs">
-          <Database size={12} className="text-violet-400" />
-          <span className="text-[var(--color-text-muted)]">System Represented:</span>
-          <span className="text-violet-400">{systemRepresented}</span>
-        </div>
-
-        {/* Simulated Intake notice */}
-        <div className="rounded-md bg-violet-500/5 border border-violet-500/20 px-3 py-2 text-xs text-violet-400">
-          {/* CORRECT: state no live connection */}
+        {/* Simulated Intake notice — must state there is no live connection */}
+        <Callout tone="synthetic" icon={PlugZap}>
           Simulated Connector — No live connection to {systemRepresented}. This POC uses a Preloaded Synthetic Sample.
-        </div>
+        </Callout>
 
-        {/* Status */}
-        <div className="text-xs text-[var(--color-text-muted)]">
-          Status: <span className="text-[var(--color-text-primary)]">{readyStatus}</span>
-          {activeVersion && <span className="ml-2">· Version {activeVersion} active</span>}
-        </div>
-
-        {/* CORRECT label: "Preloaded Synthetic Sample" */}
-        <div className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
-          Preloaded Synthetic Sample
-        </div>
-
-        {/* View and Download controls */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            onClick={() => {
-              window.open(`/samples/${sampleFileName}`, '_blank');
-            }}
-            data-testid={`view-sample-${inputRole}`}
-          >
-            <Eye size={12} className="mr-1" />
-            View
-          </Button>
-          <a
-            href={`/samples/${sampleFileName}`}
-            download
-            data-testid={`download-sample-${inputRole}`}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all border-border bg-background hover:bg-muted hover:text-foreground h-7 gap-1 px-2.5 text-[0.8rem] text-xs"
-          >
-            <Download size={12} className="mr-1" />
-            Download
-          </a>
-        </div>
-
-        {/* Ingest Sample — requires explicit user action (AlertDialog confirmation) */}
-        {!isReady && (
-          <AlertDialog>
-            <AlertDialogTrigger
-              className="w-full h-7 gap-1 rounded-lg px-2.5 text-[0.8rem] text-xs bg-primary text-primary-foreground hover:bg-primary/80 inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50"
-              disabled={ingesting}
-              data-testid={`ingest-sample-${inputRole}`}
-            >
-              {ingesting ? 'Ingesting...' : 'Ingest Sample'}
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Ingest Synthetic Sample</AlertDialogTitle>
-                <AlertDialogDescription>
-                  You are about to ingest the Preloaded Synthetic Sample representing{' '}
-                  <strong>{systemRepresented}</strong>. This is synthetic data for POC demonstration only.
-                  No live connection to {systemRepresented} is being used.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleIngest}
-                  data-testid={`confirm-ingest-${inputRole}`}
-                >
-                  Confirm Ingest Sample
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+        {activeVersion && (
+          <p className="text-[11.5px] text-fg-muted">
+            Version <span className="font-mono text-fg-2">{activeVersion}</span> active
+          </p>
         )}
 
+        {/* CORRECT label: "Preloaded Synthetic Sample" */}
+        <div className="rounded-lg border border-line bg-raised/60 p-3">
+          <p className="text-[10.5px] font-semibold tracking-[0.07em] text-fg-muted uppercase">
+            Preloaded Synthetic Sample
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                window.open(`/samples/${sampleFileName}`, '_blank');
+              }}
+              data-testid={`view-sample-${inputRole}`}
+            >
+              <Eye size={13} strokeWidth={2} />
+              View
+            </Button>
+            <ButtonAnchor
+              size="sm"
+              href={`/samples/${sampleFileName}`}
+              download
+              data-testid={`download-sample-${inputRole}`}
+            >
+              <Download size={13} strokeWidth={2} />
+              Download
+            </ButtonAnchor>
+
+            {/* Ingest Sample — requires explicit user action (AlertDialog confirmation).
+                Was a full-bleed near-white slab; now it's the section's primary
+                action, sized like one. */}
+            {!isReady && (
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <Button size="sm" disabled={ingesting} className="ml-auto" data-testid={`ingest-sample-${inputRole}`}>
+                      {ingesting ? (
+                        <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+                      ) : (
+                        <Database size={13} strokeWidth={2} />
+                      )}
+                      {ingesting ? 'Ingesting…' : 'Ingest sample'}
+                    </Button>
+                  }
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Ingest Synthetic Sample</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You are about to ingest the Preloaded Synthetic Sample representing{' '}
+                      <strong>{systemRepresented}</strong>. This is synthetic data for POC demonstration only.
+                      No live connection to {systemRepresented} is being used.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleIngest}
+                      data-testid={`confirm-ingest-${inputRole}`}
+                    >
+                      Confirm Ingest Sample
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        </div>
+
         {isReady && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs text-green-400">
-              <CheckCircle size={12} />
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 text-[12.5px] text-pass">
+              <CheckCircle2 size={13} strokeWidth={2} className="mt-px shrink-0" />
               <span>Synthetic System Input Ready — ingested from {systemRepresented}.</span>
             </div>
             {allowRevise && (
               <AlertDialog>
                 <AlertDialogTrigger
-                  className="w-full h-7 gap-1 rounded-lg px-2.5 text-[0.8rem] text-xs bg-amber-600/80 text-white hover:bg-amber-600 inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50"
-                  disabled={ingestingRevised}
-                  data-testid={`ingest-revised-sample-${inputRole}`}
-                >
-                  {ingestingRevised ? 'Ingesting...' : 'Ingest Revised Sample'}
-                </AlertDialogTrigger>
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={ingestingRevised}
+                      data-testid={`ingest-revised-sample-${inputRole}`}
+                    >
+                      {ingestingRevised ? (
+                        <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+                      ) : (
+                        <RefreshCw size={13} strokeWidth={2} />
+                      )}
+                      {ingestingRevised ? 'Ingesting…' : 'Ingest revised sample'}
+                    </Button>
+                  }
+                />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Ingest Revised Synthetic Sample</AlertDialogTitle>

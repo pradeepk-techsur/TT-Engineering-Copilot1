@@ -1,9 +1,16 @@
+import Link from 'next/link';
+import { ArrowRight, GitBranch } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { PageHeader, SectionLabel } from '@/components/ui/page-header';
+import { StatusPillFor } from '@/components/ui/status-pill';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Hint } from '@/components/ui/hint';
 import { LifecycleSummaryBanner } from '@/components/lifecycle/LifecycleSummaryBanner';
 import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
-import Link from 'next/link';
+import { LifecycleRiskCell } from '@/components/risk/LifecycleRiskCell';
+import { phaseStateStyle, gateStateStyle, styleFor, toneDot, BEHAVIOR_GLOSSARY } from '@/lib/status';
+import { cn } from '@/lib/utils';
 
 async function getLifecycleData() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3010'}/api/lifecycle`, {
@@ -15,86 +22,144 @@ async function getLifecycleData() {
 
 export default async function LifecycleViewPage() {
   const data = await getLifecycleData();
+  const phases: any[] = data?.phases ?? [];
+  const currentPhaseId: number | undefined =
+    typeof data?.currentPhase === 'number' ? data.currentPhase : undefined;
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Product Lifecycle View
-          </h1>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            ENG 001 v4.1 — Phase 0 through Phase 9 · Gate 0 through Gate 9
-          </p>
-        </div>
+      <PageHeader
+        title="Product Lifecycle View"
+        subtitle="TT Electronics ENG 001 v4.1 — Phase 0 through Phase 9, each closed by a human gate decision."
+      />
 
-        {/* G0–G9 gate outcome summary banner */}
+      <div className="space-y-5">
         <LifecycleSummaryBanner />
 
-        {/* Lifecycle timeline — all 10 phases */}
-        <div className="grid gap-3">
-          {(data?.phases ?? []).map((phase: any) => (
-            <Card
-              key={phase.phaseId}
-              className="bg-[var(--color-surface)] border-[var(--color-border)]"
-              data-testid={`phase-${phase.phaseId}`}
-            >
-              <CardContent className="flex items-start gap-4 p-4">
-                {/* Phase number indicator */}
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-text-primary)]">
-                  {phase.phaseId}
-                </div>
+        <div>
+          <SectionLabel>Phases &amp; gates</SectionLabel>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Link
-                      href={`/phase/${phase.phaseId}`}
-                      className="text-sm font-medium text-[var(--color-text-primary)] hover:text-blue-400 transition-colors"
+          {/* One card, ten dense rows. This was ten separate cards, each
+              ~100px tall for ~40px of content — four screens of scrolling
+              to read a ten-item list. */}
+          <Card className="py-0">
+            {phases.length === 0 ? (
+              <EmptyState
+                icon={GitBranch}
+                title="No phases to show"
+                description="The lifecycle service returned no phases. Check that the app's API is reachable."
+              />
+            ) : (
+              <ol className="divide-y divide-line">
+                {phases.map((phase: any) => {
+                  const state = styleFor(phaseStateStyle, phase.phaseState);
+                  const gate = styleFor(gateStateStyle, phase.gateState);
+                  const isCurrent = phase.phaseId === currentPhaseId;
+
+                  return (
+                    <li
+                      key={phase.phaseId}
+                      data-testid={`phase-${phase.phaseId}`}
+                      className={cn(
+                        'group relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-hover',
+                        isCurrent && 'bg-accent-soft/40'
+                      )}
                     >
-                      Phase {phase.phaseId}: {phase.phaseName}
-                    </Link>
-                    {/* Technical review — with tooltip for acronym expansion */}
-                    {phase.technicalReview && (
-                      <TechReviewBadge review={phase.technicalReview} />
-                    )}
-                    <PhaseStateBadge state={phase.phaseState} />
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-[var(--color-text-muted)]">
-                    <span>Gate {phase.phaseId}: {phase.gateState}</span>
-                    <span>Ext: {phase.externalIntakeBehavior}</span>
-                    <span>Int: {phase.internalIntakeBehavior}</span>
-                  </div>
-                </div>
+                      {isCurrent && (
+                        <span
+                          aria-hidden
+                          className="absolute inset-y-0 left-0 w-[2.5px] bg-accent-solid"
+                        />
+                      )}
 
-                <Link
-                  href={`/gate/${phase.phaseId}/review`}
-                  className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex-shrink-0 transition-colors"
-                  aria-label={`Go to Gate ${phase.phaseId} Review`}
-                >
-                  Gate Review →
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
+                      {/* Phase marker */}
+                      <span
+                        className={cn(
+                          'flex size-8 shrink-0 items-center justify-center rounded-lg border text-[12.5px] font-semibold tabular-nums',
+                          isCurrent
+                            ? 'border-accent-line bg-accent-soft text-accent-solid'
+                            : 'border-line bg-raised text-fg-muted'
+                        )}
+                      >
+                        {phase.phaseId}
+                      </span>
+
+                      {/* Identity */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/phase/${phase.phaseId}`}
+                            className="rounded text-[13.5px] font-semibold text-fg transition-colors hover:text-accent-solid"
+                          >
+                            {phase.phaseName}
+                          </Link>
+                          {phase.technicalReview && (
+                            <TechReviewBadge review={phase.technicalReview} />
+                          )}
+                          {isCurrent && (
+                            <span className="text-[9.5px] font-bold tracking-[0.08em] text-accent-solid uppercase">
+                              Current
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11.5px] text-fg-muted">
+                          <span className="flex items-center gap-1.5">
+                            <span
+                              aria-hidden
+                              className={cn('size-1.5 rounded-full', toneDot[gate.tone])}
+                            />
+                            Gate {phase.phaseId} · {gate.label}
+                          </span>
+                          {/* "Ext: UP / Int: SI" was raw jargon with nothing
+                              to click. Now each code explains itself. */}
+                          <span>
+                            External&nbsp;
+                            <Hint label={phase.externalIntakeBehavior}>
+                              {BEHAVIOR_GLOSSARY[phase.externalIntakeBehavior] ??
+                                phase.externalIntakeBehavior}
+                            </Hint>
+                          </span>
+                          <span>
+                            Internal&nbsp;
+                            <Hint label={phase.internalIntakeBehavior}>
+                              {BEHAVIOR_GLOSSARY[phase.internalIntakeBehavior] ??
+                                phase.internalIntakeBehavior}
+                            </Hint>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* State + risk + gate entry */}
+                      <div className="flex shrink-0 items-center gap-3">
+                        {/* One compact risk indicator per active or completed
+                            phase. Selecting it opens what contributes to it. */}
+                        <LifecycleRiskCell
+                          phaseId={phase.phaseId}
+                          phaseState={phase.phaseState}
+                        />
+                        <StatusPillFor status={state} />
+                        <Link
+                          href={`/gate/${phase.phaseId}/review`}
+                          aria-label={`Go to Gate ${phase.phaseId} Review`}
+                          className="flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-fg-muted transition-colors hover:bg-active hover:text-accent-solid"
+                        >
+                          Gate review
+                          <ArrowRight
+                            size={12}
+                            strokeWidth={2}
+                            className="transition-transform group-hover:translate-x-0.5"
+                          />
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </Card>
         </div>
       </div>
     </AppShell>
-  );
-}
-
-function PhaseStateBadge({ state }: { state: string }) {
-  const styles: Record<string, string> = {
-    GatePassed:      'bg-green-500/10 text-green-400 border-green-500/20',
-    GateConditional: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-    GateFailed:      'bg-red-500/10 text-red-400 border-red-500/20',
-    AwaitingGate:    'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    Running:         'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    AwaitingInputs:  'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    Pending:         'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  };
-  return (
-    <Badge className={`text-xs border ${styles[state] ?? styles.Pending}`}>
-      {state}
-    </Badge>
   );
 }

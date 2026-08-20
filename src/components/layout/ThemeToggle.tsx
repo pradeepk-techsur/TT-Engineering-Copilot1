@@ -1,39 +1,42 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function ThemeToggle() {
+  // The inline script in layout.tsx has already applied the stored theme
+  // before paint, so we read from the DOM rather than guessing "dark" and
+  // correcting after hydration.
   const [dark, setDark] = useState(true);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('tt-theme');
-    const isDark = stored !== 'light';
-    setDark(isDark);
-    document.documentElement.classList.toggle('light', !isDark);
-    setReady(true);
+    setDark(!document.documentElement.classList.contains('light'));
   }, []);
 
   const toggle = () => {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle('light', !next);
-    localStorage.setItem('tt-theme', next ? 'dark' : 'light');
+    try {
+      localStorage.setItem('tt-theme', next ? 'dark' : 'light');
+    } catch {
+      /* private mode — theme just won't persist */
+    }
   };
 
-  if (!ready) return <div className="w-7 h-7" />;
-
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
+      type="button"
       onClick={toggle}
-      className="h-7 w-7 p-0 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+      className={cn(
+        'flex size-7 items-center justify-center rounded-lg text-fg-muted transition-colors',
+        'hover:bg-hover hover:text-fg'
+      )}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       data-testid="theme-toggle"
     >
-      {dark ? <Sun size={14} /> : <Moon size={14} />}
-    </Button>
+      {dark ? <Sun size={14} strokeWidth={2} /> : <Moon size={14} strokeWidth={2} />}
+    </button>
   );
 }

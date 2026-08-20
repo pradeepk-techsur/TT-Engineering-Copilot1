@@ -1,30 +1,17 @@
 import type { Config } from 'tailwindcss';
 
-// Tailwind CSS v4 config — theme extensions only
-// Color tokens are defined in globals.css as CSS custom properties
+/**
+ * Tailwind CSS v4.
+ *
+ * Theme is defined in `src/app/globals.css` via `@theme inline` — that is the
+ * single source of truth for colours, fonts, radii and animations. This file
+ * previously duplicated a colour list (`pass`, `conditional`, `advisory`…) that
+ * had drifted out of sync with the CSS and, without a `@config` directive, was
+ * never loaded anyway. Keep it minimal so it can't lie.
+ */
 const config: Config = {
   darkMode: 'class',
-  content: ['./src/**/*.{ts,tsx}', './app/**/*.{ts,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        surface: 'var(--color-surface)',
-        'tt-border': 'var(--color-border)',
-        pass: 'var(--color-pass)',
-        conditional: 'var(--color-conditional)',
-        fail: 'var(--color-fail)',
-        awaiting: 'var(--color-awaiting)',
-        upcoming: 'var(--color-upcoming)',
-        synthetic: 'var(--color-synthetic)',
-        advisory: 'var(--color-advisory)',
-        blocked: 'var(--color-blocked)',
-      },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-      },
-    },
-  },
+  content: ['./src/**/*.{ts,tsx}'],
   plugins: [],
 };
 export default config;

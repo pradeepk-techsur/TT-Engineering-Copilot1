@@ -1,7 +1,16 @@
+import Link from 'next/link';
+import { ArrowRight, CircleDot, Gauge, ClipboardCheck, ShieldCheck } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
+import { PageHeader, SectionLabel } from '@/components/ui/page-header';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
+import { Callout } from '@/components/ui/callout';
+import { ButtonLink } from '@/components/ui/button-link';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Stat } from '@/components/ui/stat';
+import { DataTable, THead, TH, TBody, TR, TD, TEmpty } from '@/components/ui/data-table';
+import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
+import { phaseStateStyle, styleFor } from '@/lib/status';
 
 async function getProjectData() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3010'}/api/lifecycle`, {
@@ -11,148 +20,331 @@ async function getProjectData() {
   return res.json();
 }
 
+const DONE = ['GatePassed', 'GateConditional'];
+
+/** What the user should do next, given the current phase's state. */
+function nextAction(phase: { phaseId: number; phaseState: string } | undefined) {
+  if (!phase) return null;
+  switch (phase.phaseState) {
+    case 'AwaitingGate':
+      return {
+        tone: 'warn' as const,
+        title: `Gate ${phase.phaseId} is open and waiting on a human decision`,
+        body: 'Phase execution has finished. Review the findings and AI recommendation, then record the gate outcome.',
+        cta: 'Review gate',
+        href: `/gate/${phase.phaseId}/review`,
+      };
+    case 'AwaitingInputs':
+      return {
+        tone: 'info' as const,
+        title: `Phase ${phase.phaseId} is waiting for its inputs`,
+        body: 'Both the external-source and internal-artifact inputs must be ready before the phase can run.',
+        cta: 'Open intake',
+        href: `/phase/${phase.phaseId}/intake`,
+      };
+    case 'Running':
+      return {
+        tone: 'info' as const,
+        title: `Phase ${phase.phaseId} is running`,
+        body: 'Agents are working through this phase. Outputs appear on the phase workspace as they complete.',
+        cta: 'Watch progress',
+        href: `/phase/${phase.phaseId}`,
+      };
+    case 'GateFailed':
+      return {
+        tone: 'fail' as const,
+        title: `Gate ${phase.phaseId} failed`,
+        body: 'Close the blocking actions raised at this gate before the programme can move forward.',
+        cta: 'View findings',
+        href: `/gate/${phase.phaseId}/review`,
+      };
+    default:
+      return null;
+  }
+}
+
 export default async function ProjectOverviewPage() {
   const data = await getProjectData();
+  const phases: any[] = data?.phases ?? [];
+
+  const currentPhaseId: number = data?.currentPhase ?? 0;
+  const currentPhase = phases.find(p => p.phaseId === currentPhaseId);
+  const gatesPassed = phases.filter(p => DONE.includes(p.phaseState)).length;
+  const conditional = phases.filter(p => p.phaseState === 'GateConditional').length;
+  const reviewCount = phases.filter(p => p.technicalReview).length;
+  const action = nextAction(currentPhase);
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Project Overview
-          </h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            TT Engineering Copilot — Proof of Concept
-          </p>
+      <PageHeader
+        title="Project Overview"
+        subtitle="Programme status across the ten-phase TT Electronics engineering lifecycle."
+        actions={
+          <ButtonLink variant="default" href={`/phase/${currentPhaseId}`}>
+            Open current phase
+            <ArrowRight size={14} strokeWidth={2} />
+          </ButtonLink>
+        }
+      />
+
+      <div className="space-y-5">
+        {/* ── What needs you now. The overview used to make you infer this
+               from a ten-row status table. ────────────────────────────── */}
+        {action && (
+          <Callout
+            tone={action.tone}
+            icon={CircleDot}
+            title={action.title}
+            action={
+              <ButtonLink size="sm" variant="outline" href={action.href}>
+                {action.cta}
+                <ArrowRight size={13} strokeWidth={2} />
+              </ButtonLink>
+            }
+          >
+            {action.body}
+          </Callout>
+        )}
+
+        {/* ── Programme metrics ─────────────────────────────────────── */}
+        <Card>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+              <Stat
+                label="Gates cleared"
+                value={
+                  <>
+                    {gatesPassed}
+                    <span className="text-fg-faint">/10</span>
+                  </>
+                }
+                tone={gatesPassed > 0 ? 'pass' : 'neutral'}
+                hint={conditional > 0 ? `${conditional} conditional` : 'G0 through G9'}
+              />
+              <Stat
+                label="Current phase"
+                value={`P${currentPhaseId}`}
+                hint={currentPhase?.phaseName ?? '—'}
+              />
+              <Stat
+                label="Current gate"
+                value={`G${data?.currentGate ?? currentPhaseId}`}
+                hint={currentPhase ? styleFor(phaseStateStyle, currentPhase.phaseState).label : '—'}
+              />
+              <Stat
+                label="Technical reviews"
+                value={reviewCount}
+                hint="Kickoff, SLR, PDR, CDR"
+              />
+            </div>
+
+            {/* Progress rail — the same 10 phases, as one bar */}
+            <div className="mt-6 flex items-center gap-3">
+              <div
+                className="flex h-1.5 flex-1 gap-0.5 overflow-hidden rounded-full"
+                role="img"
+                aria-label={`${gatesPassed} of 10 gates cleared`}
+              >
+                {phases.map(p => {
+                  const s = styleFor(phaseStateStyle, p.phaseState);
+                  return (
+                    <span
+                      key={p.phaseId}
+                      className={`flex-1 rounded-full ${
+                        s.tone === 'pass'
+                          ? 'bg-pass'
+                          : s.tone === 'warn'
+                            ? 'bg-warn'
+                            : s.tone === 'fail'
+                              ? 'bg-fail'
+                              : s.tone === 'info'
+                                ? 'bg-info'
+                                : 'bg-line-strong'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+              <span className="shrink-0 text-[11.5px] text-fg-muted tabular-nums">
+                {Math.round((gatesPassed / 10) * 100)}% complete
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Two columns: identity + phase table ──────────────────── */}
+        <div className="flex flex-col gap-5 lg:flex-row">
+          <div className="min-w-0 lg:w-[340px] lg:shrink-0">
+            <SectionLabel>Project</SectionLabel>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {data?.productName ?? 'EV-INV-800 Demonstration Traction Inverter'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-line text-[13px]">
+                  <Row label="Project ID">
+                    <span className="font-mono text-[11.5px] text-fg">
+                      {data?.projectId ?? 'EVINV-POC-001'}
+                    </span>
+                  </Row>
+                  <Row label="Type">{data?.projectType ?? 'NPI A'}</Row>
+                  <Row label="Category">{data?.projectCategory ?? 'Category 1'}</Row>
+                  <Row label="Status">
+                    <StatusPill tone={data?.projectStatus === 'Closed' ? 'neutral' : 'pass'} dot>
+                      {data?.projectStatus ?? 'Active'}
+                    </StatusPill>
+                  </Row>
+                  <Row label="Standard">
+                    <span className="text-fg-2">ENG 001 v4.1</span>
+                  </Row>
+                </dl>
+
+                <Link
+                  href="/lifecycle"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded text-[12.5px] font-medium text-accent-solid transition-colors hover:text-accent-hover"
+                >
+                  View full lifecycle
+                  <ArrowRight size={13} strokeWidth={2} />
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <SectionLabel>Phase summary</SectionLabel>
+            <Card className="py-0">
+              <DataTable minWidth={560}>
+                <THead>
+                  <tr>
+                    <TH className="w-[52px]">Phase</TH>
+                    <TH>Name</TH>
+                    <TH className="w-[150px]">Review</TH>
+                    <TH className="w-[150px]">Status</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {phases.length === 0 ? (
+                    <TEmpty colSpan={4}>
+                      <EmptyState
+                        icon={Gauge}
+                        title="Lifecycle data unavailable"
+                        description="The lifecycle service did not return any phases. Check that the app's API is reachable."
+                      />
+                    </TEmpty>
+                  ) : (
+                    phases.map((phase: any) => {
+                      const s = styleFor(phaseStateStyle, phase.phaseState);
+                      const isCurrent = phase.phaseId === currentPhaseId;
+                      return (
+                        <TR
+                          key={phase.phaseId}
+                          interactive
+                          className={isCurrent ? 'bg-accent-soft/40' : undefined}
+                        >
+                          <TD className="font-mono text-[11.5px] text-fg-muted">
+                            {isCurrent && (
+                              <span
+                                aria-hidden
+                                className="mr-1.5 inline-block size-1 rounded-full bg-accent-solid align-middle"
+                              />
+                            )}
+                            {phase.phaseId}
+                          </TD>
+                          <TD>
+                            <Link
+                              href={`/phase/${phase.phaseId}`}
+                              className="rounded font-medium text-fg transition-colors hover:text-accent-solid"
+                            >
+                              {phase.phaseName}
+                            </Link>
+                          </TD>
+                          <TD>
+                            {phase.technicalReview ? (
+                              <TechReviewBadge review={phase.technicalReview} />
+                            ) : (
+                              <span className="text-fg-faint">—</span>
+                            )}
+                          </TD>
+                          <TD>
+                            <StatusPillFor status={s} />
+                          </TD>
+                        </TR>
+                      );
+                    })
+                  )}
+                </TBody>
+              </DataTable>
+            </Card>
+          </div>
         </div>
 
-        {/* Project identity card */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardHeader>
-            <CardTitle className="text-base text-[var(--color-text-primary)]">
-              {data?.productName ?? 'EV-INV-800 Demonstration Traction Inverter'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Project ID</dt>
-                <dd className="font-mono text-xs mt-0.5 text-[var(--color-text-primary)]">
-                  {data?.projectId ?? 'EVINV-POC-001'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Type</dt>
-                <dd className="mt-0.5 text-[var(--color-text-primary)]">
-                  {data?.projectType ?? 'NPI A'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Category</dt>
-                <dd className="mt-0.5 text-[var(--color-text-primary)]">
-                  {data?.projectCategory ?? 'Category 1'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Status</dt>
-                <dd className="mt-0.5">
-                  <Badge className="bg-green-500/10 text-green-400 border border-green-500/20 text-xs">
-                    {data?.projectStatus ?? 'Active'}
-                  </Badge>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Current Phase</dt>
-                <dd className="mt-0.5 text-[var(--color-text-primary)]">
-                  Phase {data?.currentPhase ?? 0}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-text-muted)]">Current Gate</dt>
-                <dd className="mt-0.5 text-[var(--color-text-primary)]">
-                  Gate {data?.currentGate ?? 0}
-                </dd>
-              </div>
-            </dl>
-            <div className="mt-4">
-              <Link
-                href="/lifecycle"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                View full lifecycle →
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Phase summary table */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardHeader>
-            <CardTitle className="text-base text-[var(--color-text-primary)]">
-              Phase Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left py-2 px-3 text-[var(--color-text-muted)] font-medium">Phase</th>
-                    <th className="text-left py-2 px-3 text-[var(--color-text-muted)] font-medium">Name</th>
-                    <th className="text-left py-2 px-3 text-[var(--color-text-muted)] font-medium">Review</th>
-                    <th className="text-left py-2 px-3 text-[var(--color-text-muted)] font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data?.phases ?? []).map((phase: any) => (
-                    <tr
-                      key={phase.phaseId}
-                      className="border-b border-[var(--color-border)]/50 hover:bg-white/5 transition-colors"
-                    >
-                      <td className="py-2.5 px-3 font-mono text-xs text-[var(--color-text-primary)]">
-                        {phase.phaseId}
-                      </td>
-                      <td className="py-2.5 px-3 text-[var(--color-text-primary)]">
-                        <Link
-                          href={`/phase/${phase.phaseId}`}
-                          className="hover:text-blue-400 transition-colors"
-                        >
-                          {phase.phaseName}
-                        </Link>
-                      </td>
-                      <td className="py-2.5 px-3 text-[var(--color-text-muted)] text-xs">
-                        {phase.technicalReview ?? '—'}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <PhaseStateBadge state={phase.phaseState} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ── Quick links ──────────────────────────────────────────── */}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <QuickLink
+            href="/lifecycle"
+            icon={Gauge}
+            title="Lifecycle"
+            body="All ten phases with gate outcomes and intake behaviour."
+          />
+          <QuickLink
+            href="/audit"
+            icon={ClipboardCheck}
+            title="Audit & Findings"
+            body="Immutable event log, findings and corrective actions."
+          />
+          <QuickLink
+            href={`/gate/${currentPhaseId}/review`}
+            icon={ShieldCheck}
+            title={`Gate ${currentPhaseId} review`}
+            body="Record the human decision for the current gate."
+          />
+        </div>
       </div>
     </AppShell>
   );
 }
 
-function PhaseStateBadge({ state }: { state: string }) {
-  const styles: Record<string, string> = {
-    GatePassed:      'bg-green-500/10 text-green-400 border-green-500/20',
-    GateConditional: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-    GateFailed:      'bg-red-500/10 text-red-400 border-red-500/20',
-    AwaitingGate:    'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    Running:         'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    AwaitingInputs:  'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    Pending:         'bg-slate-500/10 text-slate-400 border-slate-500/20',
-    Cancelled:       'bg-red-500/10 text-red-400 border-red-500/20',
-    Paused:          'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  };
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <Badge className={`text-xs border ${styles[state] ?? styles.Pending}`}>
-      {state}
-    </Badge>
+    <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+      <dt className="shrink-0 text-fg-muted">{label}</dt>
+      <dd className="min-w-0 truncate text-right text-fg">{children}</dd>
+    </div>
+  );
+}
+
+function QuickLink({
+  href,
+  icon: Icon,
+  title,
+  body,
+}: {
+  href: string;
+  icon: typeof Gauge;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-sm transition-colors hover:border-accent-line hover:bg-hover"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-fg-muted transition-colors group-hover:border-accent-line group-hover:text-accent-solid">
+        <Icon size={15} strokeWidth={2} />
+      </span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-1.5 text-[13px] font-semibold text-fg">
+          {title}
+          <ArrowRight
+            size={12}
+            strokeWidth={2}
+            className="text-fg-faint transition-transform group-hover:translate-x-0.5 group-hover:text-accent-solid"
+          />
+        </span>
+        <span className="mt-1 block text-[12px] leading-relaxed text-fg-muted">{body}</span>
+      </span>
+    </Link>
   );
 }

@@ -35,28 +35,36 @@ export function Breadcrumb({ phaseId, gateId }: { phaseId?: number; gateId?: num
   if (!segments.length) return null;
 
   return (
-    <TooltipProvider delayDuration={150}>
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
+    <TooltipProvider delay={150}>
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[12px] text-fg-muted">
         {segments.map((s, i) => (
-          <span key={i} className="flex items-center gap-1">
-            {i > 0 && <ChevronRight size={12} className="text-[var(--color-border)]" />}
+          <span key={i} className="flex items-center gap-1.5">
+            {i > 0 && <ChevronRight size={12} strokeWidth={2} className="shrink-0 text-fg-faint" />}
             {s.tip ? (
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-help border-b border-dashed border-[var(--color-text-muted)]/40">
-                    {s.label}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs max-w-[260px]">
-                  {s.tip}
-                </TooltipContent>
+                {/* Base UI composes with `render`, not `asChild`. */}
+                <TooltipTrigger
+                  render={
+                    <span
+                      tabIndex={0}
+                      role="note"
+                      className="cursor-help decoration-line-strong decoration-dotted underline-offset-[3px] transition-colors hover:text-fg underline"
+                    >
+                      {s.label}
+                    </span>
+                  }
+                />
+                <TooltipContent side="bottom">{s.tip}</TooltipContent>
               </Tooltip>
             ) : s.href ? (
-              <Link href={s.href} className="hover:text-[var(--color-text-primary)] transition-colors">
+              <Link
+                href={s.href}
+                className="rounded transition-colors hover:text-fg"
+              >
                 {s.label}
               </Link>
             ) : (
-              <span>{s.label}</span>
+              <span className="text-fg-2">{s.label}</span>
             )}
           </span>
         ))}

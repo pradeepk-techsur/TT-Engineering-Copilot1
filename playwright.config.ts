@@ -1,5 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Point the suite at an already-running dev server with
+ * `PLAYWRIGHT_BASE_URL=http://localhost:3011 npx playwright test`.
+ *
+ * Without it, Playwright starts its own server on 3000. Two `next dev`
+ * processes sharing one `.next` directory corrupt each other's webpack
+ * runtime, so when a dev server is already up, reuse it rather than racing it.
+ */
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+const useExternalServer = !!process.env.PLAYWRIGHT_BASE_URL;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -8,7 +19,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -17,10 +28,14 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 60000,
-  },
+  ...(useExternalServer
+    ? {}
+    : {
+        webServer: {
+          command: 'npm run dev',
+          url: baseURL,
+          reuseExistingServer: true,
+          timeout: 60000,
+        },
+      }),
 });

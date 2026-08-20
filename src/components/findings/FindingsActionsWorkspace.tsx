@@ -1,17 +1,25 @@
 'use client';
 import useSWR from 'swr';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, ClipboardCheck, ListTodo } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Callout } from '@/components/ui/callout';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonRows } from '@/components/ui/skeleton';
 import { ActionDetailCard } from './ActionDetailCard';
 import { FindingsSummaryTable } from './FindingsSummaryTable';
-import { AlertTriangle } from 'lucide-react';
+import { count } from '@/lib/format';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export function FindingsActionsWorkspace({ phaseId }: { phaseId?: number }) {
   const findingsUrl = phaseId ? `/api/findings?phaseId=${phaseId}` : '/api/findings';
-  const { data: findingsData } = useSWR(findingsUrl, fetcher, { refreshInterval: 5000 });
-  const { data: actionsData } = useSWR('/api/actions', fetcher, { refreshInterval: 5000 });
+  const { data: findingsData } = useSWR(findingsUrl, fetcher, {
+    refreshInterval: 5000, keepPreviousData: true,
+  });
+  const { data: actionsData } = useSWR('/api/actions', fetcher, {
+    refreshInterval: 5000, keepPreviousData: true,
+  });
 
   const blockingOpen = (actionsData?.actions ?? []).filter(
     (a: any) => a.blocking && a.status !== 'VerifiedClosed'
@@ -19,66 +27,86 @@ export function FindingsActionsWorkspace({ phaseId }: { phaseId?: number }) {
   const allActions = actionsData?.actions ?? [];
   const allFindings = findingsData?.findings ?? [];
 
+  const loading = !findingsData || !actionsData;
+
   return (
-    <div className="space-y-6" data-testid="findings-actions-workspace">
+    <div className="space-y-5" data-testid="findings-actions-workspace">
       {/* Blocking actions banner — prominent when any blocking actions open */}
       {blockingOpen.length > 0 && (
-        <div
-          className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 flex items-start gap-3"
-          data-testid="blocking-actions-banner"
-        >
-          <AlertTriangle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-red-400">
-              {blockingOpen.length} Blocking Action{blockingOpen.length > 1 ? 's' : ''} Open
-            </p>
-            <p className="text-xs text-red-400/80 mt-0.5">
-              Gate Pass is blocked until these actions are verified closed.
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
+        <div data-testid="blocking-actions-banner">
+          <Callout
+            tone="fail"
+            icon={AlertTriangle}
+            title={`${count(blockingOpen.length, 'Blocking Action')} Open`}
+          >
+            <p>Gate Pass is blocked until these actions are verified closed.</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {blockingOpen.map((a: any) => (
-                <Badge key={a.actionId} className="text-xs bg-red-500/20 text-red-400 border border-red-500/30">
-                  {a.actionId} — Due Gate {a.dueGate}
-                </Badge>
+                <StatusPill key={a.actionId} tone="fail" size="sm">
+                  <span className="font-mono">{a.actionId}</span>
+                  <span className="opacity-70">· due G{a.dueGate}</span>
+                </StatusPill>
               ))}
             </div>
-          </div>
+          </Callout>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid gap-5 xl:grid-cols-2">
         {/* Findings */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardHeader>
-            <CardTitle className="text-sm">Findings ({allFindings.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FindingsSummaryTable findings={allFindings} />
-          </CardContent>
-        </Card>
+        <section className="min-w-0">
+          <div className="mb-2.5 flex items-center gap-2">
+            <ClipboardCheck size={14} strokeWidth={2} className="text-fg-muted" />
+            <h2 className="text-[13px] font-semibold text-fg">Findings</h2>
+            <span className="rounded-full bg-raised px-1.5 py-0.5 text-[10.5px] font-semibold text-fg-muted tabular-nums">
+              {allFindings.length}
+            </span>
+          </div>
+          <Card className="py-0">
+            {loading && !findingsData ? (
+              <SkeletonRows rows={3} />
+            ) : (
+              <FindingsSummaryTable findings={allFindings} />
+            )}
+          </Card>
+        </section>
 
         {/* Actions */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardHeader>
-            <CardTitle className="text-sm">
-              Actions ({allActions.length})
-              {blockingOpen.length > 0 && (
-                <Badge className="ml-2 text-xs bg-red-500/10 text-red-400 border border-red-500/20">
-                  {blockingOpen.length} blocking open
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {allActions.length === 0 ? (
-              <p className="text-xs text-[var(--color-text-muted)]">No actions raised.</p>
-            ) : (
-              allActions.map((action: any) => (
-                <ActionDetailCard key={action.actionId} action={action} />
-              ))
+        <section className="min-w-0">
+          <div className="mb-2.5 flex items-center gap-2">
+            <ListTodo size={14} strokeWidth={2} className="text-fg-muted" />
+            <h2 className="text-[13px] font-semibold text-fg">Actions</h2>
+            <span className="rounded-full bg-raised px-1.5 py-0.5 text-[10.5px] font-semibold text-fg-muted tabular-nums">
+              {allActions.length}
+            </span>
+            {blockingOpen.length > 0 && (
+              <StatusPill tone="fail" size="sm" dot className="ml-auto">
+                {blockingOpen.length} blocking open
+              </StatusPill>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {loading && !actionsData ? (
+            <Card className="py-0">
+              <SkeletonRows rows={3} />
+            </Card>
+          ) : allActions.length === 0 ? (
+            <Card>
+              <EmptyState
+                size="sm"
+                icon={ListTodo}
+                title="No actions raised"
+                description="Corrective actions appear here when a gate is recorded as Conditional Pass or Fail."
+              />
+            </Card>
+          ) : (
+            <div className="space-y-2.5">
+              {allActions.map((action: any) => (
+                <ActionDetailCard key={action.actionId} action={action} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

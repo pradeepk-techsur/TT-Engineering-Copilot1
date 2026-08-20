@@ -2,6 +2,8 @@ import { db } from '@/db';
 import { projectState, phaseStates, gateDecisions, auditHistory } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { GateDecisionPayload, GateOutcome, OrchestratorState, AI_ACTOR_BLOCKLIST, PhaseState, GateState } from './types';
+import { assessGate, invalidateGateAssessment } from '@/server/risk/gateAdvisoryService';
+import { phaseLabel } from '@/server/risk/evidenceAssembly';
 
 export class GatedStateMachine {
   private projectId: string;
@@ -74,16 +76,45 @@ export class GatedStateMachine {
       );
     }
 
-    // Record gate decision (immutable)
+    // The advisory as it stood at the moment of the decision — recommendation,
+    // rationale, key strengths, key risks, next steps and the numeric risk
+    // score. Frozen here so the record shows what the reviewer was actually
+    // looking at, not what the evidence looks like later.
+    const { advisory, risk } = await assessGate(payload.gateNumber);
+
+    // ENFORCEMENT: an override must carry a reason.
+    const humanRationale = (payload.humanRationale ?? '').trim();
+    if (
+      advisory.recommendationAvailable &&
+      advisory.recommendedOutcome !== payload.decision &&
+      humanRationale.length === 0
+    ) {
+      throw new Error(
+        `HUMAN_RATIONALE_REQUIRED: The decision (${payload.decision}) differs from the ` +
+        `AI recommendation (${advisory.recommendedOutcome}). A short rationale is required.`
+      );
+    }
+
+    // Record gate decision (immutable). Both halves live in this one row: the
+    // AI side under `ai_recommendation`, the human side in the row's own
+    // columns plus the rationale.
     await db.insert(gateDecisions).values({
       gateNumber: payload.gateNumber as unknown as number,
-      phaseName: `Phase ${payload.gateNumber}`,
-      aiRecommendation: {},
-      humanDisposition: payload.comments ?? '',
+      phaseName: phaseLabel(payload.gateNumber),
+      aiRecommendation: {
+        advisory,
+        riskScore: { score: risk.score, level: risk.level, display: risk.display },
+        humanRationale,
+        // Kept flat as well, so older readers of this column still work.
+        recommendedOutcome: advisory.recommendedOutcome,
+        rationale: advisory.rationale,
+        advisoryLabel: advisory.advisoryLabel,
+      },
+      humanDisposition: humanRationale || (payload.comments ?? ''),
       reviewerRole: payload.reviewerRole,
       decision: payload.decision,
       comments: payload.comments,
-      artifactVersionsReviewed: [],
+      artifactVersionsReviewed: payload.artifactVersionsReviewed ?? [],
       openConditions: payload.openConditions ?? [],
       isFinal: true,
     });
@@ -124,15 +155,47 @@ export class GatedStateMachine {
         .where(eq(projectState.projectId, this.projectId));
     }
 
-    // Append to audit_history
+    // Append to audit_history. The AI recommendation and the human decision are
+    // both preserved here, so the audit log alone answers "did the reviewer
+    // agree with the AI, and if not, why?".
+    const diverged =
+      advisory.recommendationAvailable &&
+      advisory.recommendedOutcome !== payload.decision;
+
     await db.insert(auditHistory).values({
       eventType: 'GateDecision',
       phaseId: payload.gateNumber as unknown as number,
-      description: `Gate ${payload.gateNumber} decided: ${payload.decision} by ${payload.reviewerRole}`,
+      description:
+        `Gate ${payload.gateNumber} decided: ${payload.decision} by ${payload.reviewerRole}` +
+        (advisory.recommendationAvailable
+          ? ` — AI recommended ${advisory.recommendedOutcome} (${diverged ? 'human overrode' : 'human agreed'}), ` +
+            `risk ${risk.score}/${risk.configSnapshot.cap} ${risk.level}`
+          : ''),
       actor: payload.reviewerRole,
-      relatedIds: [],
-      payload: { gateNumber: payload.gateNumber, decision: payload.decision },
+      relatedIds: [
+        ...advisory.findingsCited,
+        ...advisory.actionsCited,
+      ],
+      payload: {
+        gateNumber: payload.gateNumber,
+        decision: payload.decision,
+        aiRecommendation: advisory.recommendedOutcome,
+        aiRationale: advisory.rationale,
+        riskScore: risk.score,
+        riskLevel: risk.level,
+        keyStrengths: advisory.keyStrengths.map(s => s.statement),
+        keyRisks: advisory.keyRisks.map(r => ({
+          statement: r.statement, level: r.level, blocking: r.blocking,
+        })),
+        nextSteps: advisory.nextSteps.map(s => s.statement),
+        humanRationale,
+        divergedFromAi: diverged,
+        artifactVersionsReviewed: payload.artifactVersionsReviewed ?? [],
+      },
     });
+
+    // The evidence has moved on, so the cached assessment must not be reused.
+    invalidateGateAssessment(payload.gateNumber);
   }
 
   async pause(projectId?: string): Promise<void> {

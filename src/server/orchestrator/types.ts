@@ -13,6 +13,14 @@ export interface GateDecisionPayload {
   reviewerRole: string;
   comments?: string;
   openConditions?: unknown[];
+  /**
+   * Required when the human decision differs from the AI recommendation.
+   * Enforced server-side, not only in the form — an override with no stated
+   * reason is the one thing an audit trail cannot reconstruct later.
+   */
+  humanRationale?: string;
+  /** Artifact versions the reviewer had in front of them. */
+  artifactVersionsReviewed?: string[];
 }
 
 export interface OrchestratorState {

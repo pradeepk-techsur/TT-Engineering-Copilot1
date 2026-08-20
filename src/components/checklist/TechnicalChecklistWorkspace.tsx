@@ -1,6 +1,10 @@
 'use client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { ClipboardList, FileCheck2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { StatusPill } from '@/components/ui/status-pill';
+import { EmptyState } from '@/components/ui/empty-state';
+import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
+import { checkStatusStyle, styleFor } from '@/lib/status';
 import { TECHNICAL_REVIEW_PHASES, PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 
 // Selected checklist items from TT Power Supplies Technical Review Checklists — Prelim
@@ -48,57 +52,71 @@ export function TechnicalChecklistWorkspace({ phaseId }: TechnicalChecklistWorks
   // No technical review invented for Phase 2 or Phases 5–9
   if (!hasTechnicalReview) {
     return (
-      <div className="space-y-4" data-testid="no-technical-review">
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardContent className="pt-6">
-            <p className="text-sm text-[var(--color-text-muted)] text-center">
-              No technical review is mapped to Phase {phaseId}: {config?.phaseName ?? `Phase ${phaseId}`}.
-            </p>
-            <p className="text-xs text-[var(--color-text-muted)] text-center mt-1">
-              Technical reviews are defined for Phases 0, 1, 3, and 4 only per TT Electronics ENG 001 v4.1.
-            </p>
-          </CardContent>
+      <div data-testid="no-technical-review">
+        <Card>
+          <EmptyState
+            icon={ClipboardList}
+            title={`No technical review is mapped to Phase ${phaseId}: ${config?.phaseName ?? `Phase ${phaseId}`}.`}
+            description="Technical reviews are defined for Phases 0, 1, 3, and 4 only per TT Electronics ENG 001 v4.1."
+          />
         </Card>
       </div>
     );
   }
 
+  // Group by category so related checks sit together instead of repeating the
+  // category chip on every one of five identical-looking cards.
+  const grouped = checklistItems.reduce<Record<string, typeof checklistItems>>((acc, item) => {
+    (acc[item.category] ??= []).push(item);
+    return acc;
+  }, {});
+
+  const pending = styleFor(checkStatusStyle, 'Pending');
+
   return (
     <div className="space-y-4" data-testid={`technical-checklist-phase-${phaseId}`}>
-      <div className="flex items-center gap-2">
-        <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-          {(config as any)?.technicalReview ?? 'Technical Review'}
-        </Badge>
-        <span className="text-xs text-[var(--color-text-muted)]">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <TechReviewBadge review={(config as any)?.technicalReview ?? 'Technical Review'} />
+        <span className="text-[12px] text-fg-muted">
           Selected items from TT Electronics Power Supplies Technical Review Checklists — Prelim
+        </span>
+        <span className="ml-auto text-[12px] text-fg-muted tabular-nums">
+          {checklistItems.length} items · 0 complete
         </span>
       </div>
 
-      <div className="space-y-3">
-        {checklistItems.map((item, i) => (
-          <Card key={i} className="bg-[var(--color-surface)] border-[var(--color-border)]">
-            <CardContent className="pt-4 space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className="text-xs bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                      {item.category}
-                    </Badge>
-                    <span className="text-sm font-medium">{item.item}</span>
-                  </div>
-                  <p className="text-xs text-[var(--color-text-muted)]">{item.description}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Badge className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                    Pending
-                  </Badge>
-                </div>
-              </div>
-              <div className="text-xs text-[var(--color-text-muted)] italic">
-                Evidence required: {item.evidenceField}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="space-y-4">
+        {Object.entries(grouped).map(([category, items]) => (
+          <section key={category}>
+            <h3 className="mb-2 text-[11px] font-semibold tracking-[0.07em] text-fg-muted uppercase">
+              {category}
+            </h3>
+            <Card className="py-0">
+              <ul className="divide-y divide-line">
+                {items.map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-4 px-4 py-3 transition-colors hover:bg-hover"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-semibold text-fg">{item.item}</p>
+                      <p className="mt-0.5 text-[12.5px] leading-relaxed text-fg-2">
+                        {item.description}
+                      </p>
+                      <p className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-fg-muted">
+                        <FileCheck2 size={11} strokeWidth={2} className="shrink-0" />
+                        Evidence required:
+                        <span className="text-fg-2">{item.evidenceField}</span>
+                      </p>
+                    </div>
+                    <StatusPill tone={pending.tone} dot size="sm" className="mt-0.5">
+                      {pending.label}
+                    </StatusPill>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </section>
         ))}
       </div>
     </div>

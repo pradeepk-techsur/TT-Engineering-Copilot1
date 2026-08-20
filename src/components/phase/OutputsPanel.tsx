@@ -1,5 +1,12 @@
 'use client';
 import useSWR from 'swr';
+import { Download, FileText, Loader2, TriangleAlert } from 'lucide-react';
+import { StatusPillFor } from '@/components/ui/status-pill';
+import { SkeletonRows } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Callout } from '@/components/ui/callout';
+import { Truncate } from '@/components/ui/truncate';
+import { approvalStyle, styleFor } from '@/lib/status';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -34,15 +41,20 @@ export function OutputsPanel({ phaseId }: OutputsPanelProps) {
   const { data, error } = useSWR<OutputsApiResponse>(
     `/api/phases/${phaseId}/outputs`,
     fetcher,
-    { refreshInterval: 3000 }
+    { refreshInterval: 3000, keepPreviousData: true }
   );
 
   if (!data && error) {
     return (
       <div data-testid="outputs-panel">
-        <div data-testid="outputs-error" className="text-sm text-red-400 py-2">
-          Could not load outputs. Please try again later.
-        </div>
+        <Callout
+          tone="fail"
+          icon={TriangleAlert}
+          data-testid="outputs-error"
+          title="Could not load outputs"
+        >
+          The outputs service did not respond. It will retry automatically.
+        </Callout>
       </div>
     );
   }
@@ -50,8 +62,10 @@ export function OutputsPanel({ phaseId }: OutputsPanelProps) {
   if (!data) {
     return (
       <div data-testid="outputs-panel">
-        <div data-testid="outputs-loading" className="text-sm text-[var(--color-text-muted)] py-2">
-          Loading outputs…
+        {/* Skeleton rather than a "Loading outputs…" line, so the card keeps
+            its height and nothing jumps when data lands. */}
+        <div data-testid="outputs-loading" className="-mx-4">
+          <SkeletonRows rows={2} />
         </div>
       </div>
     );
@@ -60,41 +74,66 @@ export function OutputsPanel({ phaseId }: OutputsPanelProps) {
   const { outputs } = data;
 
   return (
-    <div data-testid="outputs-panel" className="space-y-0">
+    <div data-testid="outputs-panel">
       {outputs.length === 0 ? (
-        <div className="flex items-center justify-between text-sm py-2">
-          <span data-testid="outputs-pending" className="text-[var(--color-text-muted)]">
-            Pending phase execution
-          </span>
+        // NOTE: the testid must sit on a *visible* wrapper — e2e asserts visibility
+        <div data-testid="outputs-pending">
+          <EmptyState
+            size="sm"
+            icon={FileText}
+            title="Pending phase execution"
+            description="Run the phase to generate its artifacts for approval."
+          />
         </div>
       ) : (
-        outputs.map((output) => (
-          <div
-            key={output.outputId}
-            data-testid="output-row"
-            className="flex items-center justify-between text-sm py-2 border-b border-[var(--color-border)]/50 last:border-0"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="truncate">{output.outputName}</span>
-              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-border)] text-[var(--color-text-muted)] shrink-0">
-                {output.artifactType}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-xs text-[var(--color-text-muted)]">{output.approvalStatus}</span>
-              {output.artifactId ? (
-                <a
-                  href={`/api/artifacts/${output.artifactId}/download`}
-                  className="text-xs underline text-blue-400 hover:text-blue-300"
-                >
-                  Download
-                </a>
-              ) : (
-                <span className="text-xs text-[var(--color-text-muted)]">Processing…</span>
-              )}
-            </div>
-          </div>
-        ))
+        <ul className="divide-y divide-line">
+          {outputs.map((output) => {
+            const status = styleFor(approvalStyle, output.approvalStatus);
+            return (
+              <li
+                key={output.outputId}
+                data-testid="output-row"
+                className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+              >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-line bg-raised text-fg-muted">
+                  <FileText size={13} strokeWidth={2} />
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <Truncate className="text-[13px] font-medium text-fg">
+                    {output.outputName}
+                  </Truncate>
+                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-fg-muted">
+                    <span className="font-mono uppercase">{output.artifactType}</span>
+                    {output.versionRef && (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span className="font-mono">{output.versionRef}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <StatusPillFor status={status} size="sm" />
+
+                {output.artifactId ? (
+                  <a
+                    href={`/api/artifacts/${output.artifactId}/download`}
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1.5 text-[12px] font-medium text-fg-2 transition-colors hover:border-accent-line hover:bg-hover hover:text-accent-solid"
+                  >
+                    <Download size={13} strokeWidth={2} />
+                    Download
+                  </a>
+                ) : (
+                  <span className="flex shrink-0 items-center gap-1.5 text-[11.5px] text-fg-muted">
+                    <Loader2 size={12} strokeWidth={2} className="animate-spin" />
+                    Generating
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

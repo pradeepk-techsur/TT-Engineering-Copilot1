@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GatedStateMachine } from '@/server/orchestrator/stateMachine';
 import { AI_ACTOR_BLOCKLIST } from '@/server/orchestrator/types';
+import { recordDecisionFallback, RULE_ERROR_CODES } from '@/server/risk/gateDecisionFallback';
 import { db } from '@/db';
 import { phaseStates } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
       decision,
       reviewerRole,
       comments,
+      humanRationale: body.humanRationale,
       openConditions: [],
     });
 
@@ -49,8 +51,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, decision, gateNumber: 7, reviewerRole });
   } catch (err: any) {
     const code = err.message?.split(':')[0] ?? 'INTERNAL_ERROR';
+
+    // A rule rejection is a rejection. An unreachable database is not — in
+    // Preview mode the decision is recorded in the process-local store with
+    // the same shape, so human gate authority stays demonstrable.
+    if (!RULE_ERROR_CODES.has(code)) {
+      const fallback = await recordDecisionFallback(7, decision, reviewerRole, body);
+      if (fallback) return fallback;
+    }
     const status = code === 'GATE_AI_PROHIBITED' ? 403
       : code === 'INVALID_GATE_OUTCOME' ? 400
+      // A decision that differs from the AI recommendation and carries no
+      // reason is a bad request, not a server fault.
+      : code === 'HUMAN_RATIONALE_REQUIRED' ? 400
       : code === 'GATE_NOT_OPEN' ? 409
       : 500;
     return NextResponse.json({ error_code: code, message: err.message }, { status });

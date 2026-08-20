@@ -1,23 +1,27 @@
 'use client';
-import useSWR from 'swr';
-import { Badge } from '@/components/ui/badge';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-
-const GATE_OUTCOMES_LABELS: Record<string, { label: string; style: string }> = {
-  'GatePassed':       { label: 'Pass', style: 'bg-green-500/10 text-green-400 border-green-500/20' },
-  'GateConditional':  { label: 'Cond. Pass', style: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
-  'GateFailed':       { label: 'Fail', style: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  'AwaitingGate':     { label: 'Awaiting', style: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  'Running':          { label: 'Running', style: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  'AwaitingInputs':   { label: 'Inputs', style: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  'Pending':          { label: '—', style: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-  'Cancelled':        { label: 'Cancelled', style: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  'Paused':           { label: 'Paused', style: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-};
+import { cn } from '@/lib/utils';
+import { useLifecycle } from '@/lib/hooks';
+import { gateOutcomeShort, styleFor, toneClass, toneDot } from '@/lib/status';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function LifecycleSummaryBanner() {
-  const { data } = useSWR('/api/lifecycle', fetcher, { refreshInterval: 5000 });
+  const { data, isLoading } = useLifecycle();
+
+  // Previously returned null until data arrived, so the banner popped into
+  // existence and shoved the page down. Reserve the space instead.
+  if (isLoading && !data) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-3">
+        <Skeleton className="h-3 w-16" />
+        <div className="flex flex-1 gap-1.5">
+          {Array.from({ length: 10 }, (_, i) => (
+            <Skeleton key={i} className="h-6 flex-1 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!data?.phases) return null;
 
@@ -25,26 +29,48 @@ export function LifecycleSummaryBanner() {
 
   return (
     <div
-      className="flex items-center gap-1.5 flex-wrap py-2 px-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)]"
+      className="rounded-xl border border-line bg-surface px-4 py-3 shadow-sm"
       data-testid="lifecycle-summary-banner"
     >
-      <span className="text-xs text-[var(--color-text-muted)] mr-1">G0–G9:</span>
-      {data.phases.map((phase: { phaseState: string }, i: number) => {
-        const outcome = GATE_OUTCOMES_LABELS[phase.phaseState] ?? GATE_OUTCOMES_LABELS['Pending'];
-        return (
-          <span key={i} className="flex items-center gap-0.5">
-            <span className="text-xs text-[var(--color-text-muted)] font-mono">G{i}</span>
-            <Badge className={`text-xs border ${outcome.style} h-4 px-1.5`}>
-              {outcome.label}
-            </Badge>
-          </span>
-        );
-      })}
-      {projectClosed && (
-        <Badge className="ml-1 text-xs bg-green-500/10 text-green-400 border border-green-500/20">
-          PROJECT CLOSED
-        </Badge>
-      )}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[10.5px] font-semibold tracking-[0.08em] text-fg-muted uppercase">
+          Gate outcomes
+        </p>
+        {projectClosed && (
+          <StatusPill tone="neutral" dot>
+            Project closed
+          </StatusPill>
+        )}
+      </div>
+
+      {/* Each gate is a labelled tile rather than a "G0" + pill pair, so the
+          row scans as one strip instead of twenty separate elements. */}
+      <div className="mt-2.5 grid grid-cols-5 gap-1.5 sm:grid-cols-10">
+        {data.phases.map((phase: { phaseId: number; phaseState: string }, i: number) => {
+          const outcome = styleFor(gateOutcomeShort, phase.phaseState);
+          return (
+            <div
+              key={i}
+              title={`Gate ${i} — ${outcome.label}`}
+              className={cn(
+                'flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5',
+                toneClass[outcome.tone]
+              )}
+            >
+              <span className="font-mono text-[10px] leading-none opacity-70 tabular-nums">
+                G{i}
+              </span>
+              <span className="flex items-center gap-1 text-[11px] leading-none font-semibold">
+                <span
+                  aria-hidden
+                  className={cn('size-1 rounded-full', toneDot[outcome.tone])}
+                />
+                {outcome.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

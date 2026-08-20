@@ -1,4 +1,8 @@
-import { Badge } from '@/components/ui/badge';
+import { ClipboardCheck } from 'lucide-react';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, THead, TH, TBody, TR, TD } from '@/components/ui/data-table';
+import { severityStyle, findingStatusStyle, styleFor } from '@/lib/status';
 
 interface Finding {
   findingId: string; severity: string; description: string;
@@ -6,51 +10,58 @@ interface Finding {
 }
 
 export function FindingsSummaryTable({ findings }: { findings: Finding[] }) {
-  const SEVERITY_STYLES: Record<string, string> = {
-    Critical: 'bg-red-500/10 text-red-400 border-red-500/20',
-    Major: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-    Minor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    Observation: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  };
-
   if (!findings.length) {
     return (
       <div data-testid="findings-summary-table">
-        <p className="text-xs text-[var(--color-text-muted)]">No findings for this phase.</p>
+        <EmptyState
+          size="sm"
+          icon={ClipboardCheck}
+          title="No findings for this phase"
+          description="Nothing was raised against this phase's inputs or outputs."
+        />
       </div>
     );
   }
 
   return (
-    <table className="w-full text-sm" data-testid="findings-summary-table">
-      <thead>
-        <tr className="border-b border-[var(--color-border)]">
-          {['ID', 'Severity', 'Description', 'Status', ''].map(h => (
-            <th key={h} className="text-left py-2 px-2 text-xs text-[var(--color-text-muted)]">{h}</th>
-          ))}
+    <DataTable minWidth={520} data-testid="findings-summary-table">
+      <THead>
+        <tr>
+          <TH className="w-[88px]">ID</TH>
+          <TH className="w-[110px]">Severity</TH>
+          <TH>Description</TH>
+          <TH className="w-[130px]">Status</TH>
         </tr>
-      </thead>
-      <tbody>
+      </THead>
+      <TBody>
         {findings.map(f => (
-          <tr key={f.findingId} className="border-b border-[var(--color-border)]/50 hover:bg-white/5">
-            <td className="py-2 px-2 font-mono text-xs">{f.findingId}</td>
-            <td className="py-2 px-2">
-              <Badge className={`text-xs border ${SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Observation}`}>
-                {f.severity}
-              </Badge>
-            </td>
-            <td className="py-2 px-2 text-xs max-w-xs truncate">{f.description}</td>
-            <td className="py-2 px-2 text-xs text-[var(--color-text-muted)]">{f.status}</td>
-            <td className="py-2 px-2">
+          <TR key={f.findingId} interactive>
+            <TD className="font-mono text-[11.5px] text-fg-muted">{f.findingId}</TD>
+            <TD>
+              <StatusPillFor status={styleFor(severityStyle, f.severity)} size="sm" />
+            </TD>
+            {/* Full text, wrapped — descriptions used to be clipped mid-word
+                with no way to read the rest. */}
+            <TD className="max-w-[420px] text-[12.5px] leading-relaxed whitespace-normal">
+              {f.description}
               {f.seeded && (
-                <Badge className="text-xs bg-violet-500/10 text-violet-400 border border-violet-500/20" data-testid="seeded-badge">
+                <StatusPill
+                  tone="synthetic"
+                  size="sm"
+                  className="ml-2 align-middle"
+                  data-testid="seeded-badge"
+                  title="Seeded synthetic finding — part of the POC scenario"
+                >
                   Seeded
-                </Badge>
+                </StatusPill>
               )}
-            </td>
-          </tr>
+            </TD>
+            <TD>
+              <StatusPillFor status={styleFor(findingStatusStyle, f.status)} size="sm" />
+            </TD>
+          </TR>
         ))}
-      </tbody>
-    </table>
+      </TBody>
+    </DataTable>
   );
 }

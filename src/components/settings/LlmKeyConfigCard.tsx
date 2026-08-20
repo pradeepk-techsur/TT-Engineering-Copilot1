@@ -4,14 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { KeyRound, ShieldCheck, ShieldOff, Loader2 } from 'lucide-react';
+import { KeyRound, ShieldCheck, ShieldOff, Loader2, Trash2, Save } from 'lucide-react';
+import { Callout } from '@/components/ui/callout';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDate } from '@/lib/format';
 
 interface KeyStatus {
   configured: boolean;
@@ -81,13 +83,13 @@ export function LlmKeyConfigCard() {
   };
 
   return (
-    <Card className="bg-[var(--color-surface)] border-[var(--color-border)] max-w-xl">
+    <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <KeyRound size={18} className="text-[var(--color-text-muted)]" />
-          <CardTitle className="text-base">Anthropic API Key</CardTitle>
+          <KeyRound size={15} strokeWidth={2} className="text-fg-muted" />
+          <CardTitle>Anthropic API Key</CardTitle>
         </div>
-        <CardDescription className="text-[var(--color-text-muted)] text-xs">
+        <CardDescription>
           The key is encrypted at rest (AES-256-GCM) and never transmitted back to the browser
           after saving. It is used exclusively by server-side AI agents to call the Claude API.
         </CardDescription>
@@ -96,33 +98,30 @@ export function LlmKeyConfigCard() {
       <CardContent className="space-y-4">
         {/* Current status */}
         {status === null ? (
-          <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-            <Loader2 size={14} className="animate-spin" />
-            Loading status...
-          </div>
+          <Skeleton className="h-11 rounded-lg" />
         ) : status.configured ? (
-          <div className="flex items-center gap-2 flex-wrap" data-testid="key-configured-status">
-            <ShieldCheck size={14} className="text-green-400" />
-            <span className="text-sm text-green-400">Key configured</span>
-            <code className="text-xs font-mono text-[var(--color-text-muted)] bg-black/20 px-2 py-0.5 rounded">
-              {status.maskedKey}
-            </code>
-            {status.updatedAt && (
-              <span className="text-xs text-[var(--color-text-muted)]">
-                — saved {new Date(status.updatedAt).toLocaleDateString()}
+          <div data-testid="key-configured-status">
+            <Callout tone="pass" icon={ShieldCheck} title="Key configured">
+              <span className="flex flex-wrap items-center gap-2">
+                <code className="rounded bg-raised px-1.5 py-0.5 font-mono text-[11.5px] text-fg-2">
+                  {status.maskedKey}
+                </code>
+                {status.updatedAt && <span>saved {formatDate(status.updatedAt)}</span>}
               </span>
-            )}
+            </Callout>
           </div>
         ) : (
-          <div className="flex items-center gap-2" data-testid="key-not-configured-status">
-            <ShieldOff size={14} className="text-red-400" />
-            <span className="text-sm text-red-400">No key configured — AI agents cannot run</span>
+          <div data-testid="key-not-configured-status">
+            <Callout tone="warn" icon={ShieldOff} title="No key configured">
+              AI agents cannot run until a key is saved. Gate decisions and the audit
+              log are unaffected.
+            </Callout>
           </div>
         )}
 
         {/* Key entry — always password type, no show-toggle */}
         <div className="space-y-1.5">
-          <Label htmlFor="llm-key-input" className="text-xs text-[var(--color-text-muted)]">
+          <Label htmlFor="llm-key-input">
             {status?.configured ? 'Enter new key to replace existing' : 'Enter Anthropic API key'}
           </Label>
           <Input
@@ -139,48 +138,57 @@ export function LlmKeyConfigCard() {
               setError(null);
               setSuccessMsg(null);
             }}
-            className="font-mono text-sm"
+            className="font-mono"
             data-testid="llm-key-input"
           />
-          <p className="text-xs text-[var(--color-text-muted)]">
+          <p className="text-[11.5px] text-fg-muted">
             Key is not visible after saving. To update, enter a new key and save again.
           </p>
         </div>
 
         {/* Messages */}
         {error && (
-          <p className="text-xs text-red-400" data-testid="key-error-msg">{error}</p>
+          <p className="text-[12px] font-medium text-fail" data-testid="key-error-msg">{error}</p>
         )}
         {successMsg && (
-          <p className="text-xs text-green-400" data-testid="key-success-msg">{successMsg}</p>
+          <p className="text-[12px] font-medium text-pass" data-testid="key-success-msg">{successMsg}</p>
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 border-t border-line pt-4">
           <Button
             size="sm"
             onClick={handleSave}
             disabled={saving || !inputKey.trim()}
             data-testid="save-key-btn"
           >
-            {saving
-              ? <><Loader2 size={12} className="animate-spin mr-1" />Saving...</>
-              : 'Save Key'
-            }
+            {saving ? (
+              <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+            ) : (
+              <Save size={13} strokeWidth={2} />
+            )}
+            {saving ? 'Saving…' : 'Save key'}
           </Button>
 
           {status?.configured && (
             <AlertDialog>
               <AlertDialogTrigger
-                className="inline-flex items-center justify-center gap-1 rounded-md text-sm font-medium h-8 px-3 bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                disabled={removing}
-                data-testid="remove-key-btn"
-              >
-                {removing
-                  ? <><Loader2 size={12} className="animate-spin mr-1" />Removing...</>
-                  : 'Remove Key'
+                render={
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={removing}
+                    data-testid="remove-key-btn"
+                  >
+                    {removing ? (
+                      <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={13} strokeWidth={2} />
+                    )}
+                    {removing ? 'Removing…' : 'Remove key'}
+                  </Button>
                 }
-              </AlertDialogTrigger>
+              />
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Remove Anthropic API Key?</AlertDialogTitle>

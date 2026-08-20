@@ -33,6 +33,8 @@ pnpm-debug.log*
 
 # ── Next.js ──
 .next/
+# Alternate build dir for a second dev server (NEXT_DIST_DIR)
+.next-*/
 out/
 
 # ── Vite / Rollup / generic JS bundlers ──

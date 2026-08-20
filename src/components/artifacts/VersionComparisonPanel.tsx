@@ -1,8 +1,11 @@
 'use client';
 import useSWR from 'swr';
+import { ArrowRight, GitCompare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowRight } from 'lucide-react';
+import { StatusPill } from '@/components/ui/status-pill';
+import { EmptyState } from '@/components/ui/empty-state';
+import { formatDateTime, isoOf } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -17,12 +20,13 @@ export function VersionComparisonPanel({ artifactId }: VersionComparisonPanelPro
 
   if (versions.length < 2) {
     return (
-      <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-        <CardContent className="pt-6">
-          <p className="text-xs text-[var(--color-text-muted)] text-center">
-            No version comparison available — only one version exists.
-          </p>
-        </CardContent>
+      <Card>
+        <EmptyState
+          size="sm"
+          icon={GitCompare}
+          title="No version comparison available"
+          description="Only one version of this artifact exists. A comparison appears once a revised version is generated."
+        />
       </Card>
     );
   }
@@ -33,43 +37,61 @@ export function VersionComparisonPanel({ artifactId }: VersionComparisonPanelPro
   const latest = sorted[sorted.length - 1];
 
   return (
-    <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Version Comparison</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <GitCompare size={14} strokeWidth={2} className="text-fg-muted" />
+          Version comparison
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4">
-          {/* Initial version */}
-          <div className="flex-1 rounded-md border border-[var(--color-border)] p-3 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono">v{initial.version}</span>
-              <Badge className="text-xs bg-slate-500/10 text-slate-400 border border-slate-500/20">Initial</Badge>
-            </div>
-            <p className="text-xs text-[var(--color-text-muted)]">{initial.artifactType}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">{new Date(initial.timestamp).toLocaleString()}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">By: {initial.generatedBy}</p>
-          </div>
-
-          <ArrowRight size={16} className="text-[var(--color-text-muted)] flex-shrink-0" />
-
-          {/* Latest version */}
-          <div className="flex-1 rounded-md border border-green-500/20 bg-green-500/5 p-3 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono">v{latest.version}</span>
-              <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20">Latest</Badge>
-            </div>
-            <p className="text-xs text-[var(--color-text-muted)]">{latest.artifactType}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">{new Date(latest.timestamp).toLocaleString()}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">By: {latest.generatedBy}</p>
-          </div>
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <VersionSide version={initial} label="Initial" />
+          <ArrowRight
+            size={15}
+            strokeWidth={2}
+            className="mx-auto shrink-0 rotate-90 text-fg-faint sm:rotate-0"
+          />
+          <VersionSide version={latest} label="Latest" highlight />
         </div>
 
         {versions.length > 2 && (
-          <p className="text-xs text-[var(--color-text-muted)] mt-3 text-center">
+          <p className="mt-3 text-center text-[11.5px] text-fg-muted">
             {versions.length} total versions — showing initial and latest
           </p>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function VersionSide({
+  version,
+  label,
+  highlight,
+}: {
+  version: any;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex-1 space-y-1.5 rounded-lg border p-3',
+        highlight ? 'border-pass-line bg-pass-soft' : 'border-line bg-raised/50'
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[12px] font-semibold text-fg">v{version.version}</span>
+        <StatusPill tone={highlight ? 'pass' : 'neutral'} size="sm">
+          {label}
+        </StatusPill>
+      </div>
+      <p className="font-mono text-[11px] text-fg-muted">{version.artifactType}</p>
+      <p className="text-[11.5px] text-fg-muted">
+        <time dateTime={isoOf(version.timestamp)}>{formatDateTime(version.timestamp)}</time>
+      </p>
+      <p className="truncate text-[11.5px] text-fg-muted">By {version.generatedBy}</p>
+    </div>
   );
 }

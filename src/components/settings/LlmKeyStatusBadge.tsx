@@ -1,34 +1,38 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { KeyRound } from 'lucide-react';
 import Link from 'next/link';
+import { StatusPill } from '@/components/ui/status-pill';
+import { cn } from '@/lib/utils';
+import { useLlmKeyStatus } from '@/lib/hooks';
 
 export function LlmKeyStatusBadge() {
-  const [configured, setConfigured] = useState<boolean | null>(null);
+  // Was a bare fetch in useEffect, so every page navigation re-hit this
+  // endpoint. Cached via SWR now — it only changes on the settings page.
+  const { data, error } = useLlmKeyStatus();
 
-  useEffect(() => {
-    fetch('/api/settings/llm-key')
-      .then(r => r.json())
-      .then((d: { configured: boolean }) => setConfigured(d.configured))
-      .catch(() => setConfigured(false));
-  }, []);
+  if (!data && !error) return null;
+  const configured = data?.configured ?? false;
 
-  if (configured === null) return null;
-
+  // Unset is a real blocker — AI phases can't run — so it stays prominent,
+  // but as a quiet warning rather than a pulsing red alarm in the chrome.
   return (
-    <Link href="/settings" title="Configure LLM API Key">
-      <Badge
-        className={`text-xs cursor-pointer border gap-1 ${
-          configured
-            ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-            : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 animate-pulse'
-        }`}
+    <Link
+      href="/settings"
+      title={
+        configured
+          ? 'Anthropic API key is configured'
+          : 'No Anthropic API key — AI agents cannot run. Click to configure.'
+      }
+      className="rounded-full"
+    >
+      <StatusPill
+        tone={configured ? 'pass' : 'warn'}
+        className={cn('gap-1.5 transition-colors', !configured && 'hover:bg-warn-soft')}
         data-testid="llm-key-status-badge"
       >
-        <KeyRound size={10} />
-        {configured ? 'LLM Key: Configured' : 'LLM Key: Not Set'}
-      </Badge>
+        <KeyRound size={11} strokeWidth={2.5} />
+        {configured ? 'LLM Key Set' : 'LLM Key Not Set'}
+      </StatusPill>
     </Link>
   );
 }

@@ -50,8 +50,9 @@ test.describe('Gate Decision Selector — Human Authority Enforcement', () => {
     await page.goto('/gate/0/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 10000 });
     // Select outcome but leave reviewer role empty
-    // Use getByRole('radio') to avoid strict mode violation with base-ui's aria-labelledby
-    await page.getByRole('radio', { name: 'Pass' }).click();
+    // `exact` matters: without it, "Pass" also substring-matches the
+    // "Conditional Pass" radio, and the locator resolves to two elements.
+    await page.getByRole('radio', { name: 'Pass', exact: true }).click();
     const recordBtn = page.getByTestId('record-decision-button');
     await expect(recordBtn).toBeDisabled();  // Still disabled — no reviewer role
   });
@@ -59,7 +60,7 @@ test.describe('Gate Decision Selector — Human Authority Enforcement', () => {
   test('Record Decision becomes enabled when outcome selected AND reviewer role entered', async ({ page }) => {
     await page.goto('/gate/0/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('radio', { name: 'Pass' }).click();
+    await page.getByRole('radio', { name: 'Pass', exact: true }).click();
     await page.getByTestId('reviewer-role-input').fill('Program Manager');
     const recordBtn = page.getByTestId('record-decision-button');
     await expect(recordBtn).toBeEnabled();
@@ -68,7 +69,7 @@ test.describe('Gate Decision Selector — Human Authority Enforcement', () => {
   test('Confirmation dialog appears when Record Decision clicked', async ({ page }) => {
     await page.goto('/gate/0/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('radio', { name: 'Pass' }).click();
+    await page.getByRole('radio', { name: 'Pass', exact: true }).click();
     await page.getByTestId('reviewer-role-input').fill('Engineering Lead');
     await page.getByTestId('record-decision-button').click();
     // AlertDialog should appear — check for confirmation content
@@ -80,7 +81,7 @@ test.describe('Gate Decision Selector — Human Authority Enforcement', () => {
   test('Cancel button in dialog closes dialog without submitting', async ({ page }) => {
     await page.goto('/gate/0/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('radio', { name: 'Pass' }).click();
+    await page.getByRole('radio', { name: 'Pass', exact: true }).click();
     await page.getByTestId('reviewer-role-input').fill('Engineering Lead');
     await page.getByTestId('record-decision-button').click();
     // Wait for dialog to appear

@@ -1,4 +1,8 @@
-import { Badge } from '@/components/ui/badge';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
+import { TR, TD } from '@/components/ui/data-table';
+import { Truncate, MonoId } from '@/components/ui/truncate';
+import { behaviorStyle, readinessStyle, gateOutcomeStyle, styleFor } from '@/lib/status';
+import { formatDateTime, isoOf } from '@/lib/format';
 
 interface IntakeEventData {
   phase_id: number;
@@ -13,6 +17,20 @@ interface IntakeEventData {
   timestamp: string;
 }
 
+/** Both halves of a gate decision, preserved in the log. */
+interface GateDecisionData {
+  aiRecommendation: string | null;
+  aiRationale: string | null;
+  riskScore: number | null;
+  riskLevel: string | null;
+  decision: string;
+  humanRationale: string;
+  divergedFromAi: boolean;
+  keyStrengths: string[];
+  keyRisks: string[];
+  nextSteps: string[];
+}
+
 interface AuditEvent {
   auditId: string;
   eventType: string;
@@ -21,64 +39,103 @@ interface AuditEvent {
   actor: string;
   timestamp: string;
   intakeEvent: IntakeEventData | null;
+  gateDecision?: GateDecisionData | null;
 }
 
-const BEHAVIOR_STYLES: Record<string, string> = {
-  'UP': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'SI': 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  'User Input Ready':          'bg-green-500/10 text-green-400 border-green-500/20',
-  'Synthetic System Input Ready': 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-};
+/** `file_uploaded` → `File uploaded` — raw event keys aren't user copy. */
+function humanAction(action: string): string {
+  if (!action) return '—';
+  const spaced = action.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
 
 export function AuditEventRow({ event }: { event: AuditEvent }) {
   const ie = event.intakeEvent;
 
   if (!ie) {
     // Non-intake audit event (gate decision, phase state change, etc.)
+    const gd = event.gateDecision;
     return (
-      <tr className="border-b border-[var(--color-border)]/50 hover:bg-white/5">
-        <td className="py-2 px-2 text-xs font-mono text-[var(--color-text-muted)]">
-          Phase {event.phaseId ?? '—'}
-        </td>
-        <td className="py-2 px-2 text-xs" colSpan={7}>{event.description}</td>
-        <td className="py-2 px-2 text-xs text-[var(--color-text-muted)]">
-          {new Date(event.timestamp).toLocaleString()}
-        </td>
-      </tr>
+      <TR interactive data-testid={`audit-event-${event.auditId}`}>
+        <TD className="font-mono text-[11.5px] whitespace-nowrap text-fg-muted">
+          P{event.phaseId ?? '—'}
+        </TD>
+        <TD colSpan={7} className="text-[12.5px] text-fg">
+          {event.description}
+          {/* A gate decision keeps the AI recommendation next to the human
+              decision, and the reason whenever the two differ. */}
+          {gd && (
+            <div
+              className="mt-1.5 flex flex-wrap items-center gap-1.5"
+              data-testid="audit-gate-decision"
+            >
+              {gd.aiRecommendation && (
+                <StatusPill tone="info" size="sm" dot={false}>
+                  AI: {gd.aiRecommendation}
+                </StatusPill>
+              )}
+              <StatusPillFor status={styleFor(gateOutcomeStyle, gd.decision)} size="sm" />
+              {typeof gd.riskScore === 'number' && gd.riskLevel && (
+                <StatusPill tone="neutral" size="sm" dot={false}>
+                  Risk {gd.riskScore}/100, {gd.riskLevel}
+                </StatusPill>
+              )}
+              {gd.divergedFromAi && (
+                <StatusPill tone="warn" size="sm" dot>
+                  Human overrode
+                </StatusPill>
+              )}
+              {gd.humanRationale && (
+                <span className="text-[11.5px] text-fg-muted italic">
+                  “{gd.humanRationale}”
+                </span>
+              )}
+            </div>
+          )}
+        </TD>
+        <TD className="whitespace-nowrap text-[11.5px] text-fg-muted">
+          <time dateTime={isoOf(event.timestamp)}>{formatDateTime(event.timestamp)}</time>
+        </TD>
+      </TR>
     );
   }
 
   // IntakeEvent — display all 9 FRD F02 fields
   return (
-    <tr className="border-b border-[var(--color-border)]/50 hover:bg-white/5" data-testid={`audit-event-${event.auditId}`}>
-      <td className="py-2 px-2 text-xs font-mono">Phase {ie.phase_id}</td>
-      <td className="py-2 px-2 text-xs max-w-[140px] truncate" title={ie.logical_input}>{ie.logical_input}</td>
-      <td className="py-2 px-2">
-        <Badge className={`text-xs border ${BEHAVIOR_STYLES[ie.intake_behavior] ?? 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-          {ie.intake_behavior}
-        </Badge>
-      </td>
-      <td className="py-2 px-2 text-xs text-[var(--color-text-muted)]">
-        {ie.user_action}
-      </td>
-      <td className="py-2 px-2 text-xs text-[var(--color-text-muted)] max-w-[120px] truncate">
-        {ie.system_represented ?? '—'}
-      </td>
-      <td className="py-2 px-2">
-        <Badge className={`text-xs border ${STATUS_STYLES[ie.status] ?? 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-          {ie.status}
-        </Badge>
-      </td>
-      <td className="py-2 px-2 text-xs font-mono text-[var(--color-text-muted)] truncate max-w-[80px]">
-        {String(ie.source_artifact_id).slice(0, 8)}…
-      </td>
-      <td className="py-2 px-2 text-xs font-mono">v{ie.version}</td>
-      <td className="py-2 px-2 text-xs text-[var(--color-text-muted)]">
-        {new Date(ie.timestamp).toLocaleString()}
-      </td>
-    </tr>
+    <TR interactive data-testid={`audit-event-${event.auditId}`}>
+      <TD className="font-mono text-[11.5px] whitespace-nowrap text-fg-muted">
+        P{ie.phase_id}
+      </TD>
+      <TD className="max-w-[200px]">
+        <Truncate className="text-[12.5px] font-medium text-fg">{ie.logical_input}</Truncate>
+      </TD>
+      <TD>
+        <StatusPillFor
+          status={styleFor(behaviorStyle, ie.intake_behavior)}
+          size="sm"
+          dot={false}
+        />
+      </TD>
+      <TD className="whitespace-nowrap text-[12.5px]">{humanAction(ie.user_action)}</TD>
+      <TD className="max-w-[160px]">
+        {ie.system_represented ? (
+          <Truncate className="text-[12.5px] text-fg-muted">{ie.system_represented}</Truncate>
+        ) : (
+          <span className="text-fg-faint">—</span>
+        )}
+      </TD>
+      <TD>
+        <StatusPillFor status={styleFor(readinessStyle, ie.status)} size="sm" />
+      </TD>
+      {/* Was hard-sliced to 8 chars + "…" with the value unrecoverable.
+          Now it truncates by width and keeps the full id on hover. */}
+      <TD className="max-w-[110px]">
+        <MonoId>{ie.source_artifact_id}</MonoId>
+      </TD>
+      <TD className="font-mono text-[11.5px] whitespace-nowrap">v{ie.version}</TD>
+      <TD className="whitespace-nowrap text-[11.5px] text-fg-muted">
+        <time dateTime={isoOf(ie.timestamp)}>{formatDateTime(ie.timestamp)}</time>
+      </TD>
+    </TR>
   );
 }

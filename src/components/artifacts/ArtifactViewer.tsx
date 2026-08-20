@@ -1,11 +1,26 @@
 'use client';
 import useSWR from 'swr';
+import { Download, FileText, Clock, FlaskConical } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, FileText, Clock } from 'lucide-react';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Callout } from '@/components/ui/callout';
+import { ButtonAnchor } from '@/components/ui/button-link';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, THead, TH, TBody, TR, TD } from '@/components/ui/data-table';
+import { formatDateTime, isoOf } from '@/lib/format';
 import { POC_STD_LABEL } from '@/server/tools/evinvPocStd001';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+/** The synthetic-data disclaimer. Always first, always visible. */
+function SyntheticDisclaimer() {
+  return (
+    <Callout tone="synthetic" icon={FlaskConical}>
+      {POC_STD_LABEL} — Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
+    </Callout>
+  );
+}
 
 export function ArtifactViewer({ artifactId }: { artifactId: string }) {
   const { data: artifact } = useSWR(`/api/artifacts/${artifactId}`, fetcher);
@@ -14,108 +29,122 @@ export function ArtifactViewer({ artifactId }: { artifactId: string }) {
   if (!artifact || artifact.error) {
     return (
       <div className="space-y-4" data-testid={`artifact-viewer-${artifactId}`}>
-        {/* Synthetic disclaimer — always first, always visible */}
-        <div className="rounded-md bg-violet-500/5 border border-violet-500/20 px-3 py-2 text-xs text-violet-400">
-          {POC_STD_LABEL} — Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
-        </div>
-        <div className="text-sm text-[var(--color-text-muted)]">
-          {artifact ? 'Artifact not found.' : 'Loading artifact...'}
-        </div>
+        <SyntheticDisclaimer />
+        {artifact ? (
+          <Card>
+            <EmptyState
+              icon={FileText}
+              title="Artifact not found"
+              description="This artifact id doesn't match anything in the project store. It may have been superseded by a newer version."
+            />
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-3 w-52" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-4" data-testid={`artifact-viewer-${artifactId}`}>
-      {/* Synthetic disclaimer — always first, always visible */}
-      <div className="rounded-md bg-violet-500/5 border border-violet-500/20 px-3 py-2 text-xs text-violet-400">
-        {POC_STD_LABEL} — Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
-      </div>
+      <SyntheticDisclaimer />
 
-      <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText size={16} className="text-[var(--color-text-muted)]" />
-              <CardTitle className="text-sm">{artifact.artifactName}</CardTitle>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <FileText size={15} strokeWidth={2} className="shrink-0 text-fg-muted" />
+              <CardTitle>{artifact.artifactName}</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                {artifact.artifactType}
-              </Badge>
-              <Badge className="text-xs bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                v{artifact.version}
-              </Badge>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <StatusPill tone="info" size="sm">{artifact.artifactType}</StatusPill>
+              <StatusPill tone="neutral" size="sm">v{artifact.version}</StatusPill>
               {artifact.disclaimerPresent && (
-                <Badge className="text-xs bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                  Synthetic POC
-                </Badge>
+                <StatusPill tone="synthetic" size="sm">Synthetic POC</StatusPill>
               )}
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Provenance */}
-          <div className="grid grid-cols-3 gap-3 text-xs text-[var(--color-text-muted)]">
-            <div>Phase: <span className="text-[var(--color-text-primary)]">Phase {artifact.phaseId}</span></div>
-            <div>Gate: <span className="text-[var(--color-text-primary)]">Gate {artifact.gateId}</span></div>
-            <div>Source: <span className="text-[var(--color-text-primary)]">{artifact.source}</span></div>
-            <div>Generated by: <span className="text-[var(--color-text-primary)]">{artifact.generatedBy}</span></div>
-            {artifact.rowCount && <div>Rows: <span className="text-[var(--color-text-primary)]">{artifact.rowCount}</span></div>}
-            {artifact.pageCount && <div>Pages: <span className="text-[var(--color-text-primary)]">~{artifact.pageCount}</span></div>}
-          </div>
 
-          {/* Download control */}
-          <a
+        <CardContent className="space-y-4">
+          {/* Provenance */}
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2.5 border-t border-line pt-3 text-[12.5px] sm:grid-cols-3">
+            <Field label="Phase">Phase {artifact.phaseId}</Field>
+            <Field label="Gate">Gate {artifact.gateId}</Field>
+            <Field label="Source">{artifact.source}</Field>
+            <Field label="Generated by">{artifact.generatedBy}</Field>
+            {artifact.rowCount && <Field label="Rows">{artifact.rowCount}</Field>}
+            {artifact.pageCount && <Field label="Pages">~{artifact.pageCount}</Field>}
+          </dl>
+
+          <ButtonAnchor
+            size="sm"
             href={`/api/artifacts/${artifactId}/download`}
             download
             data-testid={`download-artifact-${artifactId}`}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--color-border)] bg-transparent px-2.5 py-1.5 text-xs font-medium hover:bg-white/5 transition-colors"
           >
-            <Download size={12} />
+            <Download size={13} strokeWidth={2} />
             Download {artifact.artifactType}
-          </a>
+          </ButtonAnchor>
         </CardContent>
       </Card>
 
       {/* Version history */}
       {(versions?.versions?.length ?? 0) > 1 && (
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Clock size={14} />
-              Version History
+        <Card className="py-0">
+          <CardHeader className="border-b border-line py-3">
+            <CardTitle className="flex items-center gap-2">
+              <Clock size={14} strokeWidth={2} className="text-fg-muted" />
+              Version history
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <table className="w-full text-xs" data-testid="artifact-version-history">
-              <thead>
-                <tr className="border-b border-[var(--color-border)]">
-                  {['Version', 'Type', 'Generated', 'Status'].map(h => (
-                    <th key={h} className="text-left py-1.5 px-2 text-[var(--color-text-muted)]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {versions.versions.map((v: any) => (
-                  <tr key={v.artifactId} className="border-b border-[var(--color-border)]/50">
-                    <td className="py-1.5 px-2 font-mono">v{v.version}</td>
-                    <td className="py-1.5 px-2">{v.artifactType}</td>
-                    <td className="py-1.5 px-2 text-[var(--color-text-muted)]">{new Date(v.timestamp).toLocaleString()}</td>
-                    <td className="py-1.5 px-2">
-                      {v.artifactId === artifactId ? (
-                        <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20">Active</Badge>
-                      ) : (
-                        <Badge className="text-xs bg-slate-500/10 text-slate-400 border border-slate-500/20">Historical</Badge>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
+          <DataTable data-testid="artifact-version-history">
+            <THead>
+              <tr>
+                <TH className="w-[80px]">Version</TH>
+                <TH className="w-[90px]">Type</TH>
+                <TH>Generated</TH>
+                <TH className="w-[110px]">Status</TH>
+              </tr>
+            </THead>
+            <TBody>
+              {versions.versions.map((v: any) => (
+                <TR key={v.artifactId} interactive>
+                  <TD className="font-mono text-[11.5px] text-fg">v{v.version}</TD>
+                  <TD className="font-mono text-[11.5px]">{v.artifactType}</TD>
+                  <TD className="text-[11.5px] whitespace-nowrap text-fg-muted">
+                    <time dateTime={isoOf(v.timestamp)}>{formatDateTime(v.timestamp)}</time>
+                  </TD>
+                  <TD>
+                    {v.artifactId === artifactId ? (
+                      <StatusPill tone="pass" dot size="sm">Active</StatusPill>
+                    ) : (
+                      <StatusPill tone="neutral" size="sm">Historical</StatusPill>
+                    )}
+                  </TD>
+                </TR>
+              ))}
+            </TBody>
+          </DataTable>
         </Card>
       )}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[10.5px] font-semibold tracking-[0.07em] text-fg-muted uppercase">
+        {label}
+      </dt>
+      <dd className="mt-0.5 truncate text-fg">{children}</dd>
     </div>
   );
 }

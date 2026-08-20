@@ -1,9 +1,12 @@
+import { History, Search } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { InputReadinessPanel } from '@/components/intake/InputReadinessPanel';
 import { VersionHistoryTable } from '@/components/intake/VersionHistoryTable';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
+import { PageHeader, SectionLabel } from '@/components/ui/page-header';
+import { ButtonLink } from '@/components/ui/button-link';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export const dynamicParams = false;
 
@@ -16,51 +19,63 @@ export default async function IntakePanelPage({ params }: Props) {
   const phaseId = parseInt(id, 10);
   const config = PHASE_CONFIG_MAP[phaseId as keyof typeof PHASE_CONFIG_MAP];
 
-  if (!config) return null;
+  // Was `return null` — a blank white screen with no explanation.
+  if (!config) {
+    return (
+      <AppShell>
+        <EmptyState
+          icon={Search}
+          title="Phase not found"
+          description="This project runs Phase 0 through Phase 9."
+          action={<ButtonLink href="/lifecycle">View lifecycle</ButtonLink>}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell phaseId={phaseId} gateId={phaseId}>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Input Intake and Validation</h1>
-          <Link
-            href={`/phase/${phaseId}`}
-            className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
-          >
+      <PageHeader
+        title="Input Intake and Validation"
+        subtitle={`Phase ${phaseId}: ${config.phaseName} — every input is versioned, and both must be ready before the phase can run.`}
+        actions={
+          // Label kept verbatim — the acceptance tests click this exact string,
+          // and the arrow is part of it, so no icon is added here.
+          <ButtonLink size="sm" href={`/phase/${phaseId}`}>
             ← Back to Phase Workspace
-          </Link>
-        </div>
+          </ButtonLink>
+        }
+      />
 
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Phase {phaseId}: {config.phaseName}
-        </p>
-
-        {/* Input Readiness Panel */}
+      <div className="space-y-6">
         <InputReadinessPanel phaseId={phaseId} />
 
-        {/* Version History */}
-        <div id="version-history" className="space-y-3">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">Version History</h2>
-            <div className="flex-1 h-px bg-[var(--color-border)]" />
-          </div>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            Every upload or ingest action creates a new version. Prior versions are preserved for comparison.
+        <div id="version-history">
+          <SectionLabel>Version History</SectionLabel>
+          <p className="mb-3 text-[12.5px] text-fg-muted">
+            Every upload or ingest action creates a new version. Prior versions are
+            preserved for comparison and never overwritten.
           </p>
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-              <CardHeader>
-                <CardTitle className="text-sm">External Input — Version History</CardTitle>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="py-0">
+              <CardHeader className="border-b border-line py-3">
+                <CardTitle className="flex items-center gap-2">
+                  <History size={14} strokeWidth={2} className="text-fg-muted" />
+                  External Input — Version History
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-0 pb-0">
                 <VersionHistoryTable phaseId={phaseId} inputRole="external" />
               </CardContent>
             </Card>
-            <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
-              <CardHeader>
-                <CardTitle className="text-sm">Internal Input — Version History</CardTitle>
+            <Card className="py-0">
+              <CardHeader className="border-b border-line py-3">
+                <CardTitle className="flex items-center gap-2">
+                  <History size={14} strokeWidth={2} className="text-fg-muted" />
+                  Internal Input — Version History
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-0 pb-0">
                 <VersionHistoryTable phaseId={phaseId} inputRole="internal" />
               </CardContent>
             </Card>

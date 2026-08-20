@@ -1,10 +1,14 @@
+import { ArrowRight, FileInput, ListChecks, ShieldCheck, PackageOpen, Search } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { InputReadinessPanel } from '@/components/intake/InputReadinessPanel';
 import { OutputsPanel } from '@/components/phase/OutputsPanel';
-import { PhaseExecutionProgress } from '@/components/execution/PhaseExecutionProgress';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { ButtonLink } from '@/components/ui/button-link';
+import { EmptyState } from '@/components/ui/empty-state';
+import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
+import { RiskScoreLive } from '@/components/risk/RiskScoreLive';
 
 export const dynamicParams = false;
 
@@ -20,63 +24,83 @@ export default async function PhaseWorkspacePage({ params }: Props) {
   if (!config || phaseId < 0 || phaseId > 9) {
     return (
       <AppShell>
-        <p className="text-sm text-[var(--color-text-muted)]">Phase not found.</p>
+        <EmptyState
+          icon={Search}
+          title="Phase not found"
+          description="This project runs Phase 0 through Phase 9. Pick a phase from the rail on the left."
+          action={<ButtonLink href="/lifecycle">View lifecycle</ButtonLink>}
+        />
       </AppShell>
     );
   }
 
   return (
     <AppShell phaseId={phaseId} gateId={phaseId}>
-      <div className="space-y-6">
-        {/* Phase header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Phase {phaseId}: {config.phaseName}</h1>
+      <PageHeader
+        title={`Phase ${phaseId}: ${config.phaseName}`}
+        subtitle="Bring both inputs to ready, run the phase, then take the outputs to the gate."
+        meta={
+          <>
+            {/* The Overall Risk Score for this phase. Compact here — select it
+                for the findings, actions, checks and evidence behind it. */}
+            <RiskScoreLive
+              phaseId={phaseId}
+              label={`Phase ${phaseId} — Overall Risk Score`}
+              testId="phase-risk-score"
+            />
             {config.technicalReview && (
-              <p className="text-sm text-blue-400 mt-1">Technical Review: {config.technicalReview}</p>
+              <>
+                <span className="text-[11.5px] text-fg-muted">Technical review</span>
+                <TechReviewBadge review={config.technicalReview} />
+              </>
             )}
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href={`/phase/${phaseId}/intake`}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all h-7 gap-1 px-2.5 text-[0.8rem] bg-background hover:bg-muted hover:text-foreground"
-            >
+          </>
+        }
+        actions={
+          <>
+            <ButtonLink size="sm" href={`/phase/${phaseId}/intake`}>
+              <FileInput size={14} strokeWidth={2} />
               Open Intake Detail
-            </Link>
+            </ButtonLink>
             {config.technicalReview && (
-              <Link
-                href={`/phase/${phaseId}/checklist`}
-                className="inline-flex shrink-0 items-center justify-center rounded-lg border border-border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all h-7 gap-1 px-2.5 text-[0.8rem] bg-background hover:bg-muted hover:text-foreground"
-              >
+              <ButtonLink size="sm" href={`/phase/${phaseId}/checklist`}>
+                <ListChecks size={14} strokeWidth={2} />
                 Open Checklist
-              </Link>
+              </ButtonLink>
             )}
-            <Link
-              href={`/gate/${phaseId}/review`}
-              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all h-7 gap-1 px-2.5 text-[0.8rem] bg-background hover:bg-muted hover:text-foreground"
-            >
+            <ButtonLink variant="default" size="sm" href={`/gate/${phaseId}/review`}>
+              <ShieldCheck size={14} strokeWidth={2} />
               Open Gate Review
-            </Link>
-          </div>
-        </div>
+              <ArrowRight size={13} strokeWidth={2} />
+            </ButtonLink>
+          </>
+        }
+      />
 
-        {/* Phase execution progress — polls every 2s */}
-        <PhaseExecutionProgress phaseId={phaseId} />
-
-        {/* Input Readiness Panel — both inputs */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+      <div className="space-y-5">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-base">Input Readiness</CardTitle>
+            <CardTitle>Input readiness</CardTitle>
+            <CardDescription>
+              A phase can only run once both its external-source and
+              internal-artifact inputs are ready.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <InputReadinessPanel phaseId={phaseId} />
           </CardContent>
         </Card>
 
-        {/* Outputs panel — live from /api/phases/{phaseId}/outputs via SWR for all phases 0–9. */}
-        <Card className="bg-[var(--color-surface)] border-[var(--color-border)]">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-base">Outputs for Human Approval</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <PackageOpen size={15} strokeWidth={2} className="text-fg-muted" />
+              Outputs for human approval
+            </CardTitle>
+            <CardDescription>
+              Artifacts produced by this phase. Every one carries the synthetic-POC
+              disclaimer and needs a human decision at the gate.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <OutputsPanel phaseId={phaseId} />

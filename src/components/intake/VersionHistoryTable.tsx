@@ -1,49 +1,78 @@
 'use client';
 import useSWR from 'swr';
-import { Badge } from '@/components/ui/badge';
+import { History } from 'lucide-react';
+import { StatusPill } from '@/components/ui/status-pill';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, THead, TH, TBody, TR, TD } from '@/components/ui/data-table';
+import { SkeletonRows } from '@/components/ui/skeleton';
+import { Hint } from '@/components/ui/hint';
+import { BEHAVIOR_GLOSSARY } from '@/lib/status';
+import { formatDateTime, isoOf } from '@/lib/format';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
+interface Version {
+  versionId: number;
+  versionNumber: number;
+  intakeBehavior: string;
+  active: boolean;
+  intakeTimestamp: string;
+}
+
 export function VersionHistoryTable({ phaseId, inputRole }: { phaseId: number; inputRole: string }) {
-  const { data } = useSWR(`/api/phases/${phaseId}/inputs/${inputRole}/versions`, fetcher);
+  const { data, isLoading } = useSWR(
+    `/api/phases/${phaseId}/inputs/${inputRole}/versions`,
+    fetcher,
+    { keepPreviousData: true }
+  );
+
+  if (isLoading && !data) return <SkeletonRows rows={2} />;
 
   if (!data?.versions?.length) {
     return (
-      <div className="space-y-1">
-        <p className="text-xs text-[var(--color-text-muted)]">No versions yet.</p>
-        <p className="text-xs text-[var(--color-text-muted)]/70">Upload or ingest an input to create the first version entry.</p>
-      </div>
+      <EmptyState
+        size="sm"
+        icon={History}
+        title="No versions yet"
+        description="Upload or ingest this input to create the first version entry."
+      />
     );
   }
 
   return (
-    <table className="w-full text-xs" data-testid={`version-history-${inputRole}`}>
-      <thead>
-        <tr className="border-b border-[var(--color-border)]">
-          <th className="text-left py-1 px-2 text-[var(--color-text-muted)]">Version</th>
-          <th className="text-left py-1 px-2 text-[var(--color-text-muted)]">Behavior</th>
-          <th className="text-left py-1 px-2 text-[var(--color-text-muted)]">Status</th>
-          <th className="text-left py-1 px-2 text-[var(--color-text-muted)]">Timestamp</th>
+    <DataTable data-testid={`version-history-${inputRole}`}>
+      <THead>
+        <tr>
+          <TH className="w-[74px]">Version</TH>
+          <TH className="w-[90px]">Behavior</TH>
+          <TH className="w-[104px]">Status</TH>
+          <TH>Recorded</TH>
         </tr>
-      </thead>
-      <tbody>
-        {data.versions.map((v: { versionId: number; versionNumber: number; intakeBehavior: string; active: boolean; intakeTimestamp: string }) => (
-          <tr key={v.versionId} className="border-b border-[var(--color-border)]/50">
-            <td className="py-1.5 px-2 font-mono">v{v.versionNumber}</td>
-            <td className="py-1.5 px-2">{v.intakeBehavior}</td>
-            <td className="py-1.5 px-2">
+      </THead>
+      <TBody>
+        {data.versions.map((v: Version) => (
+          <TR key={v.versionId} interactive>
+            <TD className="font-mono text-[11.5px] text-fg">v{v.versionNumber}</TD>
+            <TD className="text-[12px]">
+              <Hint label={v.intakeBehavior}>
+                {BEHAVIOR_GLOSSARY[v.intakeBehavior] ?? v.intakeBehavior}
+              </Hint>
+            </TD>
+            <TD>
               {v.active ? (
-                <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/20">Active</Badge>
+                <StatusPill tone="pass" dot size="sm">Active</StatusPill>
               ) : (
-                <Badge className="text-xs bg-slate-500/10 text-slate-400 border border-slate-500/20">Historical</Badge>
+                <StatusPill tone="neutral" size="sm">Historical</StatusPill>
               )}
-            </td>
-            <td className="py-1.5 px-2 text-[var(--color-text-muted)]">
-              {new Date(v.intakeTimestamp).toLocaleString()}
-            </td>
-          </tr>
+            </TD>
+            <TD className="text-[11.5px] whitespace-nowrap text-fg-muted">
+              <time dateTime={isoOf(v.intakeTimestamp)}>
+                {formatDateTime(v.intakeTimestamp)}
+              </time>
+            </TD>
+          </TR>
         ))}
-      </tbody>
-    </table>
+      </TBody>
+    </DataTable>
   );
 }

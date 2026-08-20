@@ -1,4 +1,7 @@
-import { Badge } from '@/components/ui/badge';
+import { ShieldAlert, User, Target, FileCheck2 } from 'lucide-react';
+import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
+import { findingStatusStyle, styleFor } from '@/lib/status';
+import { cn } from '@/lib/utils';
 
 interface Action {
   actionId: string;
@@ -13,30 +16,54 @@ interface Action {
 
 export function ActionDetailCard({ action }: { action: Action }) {
   const isOpen = action.status !== 'VerifiedClosed' && action.status !== 'Waived';
+  const blocking = action.blocking && isOpen;
+  const status = styleFor(findingStatusStyle, action.status);
+
   return (
     <div
-      className={`rounded-md border p-3 space-y-2 ${action.blocking && isOpen ? 'border-red-500/30 bg-red-500/5' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}
+      className={cn(
+        'rounded-xl border p-3.5 shadow-sm transition-colors',
+        blocking
+          ? 'border-fail-line bg-fail-soft'
+          : 'border-line bg-surface hover:border-line-strong'
+      )}
       data-testid={`action-card-${action.actionId}`}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-mono font-medium">{action.actionId}</span>
-        <div className="flex gap-1.5">
-          {action.blocking && isOpen && (
-            <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/20">Blocking</Badge>
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-mono text-[12px] font-semibold text-fg">{action.actionId}</span>
+        <div className="flex shrink-0 flex-wrap gap-1.5">
+          {blocking && (
+            <StatusPill tone="fail" size="sm" className="gap-1">
+              <ShieldAlert size={10} strokeWidth={2.5} />
+              Blocking
+            </StatusPill>
           )}
-          <Badge className={`text-xs border ${action.status === 'VerifiedClosed' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
-            {action.status}
-          </Badge>
+          <StatusPillFor status={status} size="sm" />
         </div>
       </div>
-      <p className="text-xs text-[var(--color-text-primary)]">{action.description}</p>
-      <div className="grid grid-cols-2 gap-2 text-xs text-[var(--color-text-muted)]">
-        <div>Owner: <span className="text-[var(--color-text-primary)]">{action.ownerRole}</span></div>
-        <div>Due: <span className="text-[var(--color-text-primary)]">Gate {action.dueGate}</span></div>
-      </div>
-      <div className="text-xs text-[var(--color-text-muted)]">
-        Closure evidence required: <span className="text-[var(--color-text-primary)]">{action.requiredClosureEvidence}</span>
-      </div>
+
+      <p className="mt-2 text-[12.5px] leading-relaxed text-fg-2">{action.description}</p>
+
+      <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-line pt-2.5 text-[11.5px]">
+        <div className="flex items-center gap-1.5">
+          <User size={11} strokeWidth={2} className="shrink-0 text-fg-faint" />
+          <dt className="text-fg-muted">Owner</dt>
+          <dd className="min-w-0 truncate text-fg">{action.ownerRole}</dd>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Target size={11} strokeWidth={2} className="shrink-0 text-fg-faint" />
+          <dt className="text-fg-muted">Due</dt>
+          <dd className="text-fg">Gate {action.dueGate}</dd>
+        </div>
+      </dl>
+
+      <p className="mt-2 flex items-start gap-1.5 text-[11.5px]">
+        <FileCheck2 size={11} strokeWidth={2} className="mt-0.5 shrink-0 text-fg-faint" />
+        <span className="text-fg-muted">
+          Closure evidence required:{' '}
+          <span className="text-fg-2">{action.requiredClosureEvidence}</span>
+        </span>
+      </p>
     </div>
   );
 }
