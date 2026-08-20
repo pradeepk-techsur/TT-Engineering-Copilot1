@@ -214,9 +214,32 @@ Plans:
 
 ---
 
+---
+
+### Phase 8: UX Hardening and Preview Reliability
+
+**Goal**: All UX improvements are implemented in running code and verifiable in the Preview: Phase Stepper shows the G0–G9 journey on every page, light/dark theme toggle works, acronym tooltips explain SLR/PDR/CDR, breadcrumb no longer repeats EV-INV-800, Findings & Actions is a tab inside Audit rather than a separate page, Technical Checklist is removed from navigation, color palette is reduced to four semantic colors, and the Next.js app starts reliably and serves all pages correctly.
+
+**Depends on**: Phase 7
+
+**Requirements**: AV-02, AV-03, AV-09, AV-10, LC-05, LC-06
+
+**Success Criteria** (what must be TRUE):
+  1. The Phase Stepper renders on every page showing Phase 0–9 with correct state icons (check=passed, clock=current, circle=pending); clicking any step navigates to that phase workspace; hovering shows full phase name tooltip.
+  2. The theme toggle (Sun/Moon) in the top bar switches between dark and light mode; dark is the default; preference persists across page navigations via localStorage.
+  3. Technical review acronyms (SLR, PDR, CDR, Kickoff) on the Lifecycle View have hover tooltips with full expansion text — no unexplained jargon.
+  4. The breadcrumb starts with "Phase N: Name" directly — never "EV-INV-800 >" — on all phase and gate pages.
+  5. The sidebar has exactly 4 nav items: Project Overview, Lifecycle, Audit & Findings, Settings. "Findings & Actions" is a tab inside /audit, not a separate route. No Checklist link.
+  6. The app starts cleanly with `npm run dev` on port 3010 and serves HTTP 200 on all key routes: /, /lifecycle, /phase/0–9, /gate/0–9/review, /audit.
+  7. Color palette: gate Pass badges use only green, Fail only red, Conditional Pass / awaiting only amber, synthetic data only violet — no blue advisory color, no orange.
+
+**Plans:** TBD
+
+---
+
 ## Progress
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -227,3 +250,4 @@ Plans:
 | 5. Lifecycle Phases 5–7 Agents | 4/4 | Complete | 2026-08-18 |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
 | 7. Cross-Cutting Views and Demo Polish | 0/TBD | Not started | - |
+| 8. UX Hardening and Preview Reliability | 0/TBD | In Progress | - |
