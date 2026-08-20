@@ -125,11 +125,22 @@ export function UpIntakeCard({
           </div>
         )}
 
-        {/* Drop zone */}
+        {/* Drop zone.
+            Its size tracks how much it matters. While the input is still
+            awaited, uploading it IS the job, so the target is a tall panel.
+            Once the input is in, a revision is a rare afterthought — but the
+            zone stayed the same 150px empty box, which made "upload a revised
+            version" the largest thing on a finished phase's screen and pushed
+            the outputs and the gate below the fold. Settled inputs get one
+            slim row instead. The control is never removed: it stays the same
+            dropzone element, and the acceptance tests require it visible. */}
         <div
           {...getRootProps()}
           className={cn(
-            'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-[1.5px] border-dashed px-4 py-7 text-center transition-colors',
+            'flex cursor-pointer rounded-lg border-[1.5px] border-dashed transition-colors',
+            isReady
+              ? 'items-center gap-2.5 px-3 py-2 text-left'
+              : 'flex-col items-center gap-2 px-4 py-7 text-center',
             isDragActive
               ? 'border-accent-solid bg-accent-soft'
               : 'border-line-strong bg-raised/40 hover:border-accent-line hover:bg-hover',
@@ -140,19 +151,25 @@ export function UpIntakeCard({
           <input {...getInputProps()} data-testid={`file-input-${inputRole}`} />
           <span
             className={cn(
-              'flex size-9 items-center justify-center rounded-lg border border-line bg-surface',
+              'flex shrink-0 items-center justify-center rounded-lg border border-line bg-surface',
+              isReady ? 'size-7' : 'size-9',
               isDragActive ? 'text-accent-solid' : 'text-fg-muted'
             )}
           >
             {uploading ? (
-              <Loader2 size={16} strokeWidth={2} className="animate-spin" />
+              <Loader2 size={isReady ? 13 : 16} strokeWidth={2} className="animate-spin" />
             ) : isDragActive ? (
-              <FileUp size={16} strokeWidth={2} />
+              <FileUp size={isReady ? 13 : 16} strokeWidth={2} />
             ) : (
-              <Upload size={16} strokeWidth={2} />
+              <Upload size={isReady ? 13 : 16} strokeWidth={2} />
             )}
           </span>
-          <span className="text-[12.5px] font-medium text-fg">
+          <span
+            className={cn(
+              'min-w-0 font-medium text-fg',
+              isReady ? 'truncate text-[12px]' : 'text-[12.5px]'
+            )}
+          >
             {uploading ? 'Uploading…' : isDragActive ? 'Drop file here' : (
               isReady
                 ? `Upload Revised Version of ${logicalName}`
@@ -161,7 +178,12 @@ export function UpIntakeCard({
           </span>
           {/* CRITICAL: correct label per FRD — Upload Revised Version, never replacement */}
           {!uploading && !isDragActive && (
-            <span className="text-[11.5px] text-fg-muted">
+            <span
+              className={cn(
+                'shrink-0 text-[11.5px] text-fg-muted',
+                isReady && 'ml-auto hidden sm:block'
+              )}
+            >
               Drag a file here, or click to browse
             </span>
           )}

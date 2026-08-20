@@ -26,6 +26,21 @@ const EXPLAIN: Record<string, string> = {
   'Complete': 'This phase is finished and its gate has been decided.',
 };
 
+/**
+ * The size hint was one hardcoded string per input role, so a DOCX/PDF input
+ * advertised an XLSX row limit that cannot apply to it ("Format DOCX/PDF ·
+ * Size 1–2 pages (DOCX/PDF) or ≤10 rows (XLSX)"). Derive it from the format
+ * the phase config actually declares.
+ */
+function sizeGuidanceFor(format: string): string {
+  const f = (format ?? '').toUpperCase();
+  const rows = f.includes('XLSX');
+  const pages = f.includes('DOCX') || f.includes('PDF');
+  if (rows && pages) return '≤10 rows (XLSX) or 1–2 pages';
+  if (rows) return '≤10 rows';
+  return '1–2 pages';
+}
+
 interface InputReadinessPanelProps {
   phaseId: number;
 }
@@ -113,6 +128,15 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
   const runDisabled =
     !bothReady || status === 'Processing' || status === 'Complete' || isExecuting;
 
+  /**
+   * Once a phase has run, Run is inert but must stay on screen (the acceptance
+   * tests treat "always visible, disabled reflects readiness" as the contract).
+   * A disabled accent fill still reads as the page's call to action at a
+   * glance, though — on a finished Phase 0 it was the loudest control on the
+   * screen. Keep it, demote it.
+   */
+  const phaseSettled = status === 'Complete' || status === 'Awaiting Human Decision';
+
   const execStyle = styleFor(executionStatusStyle, status);
   const isRunning = status === 'Processing';
   const StatusIcon = isRunning
@@ -186,6 +210,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
             {/* Run Phase button — DISABLED until both inputs ready */}
             <Button
               size="sm"
+              variant={phaseSettled ? 'outline' : 'default'}
               disabled={runDisabled}
               data-testid="run-phase-button"
               onClick={handleRunPhase}
@@ -237,7 +262,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
               inputRole="external"
               logicalName={externalConfig.logicalName}
               format={externalConfig.format}
-              sizeGuidance="1–2 pages (DOCX/PDF) or ≤10 rows (XLSX)"
+              sizeGuidance={sizeGuidanceFor(externalConfig.format)}
               isReady={readiness.external?.isReady ?? false}
               readyStatus={readiness.external?.readyStatus ?? 'Awaiting User Input'}
               activeVersion={readiness.external?.activeVersion ?? null}
@@ -271,7 +296,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
               inputRole="internal"
               logicalName={internalConfig.logicalName}
               format={internalConfig.format}
-              sizeGuidance="≤10 rows (XLSX) or 1–2 pages"
+              sizeGuidance={sizeGuidanceFor(internalConfig.format)}
               isReady={readiness.internal?.isReady ?? false}
               readyStatus={readiness.internal?.readyStatus ?? 'Awaiting User Input'}
               activeVersion={readiness.internal?.activeVersion ?? null}

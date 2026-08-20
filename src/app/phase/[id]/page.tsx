@@ -1,10 +1,10 @@
-import { ArrowRight, FileInput, ListChecks, ShieldCheck, PackageOpen, Search } from 'lucide-react';
+import { ArrowRight, FileInput, ListChecks, ShieldCheck, Search } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { InputReadinessPanel } from '@/components/intake/InputReadinessPanel';
 import { OutputsPanel } from '@/components/phase/OutputsPanel';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { PageHeader } from '@/components/ui/page-header';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader, SectionLabel } from '@/components/ui/page-header';
 import { ButtonLink } from '@/components/ui/button-link';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
@@ -38,7 +38,7 @@ export default async function PhaseWorkspacePage({ params }: Props) {
     <AppShell phaseId={phaseId} gateId={phaseId}>
       <PageHeader
         title={`Phase ${phaseId}: ${config.phaseName}`}
-        subtitle="Bring both inputs to ready, run the phase, then take the outputs to the gate."
+        subtitle="Inputs, execution, and the outputs that go to the gate."
         meta={
           <>
             {/* The Overall Risk Score for this phase. Compact here — select it
@@ -72,30 +72,25 @@ export default async function PhaseWorkspacePage({ params }: Props) {
         }
       />
 
-      <div className="space-y-5">
-        <Card>
-          <CardHeader>
-            <CardTitle>Input readiness</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <InputReadinessPanel phaseId={phaseId} />
-          </CardContent>
-        </Card>
+      {/* Two sections, each a labelled group rather than a titled card.
+          Wrapping the intake panel in a Card put three levels of border
+          around every input — outer card, then the run bar and each intake
+          card, then the dropzone or sample box inside those. Boxes inside
+          boxes inside boxes is most of why this screen read as busy. */}
+      <div className="space-y-6">
+        <section>
+          <SectionLabel>Input readiness</SectionLabel>
+          <InputReadinessPanel phaseId={phaseId} />
+        </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PackageOpen size={15} strokeWidth={2} className="text-fg-muted" />
-              Outputs for human approval
-            </CardTitle>
-            <CardDescription>
-              Artifacts produced by this phase. Each needs a human decision at the gate.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OutputsPanel phaseId={phaseId} />
-          </CardContent>
-        </Card>
+        <section>
+          <SectionLabel>Outputs for human approval</SectionLabel>
+          <Card>
+            <CardContent>
+              <OutputsPanel phaseId={phaseId} />
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </AppShell>
   );

@@ -106,10 +106,20 @@ export function SiIntakeCard({
           <div className="min-w-0">
             <CardTitle>{logicalName}</CardTitle>
             {/* CORRECT label per FRD: "Simulated Connector" — prohibited: system link labels */}
-            <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-fg-muted">
-              <Database size={11} strokeWidth={2} className="shrink-0 text-fg-faint" />
-              System Represented:
-              <span className="text-fg-2">{systemRepresented}</span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-fg-muted">
+              <span className="flex items-center gap-1.5">
+                <Database size={11} strokeWidth={2} className="shrink-0 text-fg-faint" />
+                System Represented:
+                <span className="text-fg-2">{systemRepresented}</span>
+              </span>
+              {activeVersion && (
+                <>
+                  <span aria-hidden className="text-fg-faint">·</span>
+                  <span>
+                    Version <span className="font-mono text-fg-2">{activeVersion}</span> active
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
@@ -122,12 +132,6 @@ export function SiIntakeCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {activeVersion && (
-          <p className="text-[11.5px] text-fg-muted">
-            Version <span className="font-mono text-fg-2">{activeVersion}</span> active
-          </p>
-        )}
-
         {/* CORRECT label: "Preloaded Synthetic Sample".
             The required "no live connection" disclosure used to be a tinted
             callout of its own, directly under a chip that already said
@@ -205,12 +209,11 @@ export function SiIntakeCard({
                 </AlertDialogContent>
               </AlertDialog>
             )}
-          </div>
-        </div>
 
-        {isReady && (
-          <div className="space-y-3">
-            {allowRevise && (
+            {/* Same action row as View and Download: revising the sample acts
+                on the sample, so it belongs beside it rather than floating in
+                its own block underneath. */}
+            {isReady && allowRevise && (
               <AlertDialog>
                 <AlertDialogTrigger
                   render={
@@ -218,6 +221,7 @@ export function SiIntakeCard({
                       variant="outline"
                       size="sm"
                       disabled={ingestingRevised}
+                      className="ml-auto"
                       data-testid={`ingest-revised-sample-${inputRole}`}
                     >
                       {ingestingRevised ? (
@@ -251,7 +255,8 @@ export function SiIntakeCard({
               </AlertDialog>
             )}
           </div>
-        )}
+        </div>
+
       </CardContent>
     </Card>
   );
