@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { fetchJson } from '@/lib/serverFetch';
 import { ArrowRight, GitBranch } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/card';
@@ -13,11 +14,9 @@ import { phaseStateStyle, gateStateStyle, styleFor, toneDot, BEHAVIOR_GLOSSARY }
 import { cn } from '@/lib/utils';
 
 async function getLifecycleData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3010'}/api/lifecycle`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) return null;
-  return res.json();
+  // Resolves against the origin this request arrived on, and returns null
+  // rather than throwing — an unreachable API degrades the page, not a 500.
+  return fetchJson<any>('/api/lifecycle');
 }
 
 export default async function LifecycleViewPage() {
