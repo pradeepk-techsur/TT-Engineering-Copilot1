@@ -233,7 +233,10 @@ Plans:
   6. The app starts cleanly with `npm run dev` on port 3010 and serves HTTP 200 on all key routes: /, /lifecycle, /phase/0–9, /gate/0–9/review, /audit.
   7. Color palette: gate Pass badges use only green, Fail only red, Conditional Pass / awaiting only amber, synthetic data only violet — no blue advisory color, no orange.
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [x] 08-01-PLAN.md — Fix PhaseStepper, ThemeToggle, Sidebar (4 items), Breadcrumb (no EV-INV-800 prefix), AuditTabs (Findings merged), TechReviewBadge tooltips, globals.css light mode, fetch port fix. Verified: all 16 routes 200, stepper renders, gate 3 review returns F3-001.
 
 ---
 
@@ -250,4 +253,4 @@ Plans:
 | 5. Lifecycle Phases 5–7 Agents | 4/4 | Complete | 2026-08-18 |
 | 6. Lifecycle Phases 8–9 Agents | 0/TBD | Not started | - |
 | 7. Cross-Cutting Views and Demo Polish | 0/TBD | Not started | - |
-| 8. UX Hardening and Preview Reliability | 0/TBD | In Progress | - |
+| 8. UX Hardening and Preview Reliability | 1/1 | Complete | 2026-08-20 |
