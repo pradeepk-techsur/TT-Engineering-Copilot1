@@ -123,10 +123,13 @@ test.describe('Navigation — Gate Review is reachable', () => {
 
   test('Gate Review reachable from Phase Workspace "Open Gate Review" button', async ({ page }) => {
     // Two cold routes in one test: the phase workspace, then the gate review.
+    // Under a full-suite load the second compile regularly exceeds the 10s
+    // expect default, so this assertion gets its own budget — the navigation
+    // itself is correct, it is only slow the first time.
     test.slow();
     await page.goto('/phase/0');
     await page.getByRole('link', { name: 'Open Gate Review' }).click();
-    await expect(page).toHaveURL('/gate/0/review');
+    await expect(page).toHaveURL('/gate/0/review', { timeout: 30_000 });
   });
 });
 

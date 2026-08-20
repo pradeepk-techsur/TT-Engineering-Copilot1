@@ -11,6 +11,16 @@ export async function GET(): Promise<NextResponse> {
     const status = await getLlmKeyStatus();
     return NextResponse.json(status);
   } catch (err) {
+    // The top bar polls this on every page. In Preview mode the key store is
+    // simply unreachable, which means "no key configured" — not a server
+    // fault. Returning 500 put a red error in the console of every screen in
+    // the app and told the user nothing they could act on.
+    const code = (err as NodeJS.ErrnoException)?.code;
+    if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') {
+      return NextResponse.json({
+        configured: false, maskedKey: null, updatedAt: null, storeUnavailable: true,
+      });
+    }
     console.error('[settings/llm-key GET]', err);
     return NextResponse.json(
       { error_code: 'INTERNAL_ERROR', message: 'Failed to retrieve key status.' },
