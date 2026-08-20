@@ -37,7 +37,7 @@ export default async function IntakePanelPage({ params }: Props) {
     <AppShell phaseId={phaseId} gateId={phaseId}>
       <PageHeader
         title="Input Intake and Validation"
-        subtitle={`Phase ${phaseId}: ${config.phaseName} — every input is versioned, and both must be ready before the phase can run.`}
+        subtitle="Every input is versioned. Both must be ready before the phase can run."
         actions={
           // Label kept verbatim — the acceptance tests click this exact string,
           // and the arrow is part of it, so no icon is added here.

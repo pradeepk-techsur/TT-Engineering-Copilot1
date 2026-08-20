@@ -4,14 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
 import { Button } from '@/components/ui/button';
 import { ButtonAnchor } from '@/components/ui/button-link';
-import { Callout } from '@/components/ui/callout';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Database, Eye, Download, CheckCircle2, Loader2, PlugZap, RefreshCw } from 'lucide-react';
+import { Database, Eye, Download, Loader2, PlugZap, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { readinessStyle, styleFor } from '@/lib/status';
 
@@ -108,34 +107,43 @@ export function SiIntakeCard({
             <CardTitle>{logicalName}</CardTitle>
             {/* CORRECT label per FRD: "Simulated Connector" — prohibited: system link labels */}
             <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-fg-muted">
-              <Database size={11} strokeWidth={2} className="shrink-0 text-synthetic" />
+              <Database size={11} strokeWidth={2} className="shrink-0 text-fg-faint" />
               System Represented:
-              <span className="text-synthetic">{systemRepresented}</span>
+              <span className="text-fg-2">{systemRepresented}</span>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <StatusPill tone="synthetic" size="sm">Simulated Connector</StatusPill>
+            {/* A label for where the input comes from, not a status — so it
+                reads as a tag rather than a fourth coloured state on the row. */}
+            <StatusPill tone="neutral" size="sm">Simulated Connector</StatusPill>
             <StatusPillFor status={status} size="sm" />
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* Simulated Intake notice — must state there is no live connection */}
-        <Callout tone="synthetic" icon={PlugZap}>
-          Simulated Connector — No live connection to {systemRepresented}. This POC uses a Preloaded Synthetic Sample.
-        </Callout>
-
         {activeVersion && (
           <p className="text-[11.5px] text-fg-muted">
             Version <span className="font-mono text-fg-2">{activeVersion}</span> active
           </p>
         )}
 
-        {/* CORRECT label: "Preloaded Synthetic Sample" */}
+        {/* CORRECT label: "Preloaded Synthetic Sample".
+            The required "no live connection" disclosure used to be a tinted
+            callout of its own, directly under a chip that already said
+            "Simulated Connector" and a line that already named the system —
+            the same fact three times, and the app's only purple slab. It is
+            now one quiet sentence, sitting on the sample it describes. */}
         <div className="rounded-lg border border-line bg-raised/60 p-3">
           <p className="text-[10.5px] font-semibold tracking-[0.07em] text-fg-muted uppercase">
             Preloaded Synthetic Sample
+          </p>
+          <p className="mt-1 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-fg-muted">
+            <PlugZap size={11} strokeWidth={2} className="mt-[3px] shrink-0 text-fg-faint" />
+            <span>
+              No live connection to {systemRepresented} — this POC reads the
+              preloaded sample below.
+            </span>
           </p>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <Button
@@ -202,10 +210,6 @@ export function SiIntakeCard({
 
         {isReady && (
           <div className="space-y-3">
-            <div className="flex items-start gap-2 text-[12.5px] text-pass">
-              <CheckCircle2 size={13} strokeWidth={2} className="mt-px shrink-0" />
-              <span>Synthetic System Input Ready — ingested from {systemRepresented}.</span>
-            </div>
             {allowRevise && (
               <AlertDialog>
                 <AlertDialogTrigger

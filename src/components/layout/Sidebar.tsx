@@ -39,7 +39,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-line bg-surface"
+      className="flex h-full w-60 shrink-0 flex-col overflow-y-auto border-r border-line bg-surface"
       aria-label="Main navigation"
     >
       <nav className="flex flex-col gap-0.5 p-2.5">

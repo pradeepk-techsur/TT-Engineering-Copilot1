@@ -70,7 +70,7 @@ export function AuditEventRow({ event }: { event: AuditEvent }) {
               data-testid="audit-gate-decision"
             >
               {gd.aiRecommendation && (
-                <StatusPill tone="info" size="sm" dot={false}>
+                <StatusPill tone="neutral" size="sm" dot={false}>
                   AI: {gd.aiRecommendation}
                 </StatusPill>
               )}

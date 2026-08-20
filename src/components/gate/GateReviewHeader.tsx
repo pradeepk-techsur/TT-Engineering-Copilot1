@@ -49,7 +49,6 @@ export function GateReviewHeader({
         <h2 className="text-[15px] leading-tight font-semibold tracking-[-0.01em] text-fg">
           Gate {header.gateNumber}: {header.phaseName.replace(/^Phase \d+ — /, '')}
         </h2>
-        <span className="text-[11.5px] text-fg-muted">{header.phaseName}</span>
       </div>
 
       {/* The five header facts */}

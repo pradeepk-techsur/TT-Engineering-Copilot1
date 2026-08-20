@@ -7,9 +7,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RiskScoreIndicator } from '@/components/risk/RiskScoreIndicator';
 import { KeyRiskDetail } from './KeyRiskDetail';
-import { gateOutcomeStyle, styleFor } from '@/lib/status';
 import { riskLevelStyle } from '@/lib/riskDisplay';
 import { cn } from '@/lib/utils';
 import type { GateAdvisoryResponse } from '@/shared/types/risk';
@@ -17,8 +15,13 @@ import type { GateAdvisoryResponse } from '@/shared/types/risk';
 const NO_STRENGTHS = 'No evidence-supported Key Strengths identified.';
 
 /**
- * The advisory, in the order a reviewer reads it: what the AI recommends, how
- * risky the gate is, why, what is strong, what is not, and what to do next.
+ * The reasoning behind the advisory, in the order a reviewer reads it: why the
+ * score is what it is, why the recommendation is what it is, what is strong,
+ * what is not, and what to do next.
+ *
+ * The recommended outcome and the score themselves are NOT repeated here — the
+ * header strip states both, and the decision control restates the outcome
+ * where it is acted on. This panel is the argument, not the verdict.
  *
  * Each section is capped at three items and every item links to the record it
  * came from. Nothing here is a decision — the decision control is elsewhere on
@@ -26,10 +29,8 @@ const NO_STRENGTHS = 'No evidence-supported Key Strengths identified.';
  */
 export function GateAdvisoryPanel({
   data,
-  gateId,
 }: {
   data: GateAdvisoryResponse | undefined;
-  gateId: number;
 }) {
   if (!data) {
     return (
@@ -44,31 +45,34 @@ export function GateAdvisoryPanel({
   }
 
   const { advisory, riskScore } = data;
-  const outcome = styleFor(gateOutcomeStyle, advisory.recommendedOutcome);
 
   return (
-    // The accent tint marks this whole panel as machine-generated advice, so it
-    // can never be mistaken for a recorded decision.
+    // This panel must never be mistaken for a recorded decision. That used to
+    // be done with an accent wash over the whole (very tall) card, which turned
+    // the interaction colour into a background field and tinted every pill
+    // sitting on it. A left accent rule says the same thing in 3px.
     <Card
-      className="border-accent-line bg-accent-soft/25"
+      className="border-l-[3px] border-l-accent-solid"
       data-testid="gate-advisory-panel"
     >
       <CardContent className="space-y-4">
-        {/* AI RECOMMENDATION */}
+        {/* AI RECOMMENDATION — the recommended outcome itself is the first
+            fact in the header strip above and sits again beside the decision
+            control on the right, so what belongs here is the caveat that
+            governs everything below it. */}
         <section>
-          <SectionLabel icon={Sparkles} accent>
-            AI recommendation
-          </SectionLabel>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {advisory.recommendationAvailable ? (
-              <StatusPillFor status={outcome} />
-            ) : (
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <SectionLabel icon={Sparkles} accent>
+              AI recommendation
+            </SectionLabel>
+            {!advisory.recommendationAvailable && (
               <StatusPill tone="neutral" dot data-testid="advisory-locked">
                 No recommendation — gate locked
               </StatusPill>
             )}
-            {/* Never suppressible. */}
-            <StatusPill tone="info" size="sm" className="gap-1.5" data-testid="advisory-label">
+            {/* Never suppressible. Quiet, because it is a standing caveat on
+                everything below it rather than a state that just changed. */}
+            <StatusPill tone="neutral" size="sm" className="gap-1.5" data-testid="advisory-label">
               <Info size={10} strokeWidth={2.5} />
               {advisory.advisoryLabel}
             </StatusPill>
@@ -86,25 +90,19 @@ export function GateAdvisoryPanel({
           )}
         </section>
 
-        {/* RISK */}
-        <section className="border-t border-accent-line/60 pt-3">
-          <SectionLabel>Risk</SectionLabel>
-          <div className="mt-1.5">
-            <RiskScoreIndicator
-              risk={riskScore}
-              label={`Gate ${gateId} — Overall Risk Score`}
-              testId="advisory-risk-score"
-            />
-          </div>
-          {riskScore.explanation && (
+        {/* RISK — the score itself is the second fact in the header strip
+            above; what this section adds is why it is that number. */}
+        {riskScore.explanation && (
+          <section className="border-t border-line pt-3">
+            <SectionLabel>Risk</SectionLabel>
             <p className="mt-1.5 text-[11.5px] leading-relaxed text-fg-muted">
               {riskScore.explanation}
             </p>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* WHY */}
-        <section className="border-t border-accent-line/60 pt-3">
+        <section className="border-t border-line pt-3">
           <SectionLabel>Why this recommendation</SectionLabel>
           <p
             className="mt-1.5 text-[12.5px] leading-relaxed text-fg-2"
@@ -115,7 +113,7 @@ export function GateAdvisoryPanel({
         </section>
 
         {/* KEY STRENGTHS */}
-        <section className="border-t border-accent-line/60 pt-3">
+        <section className="border-t border-line pt-3">
           <SectionLabel icon={CheckCircle2} tone="pass">
             Key strengths
           </SectionLabel>
@@ -144,7 +142,7 @@ export function GateAdvisoryPanel({
         </section>
 
         {/* KEY RISKS */}
-        <section className="border-t border-accent-line/60 pt-3">
+        <section className="border-t border-line pt-3">
           <SectionLabel icon={AlertTriangle} tone="warn">
             Key risks
           </SectionLabel>
@@ -199,7 +197,7 @@ export function GateAdvisoryPanel({
         </section>
 
         {/* NEXT STEPS */}
-        <section className="border-t border-accent-line/60 pt-3">
+        <section className="border-t border-line pt-3">
           <SectionLabel icon={ListOrdered}>Next steps</SectionLabel>
           {advisory.nextSteps.length === 0 ? (
             <p className="mt-1.5 text-[12.5px] text-fg-muted italic">
@@ -234,7 +232,7 @@ export function GateAdvisoryPanel({
 
         {/* Provenance — how the prose was produced. */}
         <p
-          className="border-t border-accent-line/60 pt-3 text-[10.5px] leading-relaxed text-fg-muted"
+          className="border-t border-line pt-3 text-[10.5px] leading-relaxed text-fg-muted"
           data-testid="advisory-provenance"
         >
           The Overall Risk Score is calculated by the application from configured

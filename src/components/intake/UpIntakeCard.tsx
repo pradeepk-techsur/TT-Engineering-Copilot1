@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusPill, StatusPillFor } from '@/components/ui/status-pill';
-import { Upload, CheckCircle2, AlertCircle, Loader2, FileUp } from 'lucide-react';
+import { Upload, AlertCircle, Loader2, FileUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { readinessStyle, styleFor } from '@/lib/status';
@@ -102,7 +102,7 @@ export function UpIntakeCard({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            <StatusPill tone="info" size="sm">User-Provided File</StatusPill>
+            <StatusPill tone="neutral" size="sm">User-Provided File</StatusPill>
             <StatusPillFor status={status} size="sm" />
           </div>
         </div>
@@ -162,17 +162,11 @@ export function UpIntakeCard({
           {/* CRITICAL: correct label per FRD — Upload Revised Version, never replacement */}
           {!uploading && !isDragActive && (
             <span className="text-[11.5px] text-fg-muted">
-              Drag a file here, or click to browse · {format}
+              Drag a file here, or click to browse
             </span>
           )}
         </div>
 
-        {isReady && (
-          <div className="flex items-start gap-2 text-[12.5px] text-pass">
-            <CheckCircle2 size={13} strokeWidth={2} className="mt-px shrink-0" />
-            <span>{logicalName} received and validated.</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

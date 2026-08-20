@@ -2,7 +2,6 @@
 import { KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { StatusPill } from '@/components/ui/status-pill';
-import { cn } from '@/lib/utils';
 import { useLlmKeyStatus } from '@/lib/hooks';
 
 export function LlmKeyStatusBadge() {
@@ -13,8 +12,10 @@ export function LlmKeyStatusBadge() {
   if (!data && !error) return null;
   const configured = data?.configured ?? false;
 
-  // Unset is a real blocker — AI phases can't run — so it stays prominent,
-  // but as a quiet warning rather than a pulsing red alarm in the chrome.
+  // Unset is a real blocker — AI phases can't run — but this sits in the
+  // chrome on every screen, so it earns a dot, not a fill. `emphasis="quiet"`
+  // keeps the warn tone (and therefore the amber dot) while dropping the
+  // tinted slab that made the top bar compete with the page.
   return (
     <Link
       href="/settings"
@@ -27,10 +28,13 @@ export function LlmKeyStatusBadge() {
     >
       <StatusPill
         tone={configured ? 'pass' : 'warn'}
-        className={cn('gap-1.5 transition-colors', !configured && 'hover:bg-warn-soft')}
+        emphasis="quiet"
+        size="sm"
+        dot={!configured}
+        className="gap-1.5 transition-colors hover:border-line-strong hover:text-fg"
         data-testid="llm-key-status-badge"
       >
-        <KeyRound size={11} strokeWidth={2.5} />
+        <KeyRound size={10} strokeWidth={2.5} />
         {/* "Configured" matches the wording on the settings card, so the two
             never describe the same state with different words. */}
         {configured ? 'LLM Key Configured' : 'LLM Key Not Set'}

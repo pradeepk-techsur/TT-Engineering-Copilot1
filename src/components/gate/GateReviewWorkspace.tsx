@@ -91,7 +91,7 @@ export function GateReviewWorkspace({ gateId }: { gateId: number }) {
       <div className="flex flex-col gap-5 lg:flex-row">
         {/* ── Advisory, then the evidence behind it ──────────────────── */}
         <div className="min-w-0 flex-1 space-y-4">
-          <GateAdvisoryPanel data={advisory} gateId={gateId} />
+          <GateAdvisoryPanel data={advisory} />
 
           {/* Evidence is summary-only by default: names, states and counts.
               No output-document content is rendered here — each row links to
@@ -242,7 +242,6 @@ export function GateReviewWorkspace({ gateId }: { gateId: number }) {
                   gateId={gateId}
                   blockingActionsOpen={blockingActionsOpen}
                   aiRecommendation={advisory?.advisory ?? null}
-                  riskScore={advisory?.riskScore ?? null}
                   onDecisionRecorded={refresh}
                 />
               </CardContent>

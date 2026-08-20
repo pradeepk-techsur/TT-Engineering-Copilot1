@@ -38,7 +38,14 @@ export function FindingsSummaryTable({ findings }: { findings: Finding[] }) {
           <TR key={f.findingId} interactive>
             <TD className="font-mono text-[11.5px] text-fg-muted">{f.findingId}</TD>
             <TD>
-              <StatusPillFor status={styleFor(severityStyle, f.severity)} size="sm" />
+              {/* Quiet on purpose: the Status column beside it is the loud
+                  one. Two tinted pills per row and neither reads as the
+                  point of the row. */}
+              <StatusPillFor
+                status={styleFor(severityStyle, f.severity)}
+                size="sm"
+                emphasis="quiet"
+              />
             </TD>
             {/* Full text, wrapped — descriptions used to be clipped mid-word
                 with no way to read the rest. */}
@@ -46,7 +53,7 @@ export function FindingsSummaryTable({ findings }: { findings: Finding[] }) {
               {f.description}
               {f.seeded && (
                 <StatusPill
-                  tone="synthetic"
+                  tone="neutral"
                   size="sm"
                   className="ml-2 align-middle"
                   data-testid="seeded-badge"

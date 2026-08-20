@@ -16,7 +16,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 /** The synthetic-data disclaimer. Always first, always visible. */
 function SyntheticDisclaimer() {
   return (
-    <Callout tone="synthetic" icon={FlaskConical}>
+    <Callout tone="neutral" icon={FlaskConical}>
       {POC_STD_LABEL} — Synthetic POC Data. Not TT Electronics Product Data. Not for Design, Fabrication, Certification, Procurement, or Production.
     </Callout>
   );
@@ -63,10 +63,10 @@ export function ArtifactViewer({ artifactId }: { artifactId: string }) {
               <CardTitle>{artifact.artifactName}</CardTitle>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <StatusPill tone="info" size="sm">{artifact.artifactType}</StatusPill>
+              <StatusPill tone="neutral" size="sm">{artifact.artifactType}</StatusPill>
               <StatusPill tone="neutral" size="sm">v{artifact.version}</StatusPill>
               {artifact.disclaimerPresent && (
-                <StatusPill tone="synthetic" size="sm">Synthetic POC</StatusPill>
+                <StatusPill tone="neutral" size="sm">Synthetic POC</StatusPill>
               )}
             </div>
           </div>

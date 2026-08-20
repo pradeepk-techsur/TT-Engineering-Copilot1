@@ -12,6 +12,18 @@
  *   info      in flight, or advisory (AI) — never an outcome
  *   synthetic POC / simulated / seeded data provenance
  *   neutral   not started, not applicable, no opinion
+ *
+ * ── Emphasis ──────────────────────────────────────────────────────────────
+ * Tone says what a state MEANS. Emphasis says how loudly to say it.
+ *
+ * A screen that tints every pill teaches the eye nothing: ten green "Passed"
+ * rows and one amber "Awaiting Gate" read as eleven decorations rather than
+ * one thing that needs you. So only states that ask for action — warn and
+ * fail — are rendered LOUD (tinted fill, tinted border, tinted text). Settled
+ * states are QUIET: one neutral chip, with the tone carried by its dot.
+ *
+ * The dot means colour is never the only carrier of meaning, and the label is
+ * always spelled out, so a quiet pill loses no information — only volume.
  */
 
 export type Tone = 'pass' | 'fail' | 'warn' | 'info' | 'synthetic' | 'neutral' | 'accent';
@@ -33,6 +45,40 @@ export const toneClass: Record<Tone, string> = {
   synthetic: 'text-synthetic bg-synthetic-soft border-synthetic-line',
   neutral:   'text-fg-muted bg-neutral-soft border-neutral-line',
   accent:    'text-accent-solid bg-accent-soft border-accent-line',
+};
+
+export type Emphasis = 'quiet' | 'loud';
+
+/**
+ * The quiet pill: one neutral chip in every tone, so a list of settled states
+ * reads as a column of labels instead of a row of swatches. The tone survives
+ * in the dot (see `toneDot`), which every quiet pill renders.
+ */
+export const toneClassQuiet: Record<Tone, string> = {
+  pass:      'text-fg-2 bg-raised border-line',
+  fail:      'text-fg-2 bg-raised border-line',
+  warn:      'text-fg-2 bg-raised border-line',
+  info:      'text-fg-2 bg-raised border-line',
+  synthetic: 'text-fg-2 bg-raised border-line',
+  neutral:   'text-fg-muted bg-raised border-line',
+  accent:    'text-fg-2 bg-raised border-line',
+};
+
+/**
+ * How loudly each tone speaks by default. Only the two tones that ask
+ * something of the reader are tinted; the rest stay quiet so those two can be
+ * seen. Override per instance with `emphasis` when a specific cluster needs it
+ * (e.g. a severity chip sitting next to a status chip, where two tinted pills
+ * would compete).
+ */
+export const defaultEmphasis: Record<Tone, Emphasis> = {
+  pass:      'quiet',
+  fail:      'loud',
+  warn:      'loud',
+  info:      'quiet',
+  synthetic: 'quiet',
+  neutral:   'quiet',
+  accent:    'quiet',
 };
 
 /** Just the foreground colour — for icons and inline text. */
@@ -100,7 +146,7 @@ export const gateOutcomeStyle: Record<string, StatusStyle> = {
 /* ── Phase execution status ────────────────────────────────────────────── */
 export const executionStatusStyle: Record<string, StatusStyle> = {
   'Waiting for User Input':                 { label: 'Waiting for User Input',   tone: 'warn' },
-  'Waiting for Synthetic Sample Ingestion': { label: 'Waiting for Ingestion',    tone: 'synthetic' },
+  'Waiting for Synthetic Sample Ingestion': { label: 'Waiting for Ingestion',    tone: 'warn' },
   'Ready to Run':                           { label: 'Ready to Run',             tone: 'pass' },
   'Processing':                             { label: 'Running',                  tone: 'info', pulse: true },
   'Awaiting Human Decision':                { label: 'Awaiting Your Decision',   tone: 'warn' },
@@ -118,7 +164,7 @@ export const readinessStyle: Record<string, StatusStyle> = {
   'User Input Ready':                       { label: 'User Input Ready',                       tone: 'pass' },
   'Synthetic System Input Ready':           { label: 'Synthetic System Input Ready',           tone: 'pass' },
   'Awaiting User Input':                    { label: 'Awaiting User Input',                    tone: 'warn' },
-  'Waiting for Synthetic Sample Ingestion': { label: 'Waiting for Synthetic Sample Ingestion', tone: 'synthetic' },
+  'Waiting for Synthetic Sample Ingestion': { label: 'Waiting for Synthetic Sample Ingestion', tone: 'warn' },
   'Invalid':                                { label: 'Invalid',                                tone: 'fail' },
 };
 
@@ -134,7 +180,7 @@ export const approvalStyle: Record<string, StatusStyle> = {
 export const severityStyle: Record<string, StatusStyle> = {
   Critical:    { label: 'Critical',    tone: 'fail' },
   Major:       { label: 'Major',       tone: 'warn' },
-  Minor:       { label: 'Minor',       tone: 'info' },
+  Minor:       { label: 'Minor',       tone: 'neutral' },
   Observation: { label: 'Observation', tone: 'neutral' },
 };
 
@@ -160,8 +206,10 @@ export const checkStatusStyle: Record<string, StatusStyle> = {
 
 /* ── Intake behaviour (UP = user-provided, SI = simulated system input) ── */
 export const behaviorStyle: Record<string, StatusStyle> = {
-  UP: { label: 'UP', tone: 'info' },
-  SI: { label: 'SI', tone: 'synthetic' },
+  // Provenance, not status — these were blue and purple, which made an audit
+  // table of 4 rows carry 4 hues. Neutral: the letters already say it.
+  UP: { label: 'UP', tone: 'neutral' },
+  SI: { label: 'SI', tone: 'neutral' },
 };
 
 export const BEHAVIOR_GLOSSARY: Record<string, string> = {

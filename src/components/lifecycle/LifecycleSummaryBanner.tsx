@@ -1,10 +1,23 @@
 'use client';
-import { cn } from '@/lib/utils';
 import { useLifecycle } from '@/lib/hooks';
-import { gateOutcomeShort, styleFor, toneClass, toneDot } from '@/lib/status';
+import { PhaseStepper } from './PhaseStepper';
 import { StatusPill } from '@/components/ui/status-pill';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const CLEARED = ['GatePassed', 'GateConditional'];
+
+/**
+ * The programme at a glance, at the top of the Product Lifecycle View.
+ *
+ * This used to be a grid of ten G0–G9 outcome tiles, each tinted by its state.
+ * The ten-row list directly beneath it already carries every one of those
+ * outcomes — with the phase name, the gate state, the risk score and a link —
+ * so the grid was twenty extra elements and ten extra colour fields restating
+ * the thing you were about to read. Two facts and the journey rail instead.
+ *
+ * The rail is the phase stepper, which used to sit in the app chrome on all
+ * ten screens. Here it has a job: this is the page about the lifecycle.
+ */
 export function LifecycleSummaryBanner() {
   const { data, isLoading } = useLifecycle();
 
@@ -12,64 +25,53 @@ export function LifecycleSummaryBanner() {
   // existence and shoved the page down. Reserve the space instead.
   if (isLoading && !data) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-3">
-        <Skeleton className="h-3 w-16" />
-        <div className="flex flex-1 gap-1.5">
-          {Array.from({ length: 10 }, (_, i) => (
-            <Skeleton key={i} className="h-6 flex-1 rounded-lg" />
-          ))}
-        </div>
+      <div className="rounded-xl border border-line bg-surface px-4 py-3">
+        <Skeleton className="h-3 w-48" />
+        <Skeleton className="mt-3.5 h-8 w-full rounded-lg" />
       </div>
     );
   }
 
   if (!data?.phases) return null;
 
+  const phases: { phaseId: number; phaseState: string }[] = data.phases;
+  const cleared = phases.filter(p => CLEARED.includes(p.phaseState)).length;
+  const currentPhase =
+    typeof data.currentPhase === 'number' ? data.currentPhase : undefined;
   const projectClosed = data.projectStatus === 'Closed';
 
   return (
     <div
-      className="rounded-xl border border-line bg-surface px-4 py-3 shadow-sm"
+      className="rounded-xl border border-line bg-surface px-4 pt-3 pb-4 shadow-sm"
       data-testid="lifecycle-summary-banner"
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
         <p className="text-[10.5px] font-semibold tracking-[0.08em] text-fg-muted uppercase">
           Gate outcomes
         </p>
-        {projectClosed && (
-          <StatusPill tone="neutral" dot>
-            Project closed
-          </StatusPill>
-        )}
+        <div className="flex items-center gap-2.5 text-[11.5px] text-fg-muted tabular-nums">
+          <span>
+            <span className="font-semibold text-fg">{cleared}</span> of {phases.length} gates
+            cleared
+          </span>
+          {currentPhase !== undefined && !projectClosed && (
+            <>
+              <span aria-hidden className="text-fg-faint">
+                ·
+              </span>
+              <span>Gate {currentPhase} current</span>
+            </>
+          )}
+          {projectClosed && (
+            <StatusPill tone="neutral" size="sm">
+              Project closed
+            </StatusPill>
+          )}
+        </div>
       </div>
 
-      {/* Each gate is a labelled tile rather than a "G0" + pill pair, so the
-          row scans as one strip instead of twenty separate elements. */}
-      <div className="mt-2.5 grid grid-cols-5 gap-1.5 sm:grid-cols-10">
-        {data.phases.map((phase: { phaseId: number; phaseState: string }, i: number) => {
-          const outcome = styleFor(gateOutcomeShort, phase.phaseState);
-          return (
-            <div
-              key={i}
-              title={`Gate ${i} — ${outcome.label}`}
-              className={cn(
-                'flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5',
-                toneClass[outcome.tone]
-              )}
-            >
-              <span className="font-mono text-[10px] leading-none opacity-70 tabular-nums">
-                G{i}
-              </span>
-              <span className="flex items-center gap-1 text-[11px] leading-none font-semibold">
-                <span
-                  aria-hidden
-                  className={cn('size-1 rounded-full', toneDot[outcome.tone])}
-                />
-                {outcome.label}
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-3">
+        <PhaseStepper currentPhaseId={currentPhase} />
       </div>
     </div>
   );

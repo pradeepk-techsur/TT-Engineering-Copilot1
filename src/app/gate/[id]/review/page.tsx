@@ -30,7 +30,7 @@ export default async function GateReviewPage({ params }: Props) {
     <AppShell phaseId={gateId} gateId={gateId}>
       <PageHeader
         title={`Gate ${gateId} Review Workspace`}
-        subtitle="TT Electronics ENG 001 v4.1 — Human gate decision required. The AI recommendation is advisory; the decision on the right is yours."
+        subtitle="Human gate decision required. The AI recommendation is advisory."
       />
       {/* Gate Review Workspace built dynamically from ProjectState */}
       <GateReviewWorkspace gateId={gateId} />

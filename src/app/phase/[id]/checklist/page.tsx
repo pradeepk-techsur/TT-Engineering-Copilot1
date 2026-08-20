@@ -20,7 +20,7 @@ export default async function TechnicalChecklistPage({ params }: Props) {
     <AppShell phaseId={phaseId}>
       <PageHeader
         title="Technical Checklist Workspace"
-        subtitle={`Phase ${phaseId}: ${config?.phaseName ?? `Phase ${phaseId}`} — each item needs named evidence before the review can close.`}
+        subtitle="Each item needs named evidence before the review can close."
         actions={
           <ButtonLink size="sm" href={`/phase/${phaseId}`}>
             <ArrowLeft size={14} strokeWidth={2} />

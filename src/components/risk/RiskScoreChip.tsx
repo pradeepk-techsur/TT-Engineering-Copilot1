@@ -1,13 +1,16 @@
 import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toneClass, toneDot } from '@/lib/status';
-import { riskLevelTone } from '@/lib/riskDisplay';
+import { defaultEmphasis, toneClass, toneClassQuiet, toneDot } from '@/lib/status';
+import { riskLevelEmphasis, riskLevelTone } from '@/lib/riskDisplay';
 import type { RiskLevel } from '@/shared/types/risk';
 
 /**
  * The compact risk display. Number and level word together, in one pill —
  * "Risk: 68 / 100, High". Never colour alone: the level is always spelled out,
  * and the dot is decorative.
+ *
+ * Tinted only at High and Critical. Below that the score is context, not an
+ * alarm, and it appears on screens that already have a state pill to read.
  */
 export function RiskScoreChip({
   score,
@@ -32,7 +35,7 @@ export function RiskScoreChip({
         className={cn(
           'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap',
           size === 'sm' ? 'h-[18px] px-1.5 text-[10.5px]' : 'h-[22px] px-2.5 text-[11.5px]',
-          toneClass.neutral,
+          toneClassQuiet.neutral,
           className
         )}
       >
@@ -42,13 +45,14 @@ export function RiskScoreChip({
   }
 
   const tone = riskLevelTone[level];
+  const quiet = (riskLevelEmphasis[level] ?? defaultEmphasis[tone]) === 'quiet';
 
   return (
     <span
       className={cn(
         'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap',
         size === 'sm' ? 'h-[18px] px-1.5 text-[10.5px]' : 'h-[22px] px-2.5 text-[11.5px]',
-        toneClass[tone],
+        quiet ? toneClassQuiet[tone] : toneClass[tone],
         className
       )}
     >

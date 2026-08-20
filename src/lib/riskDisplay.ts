@@ -11,19 +11,38 @@
 import type { RiskLevel, RiskScore } from '@/shared/types/risk';
 import type { Tone, StatusStyle } from '@/lib/status';
 
-/** Risk level → the app's existing six-tone status language. */
+/**
+ * Risk level → the app's existing six-tone status language.
+ *
+ * Low used to be `pass`, which put a green risk pill immediately beside a
+ * green "Passed" status pill on every completed lifecycle row — two greens
+ * saying different things. A low risk is not an achievement; it is the absence
+ * of a problem, so it reads neutral.
+ */
 export const riskLevelTone: Record<RiskLevel, Tone> = {
-  Low: 'pass',
+  Low: 'neutral',
   Medium: 'warn',
   High: 'warn',
   Critical: 'fail',
 };
 
 export const riskLevelStyle: Record<RiskLevel, StatusStyle> = {
-  Low: { label: 'Low', tone: 'pass' },
+  Low: { label: 'Low', tone: 'neutral' },
   Medium: { label: 'Medium', tone: 'warn' },
   High: { label: 'High', tone: 'warn' },
   Critical: { label: 'Critical', tone: 'fail' },
+};
+
+/**
+ * Only High and Critical are tinted. Medium keeps its amber dot but drops the
+ * fill, so a page can carry a Medium score without it competing with the one
+ * thing on screen that actually needs a decision.
+ */
+export const riskLevelEmphasis: Record<RiskLevel, 'quiet' | 'loud'> = {
+  Low: 'quiet',
+  Medium: 'quiet',
+  High: 'loud',
+  Critical: 'loud',
 };
 
 /** "Risk: 68 / 100, High" — the compact display used in every header. */

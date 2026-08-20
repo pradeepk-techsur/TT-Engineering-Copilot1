@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { fetchJson } from '@/lib/serverFetch';
-import { ArrowRight, CircleDot, Gauge, ClipboardCheck, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CircleDot, Gauge } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, SectionLabel } from '@/components/ui/page-header';
@@ -77,7 +77,6 @@ export default async function ProjectOverviewPage() {
     <AppShell>
       <PageHeader
         title="Project Overview"
-        subtitle="Programme status across the ten-phase TT Electronics engineering lifecycle."
         actions={
           <ButtonLink variant="default" href={`/phase/${currentPhaseId}`}>
             Open current phase
@@ -108,7 +107,7 @@ export default async function ProjectOverviewPage() {
         {/* ── Programme metrics ─────────────────────────────────────── */}
         <Card>
           <CardContent>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3">
               <Stat
                 label="Gates cleared"
                 value={
@@ -117,18 +116,16 @@ export default async function ProjectOverviewPage() {
                     <span className="text-fg-faint">/10</span>
                   </>
                 }
-                tone={gatesPassed > 0 ? 'pass' : 'neutral'}
-                hint={conditional > 0 ? `${conditional} conditional` : 'G0 through G9'}
+                hint={conditional > 0 ? `${conditional} conditional` : undefined}
               />
               <Stat
                 label="Current phase"
                 value={`P${currentPhaseId}`}
-                hint={currentPhase?.phaseName ?? '—'}
-              />
-              <Stat
-                label="Current gate"
-                value={`G${data?.currentGate ?? currentPhaseId}`}
-                hint={currentPhase ? styleFor(phaseStateStyle, currentPhase.phaseState).label : '—'}
+                hint={
+                  currentPhase
+                    ? `${currentPhase.phaseName} · ${styleFor(phaseStateStyle, currentPhase.phaseState).label}`
+                    : '—'
+                }
               />
               <Stat
                 label="Technical reviews"
@@ -137,36 +134,23 @@ export default async function ProjectOverviewPage() {
               />
             </div>
 
-            {/* Progress rail — the same 10 phases, as one bar */}
-            <div className="mt-6 flex items-center gap-3">
-              <div
-                className="flex h-1.5 flex-1 gap-0.5 overflow-hidden rounded-full"
-                role="img"
-                aria-label={`${gatesPassed} of 10 gates cleared`}
-              >
-                {phases.map(p => {
-                  const s = styleFor(phaseStateStyle, p.phaseState);
-                  return (
-                    <span
-                      key={p.phaseId}
-                      className={`flex-1 rounded-full ${
-                        s.tone === 'pass'
-                          ? 'bg-pass'
-                          : s.tone === 'warn'
-                            ? 'bg-warn'
-                            : s.tone === 'fail'
-                              ? 'bg-fail'
-                              : s.tone === 'info'
-                                ? 'bg-info'
-                                : 'bg-line-strong'
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-              <span className="shrink-0 text-[11.5px] text-fg-muted tabular-nums">
-                {Math.round((gatesPassed / 10) * 100)}% complete
-              </span>
+            {/* Progress rail. This used to tint each of the ten segments by
+                that phase's state — a third rendering of the status column in
+                the table below, and ten colour fields for information you
+                were about to read anyway. Two tones: done, and not done. The
+                "% complete" readout went with it; it was `gatesPassed / 10`
+                spelled a second way, directly beside the fraction itself. */}
+            <div className="mt-6 flex h-1.5 gap-0.5 overflow-hidden rounded-full">
+              {phases.map((p, i) => (
+                <span
+                  key={p.phaseId}
+                  role={i === 0 ? 'img' : undefined}
+                  aria-label={i === 0 ? `${gatesPassed} of 10 gates cleared` : undefined}
+                  className={`flex-1 rounded-full ${
+                    DONE.includes(p.phaseState) ? 'bg-accent-solid' : 'bg-line-strong'
+                  }`}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -240,7 +224,7 @@ export default async function ProjectOverviewPage() {
                         <TR
                           key={phase.phaseId}
                           interactive
-                          className={isCurrent ? 'bg-accent-soft/40' : undefined}
+                          className={isCurrent ? 'bg-hover' : undefined}
                         >
                           <TD className="font-mono text-[11.5px] text-fg-muted">
                             {isCurrent && (
@@ -279,27 +263,6 @@ export default async function ProjectOverviewPage() {
           </div>
         </div>
 
-        {/* ── Quick links ──────────────────────────────────────────── */}
-        <div className="grid gap-3 sm:grid-cols-3">
-          <QuickLink
-            href="/lifecycle"
-            icon={Gauge}
-            title="Lifecycle"
-            body="All ten phases with gate outcomes and intake behaviour."
-          />
-          <QuickLink
-            href="/audit"
-            icon={ClipboardCheck}
-            title="Audit & Findings"
-            body="Immutable event log, findings and corrective actions."
-          />
-          <QuickLink
-            href={`/gate/${currentPhaseId}/review`}
-            icon={ShieldCheck}
-            title={`Gate ${currentPhaseId} review`}
-            body="Record the human decision for the current gate."
-          />
-        </div>
       </div>
     </AppShell>
   );
@@ -311,39 +274,5 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <dt className="shrink-0 text-fg-muted">{label}</dt>
       <dd className="min-w-0 truncate text-right text-fg">{children}</dd>
     </div>
-  );
-}
-
-function QuickLink({
-  href,
-  icon: Icon,
-  title,
-  body,
-}: {
-  href: string;
-  icon: typeof Gauge;
-  title: string;
-  body: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-sm transition-colors hover:border-accent-line hover:bg-hover"
-    >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-fg-muted transition-colors group-hover:border-accent-line group-hover:text-accent-solid">
-        <Icon size={15} strokeWidth={2} />
-      </span>
-      <span className="min-w-0">
-        <span className="flex items-center gap-1.5 text-[13px] font-semibold text-fg">
-          {title}
-          <ArrowRight
-            size={12}
-            strokeWidth={2}
-            className="text-fg-faint transition-transform group-hover:translate-x-0.5 group-hover:text-accent-solid"
-          />
-        </span>
-        <span className="mt-1 block text-[12px] leading-relaxed text-fg-muted">{body}</span>
-      </span>
-    </Link>
   );
 }

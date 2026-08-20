@@ -123,16 +123,15 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         ? PlayCircle
         : CircleDashed;
 
-  // Explain the disabled Run button rather than leaving a dead control.
-  const runBlockedReason = isExecuting
-    ? null
-    : status === 'Processing'
-      ? 'This phase is already running.'
-      : status === 'Complete'
-        ? 'This phase is already complete.'
-        : !bothReady
-          ? 'Both inputs must be ready before the phase can run.'
-          : null;
+  // Explain the disabled Run button rather than leaving a dead control — but
+  // only when the explanation adds something. For Processing, Complete and
+  // Awaiting Human Decision, EXPLAIN above already says exactly why the button
+  // is inert, and the old copy ("Both inputs must be ready…") actively
+  // contradicted it once execution had finished.
+  const runBlockedReason =
+    !isExecuting && !bothReady && status !== 'Awaiting Human Decision' && status !== 'Complete'
+      ? 'Both inputs must be ready before the phase can run.'
+      : null;
 
   // Helper to determine sample file name
   const sampleFileName = (role: 'external' | 'internal') => {
@@ -205,7 +204,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
             invent one — a moving sliver says "working" honestly. */}
         {isRunning && (
           <div className="h-[3px] w-full overflow-hidden bg-line" data-testid="execution-progress-bar">
-            <div className="h-full w-1/4 animate-indeterminate rounded-full bg-info" />
+            <div className="h-full w-1/4 animate-indeterminate rounded-full bg-accent-solid" />
           </div>
         )}
       </div>
@@ -217,7 +216,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
       )}
 
       {phaseId === 4 && !isRevised && (
-        <Callout tone="info" icon={Info} data-testid="revised-run-hint">
+        <Callout tone="neutral" icon={Info} data-testid="revised-run-hint">
           To trigger a revised Phase 4 run after correcting design issues, upload a new version of the
           Released Detailed Design Baseline Package below. The button will change to &ldquo;Run revised
           phase&rdquo; and the agent will re-run only the affected deterministic checks against the
@@ -230,7 +229,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         <InputSection
           icon={Globe}
           label="External-source input"
-          hint="Comes from outside the programme — a standards library or supplier system."
+          hint="Comes from outside the programme."
         >
           {externalConfig.behavior === 'UP' ? (
             <UpIntakeCard
@@ -264,7 +263,7 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
         <InputSection
           icon={FolderClosed}
           label="Internal-artifact input"
-          hint="Produced inside the programme — your own design or planning artifact."
+          hint="Produced inside the programme."
         >
           {internalConfig.behavior === 'UP' ? (
             <UpIntakeCard

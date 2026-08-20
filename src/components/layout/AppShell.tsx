@@ -2,7 +2,6 @@ import { Sidebar } from './Sidebar';
 import { Breadcrumb } from './Breadcrumb';
 import { SyntheticBadge } from './SyntheticBadge';
 import { ThemeToggle } from './ThemeToggle';
-import { PhaseStepper } from '@/components/lifecycle/PhaseStepper';
 import { LlmKeyStatusBadge } from '@/components/settings/LlmKeyStatusBadge';
 
 interface AppShellProps {
@@ -17,6 +16,12 @@ export function AppShell({ children, phaseId, gateId, bleed }: AppShellProps) {
   const hasBreadcrumb = phaseId !== undefined || gateId !== undefined;
 
   return (
+    // Two rows of chrome — a top bar and a full-width 10-marker phase rail —
+    // used to cost 90px before any content, and the rail was the third copy of
+    // the phase list on screen (sidebar rail, and the page's own table). The
+    // journey view now lives on /lifecycle, where it is the subject rather
+    // than decoration; "where am I" is the sidebar's job on every other page.
+    //
     // h-screen + min-h-0 on the row is what lets the sidebar run the full
     // height of the viewport. It previously stopped wherever its content
     // ended, leaving a hard edge halfway down every page.
@@ -52,11 +57,6 @@ export function AppShell({ children, phaseId, gateId, bleed }: AppShellProps) {
           <SyntheticBadge />
         </div>
       </header>
-
-      {/* ── Phase journey — persistent "where am I" across all 10 phases ── */}
-      <div className="shrink-0 border-b border-line bg-surface px-4 py-2">
-        <PhaseStepper currentPhaseId={phaseId} />
-      </div>
 
       {/* ── Body ────────────────────────────────────────────────────── */}
       <div className="flex min-h-0 flex-1">

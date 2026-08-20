@@ -39,16 +39,23 @@ function kindOf(state: string): Kind {
   return 'todo';
 }
 
-/** Marker styling per kind. The dot alone must communicate the outcome. */
+/**
+ * Marker styling per kind. The glyph plus the tone communicate the outcome.
+ *
+ * These were solid fills, so ten phases rendered as ten saturated blobs and
+ * the one marker that matters — where you actually are — had to compete with
+ * nine others for attention. Outcomes are now tinted outlines; only the
+ * current phase is filled, because only one of them is "you are here".
+ */
 const MARKER: Record<Kind, string> = {
-  passed:      'border-pass bg-pass text-[color:var(--tt-canvas)]',
-  conditional: 'border-warn bg-warn text-[color:var(--tt-canvas)]',
-  failed:      'border-fail bg-fail text-[color:var(--tt-canvas)]',
-  active:      'border-accent-solid bg-accent-soft text-accent-solid',
+  passed:      'border-pass-line bg-pass-soft text-pass',
+  conditional: 'border-warn-line bg-warn-soft text-warn',
+  failed:      'border-fail-line bg-fail-soft text-fail',
+  active:      'border-accent-solid bg-accent-solid text-accent-fg',
   todo:        'border-line-strong bg-surface text-fg-faint',
 };
 
-const TRACK_DONE = 'bg-pass/40';
+const TRACK_DONE = 'bg-line-strong';
 const TRACK_TODO = 'bg-line';
 
 export function PhaseStepper({ currentPhaseId }: { currentPhaseId?: number }) {
@@ -130,7 +137,7 @@ export function PhaseStepper({ currentPhaseId }: { currentPhaseId?: number }) {
                         {kind === 'conditional' && <Minus size={11} strokeWidth={3} />}
                         {kind === 'failed' && <X size={11} strokeWidth={3} />}
                         {kind === 'active' && (
-                          <span className="size-1.5 animate-pulse rounded-full bg-accent-solid" />
+                          <span className="size-1.5 animate-pulse rounded-full bg-accent-fg" />
                         )}
                         {kind === 'todo' && (
                           <span className="text-[9.5px] leading-none font-semibold tabular-nums">
@@ -148,12 +155,12 @@ export function PhaseStepper({ currentPhaseId }: { currentPhaseId?: number }) {
 
                     <span
                       className={cn(
-                        'max-w-full truncate text-[10.5px] leading-none font-medium tracking-tight transition-colors',
+                        'max-w-full truncate text-[10.5px] leading-none tracking-tight transition-colors',
                         isCurrent
-                          ? 'text-fg'
+                          ? 'font-semibold text-fg'
                           : kind === 'todo'
-                            ? 'text-fg-faint group-hover:text-fg-muted'
-                            : cn(toneText[status.tone], 'group-hover:opacity-80')
+                            ? 'font-medium text-fg-faint group-hover:text-fg-muted'
+                            : 'font-medium text-fg-muted group-hover:text-fg'
                       )}
                     >
                       {SHORT[p.phaseId] ?? `P${p.phaseId}`}

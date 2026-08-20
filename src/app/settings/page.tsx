@@ -14,7 +14,7 @@ export default function SettingsPage() {
       <div className="max-w-2xl">
         <PageHeader
           title="Settings"
-          subtitle="The Anthropic API key is required for all AI agent phases (Phase 0–9). It is stored encrypted and is never visible after saving."
+          subtitle="Credentials this POC needs to run its AI agent phases."
         />
 
         <section>

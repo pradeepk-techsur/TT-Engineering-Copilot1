@@ -140,7 +140,7 @@ export function LlmKeyConfigCard() {
             data-testid="llm-key-input"
           />
           <p className="text-[11.5px] text-fg-muted">
-            Key is not visible after saving. To update, enter a new key and save again.
+            To update, enter a new key and save again.
           </p>
         </div>
 

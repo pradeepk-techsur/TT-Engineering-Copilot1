@@ -10,7 +10,7 @@ import { Hint } from '@/components/ui/hint';
 import { LifecycleSummaryBanner } from '@/components/lifecycle/LifecycleSummaryBanner';
 import { TechReviewBadge } from '@/components/lifecycle/TechReviewBadge';
 import { LifecycleRiskCell } from '@/components/risk/LifecycleRiskCell';
-import { phaseStateStyle, gateStateStyle, styleFor, toneDot, BEHAVIOR_GLOSSARY } from '@/lib/status';
+import { phaseStateStyle, gateStateStyle, styleFor, BEHAVIOR_GLOSSARY } from '@/lib/status';
 import { cn } from '@/lib/utils';
 
 async function getLifecycleData() {
@@ -29,7 +29,7 @@ export default async function LifecycleViewPage() {
     <AppShell>
       <PageHeader
         title="Product Lifecycle View"
-        subtitle="TT Electronics ENG 001 v4.1 — Phase 0 through Phase 9, each closed by a human gate decision."
+        subtitle="Ten phases, each closed by a human gate decision."
       />
 
       <div className="space-y-5">
@@ -61,7 +61,7 @@ export default async function LifecycleViewPage() {
                       data-testid={`phase-${phase.phaseId}`}
                       className={cn(
                         'group relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-hover',
-                        isCurrent && 'bg-accent-soft/40'
+                        isCurrent && 'bg-hover'
                       )}
                     >
                       {isCurrent && (
@@ -71,12 +71,14 @@ export default async function LifecycleViewPage() {
                         />
                       )}
 
-                      {/* Phase marker */}
+                      {/* Phase marker. Plain even when current — the accent
+                          rule down the left edge and the "Current" caption
+                          already mark the row twice. */}
                       <span
                         className={cn(
                           'flex size-8 shrink-0 items-center justify-center rounded-lg border text-[12.5px] font-semibold tabular-nums',
                           isCurrent
-                            ? 'border-accent-line bg-accent-soft text-accent-solid'
+                            ? 'border-line-strong bg-raised text-fg'
                             : 'border-line bg-raised text-fg-muted'
                         )}
                       >
@@ -103,11 +105,11 @@ export default async function LifecycleViewPage() {
                         </div>
 
                         <div className="mt-1 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11.5px] text-fg-muted">
-                          <span className="flex items-center gap-1.5">
-                            <span
-                              aria-hidden
-                              className={cn('size-1.5 rounded-full', toneDot[gate.tone])}
-                            />
+                          {/* No dot: the gate word is already plain
+                              ("Decided" / "Open" / "Locked"), and the state
+                              pill at the end of the row carries the tone. Two
+                              green dots per row taught nothing. */}
+                          <span>
                             Gate {phase.phaseId} · {gate.label}
                           </span>
                           {/* "Ext: UP / Int: SI" was raw jargon with nothing
@@ -126,17 +128,17 @@ export default async function LifecycleViewPage() {
                                 phase.internalIntakeBehavior}
                             </Hint>
                           </span>
+                          {/* One compact risk indicator per active or completed
+                              phase. Selecting it opens what contributes to it. */}
+                          <LifecycleRiskCell
+                            phaseId={phase.phaseId}
+                            phaseState={phase.phaseState}
+                          />
                         </div>
                       </div>
 
-                      {/* State + risk + gate entry */}
+                      {/* State + gate entry */}
                       <div className="flex shrink-0 items-center gap-3">
-                        {/* One compact risk indicator per active or completed
-                            phase. Selecting it opens what contributes to it. */}
-                        <LifecycleRiskCell
-                          phaseId={phase.phaseId}
-                          phaseState={phase.phaseState}
-                        />
                         <StatusPillFor status={state} />
                         <Link
                           href={`/gate/${phase.phaseId}/review`}

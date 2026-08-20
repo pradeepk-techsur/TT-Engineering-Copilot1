@@ -48,12 +48,7 @@ export default async function PhaseWorkspacePage({ params }: Props) {
               label={`Phase ${phaseId} — Overall Risk Score`}
               testId="phase-risk-score"
             />
-            {config.technicalReview && (
-              <>
-                <span className="text-[11.5px] text-fg-muted">Technical review</span>
-                <TechReviewBadge review={config.technicalReview} />
-              </>
-            )}
+            {config.technicalReview && <TechReviewBadge review={config.technicalReview} />}
           </>
         }
         actions={
@@ -81,10 +76,6 @@ export default async function PhaseWorkspacePage({ params }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Input readiness</CardTitle>
-            <CardDescription>
-              A phase can only run once both its external-source and
-              internal-artifact inputs are ready.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <InputReadinessPanel phaseId={phaseId} />
@@ -98,8 +89,7 @@ export default async function PhaseWorkspacePage({ params }: Props) {
               Outputs for human approval
             </CardTitle>
             <CardDescription>
-              Artifacts produced by this phase. Every one carries the synthetic-POC
-              disclaimer and needs a human decision at the gate.
+              Artifacts produced by this phase. Each needs a human decision at the gate.
             </CardDescription>
           </CardHeader>
           <CardContent>

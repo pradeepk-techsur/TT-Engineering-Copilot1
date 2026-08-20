@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Callout } from '@/components/ui/callout';
 import { StatusPillFor } from '@/components/ui/status-pill';
-import { RiskScoreChip } from '@/components/risk/RiskScoreChip';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -20,7 +19,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toneText, gateOutcomeStyle, styleFor, type Tone } from '@/lib/status';
-import type { GateAdvisory, RiskScore } from '@/shared/types/risk';
+import type { GateAdvisory } from '@/shared/types/risk';
 
 type GateOutcome = 'Pass' | 'Conditional Pass' | 'Fail';
 
@@ -29,8 +28,6 @@ interface GateDecisionSelectorProps {
   blockingActionsOpen: boolean;
   /** The advisory recommendation, shown so the human can agree or diverge. */
   aiRecommendation?: GateAdvisory | null;
-  /** Preserved with the decision, so the record shows the risk at the time. */
-  riskScore?: RiskScore | null;
   onDecisionRecorded: () => void;
 }
 
@@ -78,7 +75,6 @@ export function GateDecisionSelector({
   gateId,
   blockingActionsOpen,
   aiRecommendation = null,
-  riskScore = null,
   onDecisionRecorded,
 }: GateDecisionSelectorProps) {
   // No pre-selection — user must make affirmative choice (GR-06)
@@ -166,7 +162,7 @@ export function GateDecisionSelector({
       {/* The two are never the same thing, so they never look the same. */}
       {recommended && (
         <div
-          className="rounded-lg border border-accent-line bg-accent-soft/40 px-2.5 py-2"
+          className="rounded-lg border border-line bg-raised/60 px-2.5 py-2"
           data-testid="ai-vs-human"
         >
           {/* Wraps: at 360px the label, the outcome and the score do not fit
@@ -177,14 +173,6 @@ export function GateDecisionSelector({
               AI recommendation
             </span>
             <StatusPillFor status={styleFor(gateOutcomeStyle, recommended)} size="sm" />
-            {riskScore && (
-              <RiskScoreChip
-                score={riskScore.score}
-                level={riskScore.level}
-                cap={riskScore.configSnapshot?.cap ?? 100}
-                size="sm"
-              />
-            )}
           </div>
           <p className="mt-1 text-[11px] leading-relaxed text-fg-muted">
             Advisory only. Your decision below is the one that counts, and it may
