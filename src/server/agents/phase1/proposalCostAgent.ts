@@ -13,7 +13,7 @@ export class ProposalCostAgent extends BaseAgent {
 
   async run(context: AgentContext): Promise<AgentResult> {
     const systemPrompt = this.buildSystemPrompt(1);
-    const prompt = `Phase 1 — Business Case / Costed Proposal for EVINV-POC-001 (EV-INV-800, 800VDC, 150kW/220kW).
+    const prompt = `Phase 1 — Concept & Proposal / Costed Proposal for EVINV-POC-001 (EV-INV-800, 800VDC, 150kW/220kW).
 EXTERNAL INPUT: ${context.activeExternalInput?.logicalName} (customer requirements, quantities, supplier pricing)
 INTERNAL INPUT: ${context.activeInternalInput?.logicalName} (preliminary BOM, labor rates, historical cost data)
 Upstream approved: ${JSON.stringify(context.upstreamSummaries.map(s => s.outcome))}

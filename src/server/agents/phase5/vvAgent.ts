@@ -87,7 +87,7 @@ Cite REQ-THERM-004 and EVINV-POC-STD-001 (Synthetic POC Standard). Do NOT invent
 
     const summaryContent = `# Gate 5 Verification and Validation Summary
 
-**Project:** EVINV-POC-001 | **Phase:** 5 — Verification & Validation | **Gate:** 5
+**Project:** EVINV-POC-001 | **Phase:** 5 — Design Validation | **Gate:** 5
 **Run:** ${isRevised ? 'Revised Validation Evidence (Post-Correction)' : 'Initial Validation Evidence'}
 
 ## V&V Test Results

@@ -64,28 +64,44 @@ test.describe('AV-02 Product Lifecycle View', () => {
 
   test('clicking phase card navigates to phase workspace', async ({ page }) => {
     await page.goto('/lifecycle');
-    await page.getByTestId('phase-0').getByRole('link', { name: /Phase 0/ }).click();
+    // The row links by phase NAME; the number is the marker beside it.
+    await page.getByTestId('phase-0').getByRole('link', { name: 'Project Initiation' }).click();
     await expect(page).toHaveURL('/phase/0');
   });
 });
 
 test.describe('Breadcrumb and Navigation', () => {
-  test('breadcrumb shows EV-INV-800 on all pages', async ({ page }) => {
+  test('product identity is in the top bar, not the breadcrumb', async ({ page }) => {
+    // The breadcrumb starts at "Phase N: Name" by design; the product lives in
+    // the top bar so it is present on every page including these two, which
+    // have no phase context and therefore no breadcrumb at all.
     for (const path of ['/', '/lifecycle']) {
       await page.goto(path);
-      // EV-INV-800 appears in breadcrumb as a link — scope to breadcrumb nav
-      await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'EV-INV-800' })).toBeVisible();
+      await expect(page.getByText('EV-INV-800 · EVINV-POC-001')).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
     }
+  });
+
+  test('breadcrumb starts with the phase, never the product', async ({ page }) => {
+    await page.goto('/phase/3');
+    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
+    await expect(breadcrumb).toBeVisible();
+    await expect(breadcrumb).toContainText('Phase 3: Preliminary Design');
+    await expect(breadcrumb.getByRole('link', { name: 'EV-INV-800' })).toHaveCount(0);
   });
 
   test('sidebar navigation links are present', async ({ page }) => {
     await page.goto('/');
     // Scope to sidebar aside (complementary landmark) to avoid ambiguity with other links
     const sidebar = page.getByRole('complementary', { name: 'Main navigation' });
+    // Exactly four: Findings & Actions is a tab inside Audit & Findings now,
+    // and there is no separate Checklist entry.
     await expect(sidebar.getByRole('link', { name: 'Project Overview' })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: 'Lifecycle', exact: true })).toBeVisible();
-    await expect(sidebar.getByRole('link', { name: 'Findings & Actions' })).toBeVisible();
-    await expect(sidebar.getByRole('link', { name: 'Audit Log' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Audit & Findings' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Settings' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Findings & Actions' })).toHaveCount(0);
+    await expect(sidebar.getByRole('link', { name: 'Audit Log' })).toHaveCount(0);
   });
 
   test('sidebar links render app shell (not 404)', async ({ page }) => {
@@ -93,10 +109,8 @@ test.describe('Breadcrumb and Navigation', () => {
       await page.goto(path);
       // AppShell top bar brand is always visible
       await expect(page.getByText('TT Engineering Copilot')).toBeVisible();
-      // Breadcrumb EV-INV-800 root segment is always visible
-      await expect(
-        page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'EV-INV-800' })
-      ).toBeVisible();
+      // Product identity lives in the top bar, on every page.
+      await expect(page.getByText('EV-INV-800 · EVINV-POC-001')).toBeVisible();
       // SYNTHETIC POC badge is always visible
       await expect(page.getByText('SYNTHETIC POC')).toBeVisible();
     }

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       openConditions: [],
     });
 
-    // Gate 8 Pass — explicitly initiates Phase 9 (End of Life)
+    // Gate 8 Pass — explicitly initiates Phase 9 (End-of-Life)
     if (decision === 'Pass') {
       await db.update(phaseStates).set({ phaseState: 'AwaitingInputs', gateState: 'Locked' })
         .where(and(eq(phaseStates.projectId, 'EVINV-POC-001'), eq(phaseStates.phaseId, 9 as any)));
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 8,
-        phaseName: 'Production & Sustaining',
+        phaseName: 'Manufacture',
         outcome: decision,
         keyFindings: ['F8-001: IGBT-HV-800-A PDN received — EOL triggered'],
         openActions: [],

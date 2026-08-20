@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const MOCK_DATA = {
   gateNumber: 8,
-  phaseName: 'Phase 8 — Production & Sustaining',
+  phaseName: 'Phase 8 — Manufacture',
   gateState: 'Locked',
   phaseState: 'Pending',
   inputs: [
@@ -35,7 +35,7 @@ export async function GET() {
     const decisions = await db.select().from(gateDecisions).where(eq(gateDecisions.gateNumber, GATE as any));
 
     return NextResponse.json({
-      gateNumber: GATE, phaseName: 'Phase 8 — Production & Sustaining',
+      gateNumber: GATE, phaseName: 'Phase 8 — Manufacture',
       gateState: phase?.gateState ?? 'Locked', phaseState: phase?.phaseState ?? 'Pending',
       inputs: inputs.map((i: any) => ({ logicalName: i.logicalName, inputRole: i.inputRole, intakeBehavior: i.intakeBehavior, systemRepresented: i.systemRepresented, readinessStatus: i.readinessStatus })),
       outputs: outputs.slice(0, 2), findings: allFindings, openActions,

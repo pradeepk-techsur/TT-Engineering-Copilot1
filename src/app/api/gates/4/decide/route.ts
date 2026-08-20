@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 4,
-        phaseName: 'Detailed Design CDR',
+        phaseName: 'Detail Design',
         outcome: decision,
         keyFindings: ['F4-001: VBUS+ clearance (SI-03a)', 'F4-002: C_BULK_3 derating (SI-03b)', 'F4-003: DIAG_TEMP test point (SI-03c)', 'F4-004: C_HV_1 footprint (SI-03d)'],
         openActions: [],

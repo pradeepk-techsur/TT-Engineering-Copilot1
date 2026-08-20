@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const MOCK_DATA = {
   gateNumber: 0,
-  phaseName: 'Phase 0 — Commercial Assessment',
+  phaseName: 'Phase 0 — Project Initiation',
   gateState: 'Decided',
   phaseState: 'GatePassed',
   inputs: [
@@ -16,7 +16,7 @@ const MOCK_DATA = {
   findings: [],
   openActions: [],
   aiRecommendation: { recommendedOutcome: 'Pass', rationale: 'Phase 0 complete. Recommend Gate 0 Pass.', findingsCited: [], checksCited: [], advisoryLabel: 'Advisory Only — Human Decision Required' },
-  decisionHistory: [{ decisionId: 'mock-dec-0', gateNumber: 0, phaseName: 'Phase 0 — Commercial Assessment', decision: 'Pass', reviewerRole: 'Claire Ashby', comments: 'Phase 0 complete.', timestamp: '2026-08-15T14:00:00Z', isFinal: true }],
+  decisionHistory: [{ decisionId: 'mock-dec-0', gateNumber: 0, phaseName: 'Phase 0 — Project Initiation', decision: 'Pass', reviewerRole: 'Claire Ashby', comments: 'Phase 0 complete.', timestamp: '2026-08-15T14:00:00Z', isFinal: true }],
 };
 
 export async function GET() {
@@ -35,7 +35,7 @@ export async function GET() {
     const decisions = await db.select().from(gateDecisions).where(eq(gateDecisions.gateNumber, GATE as any));
 
     return NextResponse.json({
-      gateNumber: GATE, phaseName: 'Phase 0 — Commercial Assessment',
+      gateNumber: GATE, phaseName: 'Phase 0 — Project Initiation',
       gateState: phase?.gateState ?? 'Locked', phaseState: phase?.phaseState ?? 'Pending',
       inputs: inputs.map((i: any) => ({ logicalName: i.logicalName, inputRole: i.inputRole, intakeBehavior: i.intakeBehavior, systemRepresented: i.systemRepresented, readinessStatus: i.readinessStatus })),
       outputs: outputs.slice(0, 2), findings: allFindings, openActions,

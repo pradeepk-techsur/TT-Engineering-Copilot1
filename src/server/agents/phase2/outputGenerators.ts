@@ -25,7 +25,7 @@ export async function generateRTM(rows: RTMRow[], phaseId = 2) {
 export async function generateTestabilityReport(data: TestabilityReportData, phaseId = 2) {
   const content = `# Requirements Quality and Testability Report
 
-**Project:** EVINV-POC-001 | **Phase:** 2 — Requirements Definition | **Gate:** 2
+**Project:** EVINV-POC-001 | **Phase:** 2 — Requirements Development | **Gate:** 2
 
 ## Testability Check Results (DETERMINISTIC — Outside LLM)
 

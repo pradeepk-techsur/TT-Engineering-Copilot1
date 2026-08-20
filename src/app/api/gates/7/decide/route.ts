@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 7,
-        phaseName: 'Transfer & Lessons Learned',
+        phaseName: 'Transfer & Monitor',
         outcome: decision,
         keyFindings: ['F7-001: MOP-012 torque variation (SI-07, Observation — non-blocking)'],
         openActions: ['A7-001: Torque wrench upgrade and re-training (in progress)'],

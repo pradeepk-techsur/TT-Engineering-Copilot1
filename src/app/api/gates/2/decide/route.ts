@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Generate compact phase summary after gate decision
     const compactSummary = {
       phaseId: 2,
-      phaseName: 'Requirements Definition',
+      phaseName: 'Requirements Development',
       outcome: decision,
       keyFindings: ['SI-01: REQ-THERM-004 testability issue detected and corrected'],
       openActions: [],

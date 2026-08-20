@@ -57,7 +57,7 @@ Cite fictional PDN notice PDN-2026-IGBT001. Mark as synthetic POC data.`;
 
     const reportContent = `# Yield, Quality, and Financial-Anomaly Report
 
-**Project:** EVINV-POC-001 | **Phase:** 8 — Production & Sustaining | **Gate:** 8
+**Project:** EVINV-POC-001 | **Phase:** 8 — Manufacture | **Gate:** 8
 **Gate 8 EOL Recommendation**
 
 ## Gate 8 EOL Assessment

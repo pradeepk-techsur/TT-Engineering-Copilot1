@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 6,
-        phaseName: 'Manufacturing Readiness & PPAP',
+        phaseName: 'Production Preparation & Qualification',
         outcome: decision,
         keyFindings: ['F6-001-SOLDER_JOINT_SHEAR_HV_BUS: Cpk below 1.33 (SI-06)'],
         openActions: [],

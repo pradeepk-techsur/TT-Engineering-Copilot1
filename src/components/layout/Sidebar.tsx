@@ -5,6 +5,7 @@ import { LayoutDashboard, GitBranch, BookOpen, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { phaseStateStyle, styleFor, toneDot } from '@/lib/status';
 import { useLifecycle } from '@/lib/hooks';
+import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 
 const NAV = [
   { href: '/',          label: 'Project Overview', icon: LayoutDashboard },
@@ -13,10 +14,12 @@ const NAV = [
   { href: '/settings',  label: 'Settings',         icon: Settings },
 ];
 
-const SHORT: Record<number, string> = {
-  0:'Commercial Assessment', 1:'Business Case', 2:'Requirements', 3:'Preliminary Design',
-  4:'Detailed Design', 5:'Verification', 6:'Mfg Readiness', 7:'Transfer', 8:'Sustaining', 9:'End of Life',
-};
+/**
+ * Names come from the canonical phase config — the sidebar used to keep its own
+ * copy, which is exactly how a rename ends up half-applied.
+ */
+const phaseName = (id: number) =>
+  PHASE_CONFIG_MAP[id as keyof typeof PHASE_CONFIG_MAP]?.phaseName ?? `Phase ${id}`;
 
 export function Sidebar() {
   const path = usePathname();
@@ -93,7 +96,7 @@ export function Sidebar() {
                 key={phaseId}
                 href={`/phase/${phaseId}`}
                 aria-current={active ? 'page' : undefined}
-                title={`Phase ${phaseId}: ${SHORT[phaseId]} — ${status.label}`}
+                title={`Phase ${phaseId}: ${phaseName(phaseId)} — ${status.label}`}
                 className={cn(
                   'group flex items-center gap-2 rounded-md px-2 py-[5px] text-[12px] transition-colors',
                   active
@@ -108,7 +111,7 @@ export function Sidebar() {
                 <span className="w-[15px] shrink-0 font-mono text-[10.5px] text-fg-faint tabular-nums">
                   {phaseId}
                 </span>
-                <span className="truncate">{SHORT[phaseId]}</span>
+                <span className="truncate">{phaseName(phaseId)}</span>
                 {isCurrent && (
                   <span
                     className="ml-auto shrink-0 text-[9.5px] font-semibold tracking-wide text-accent-solid uppercase"

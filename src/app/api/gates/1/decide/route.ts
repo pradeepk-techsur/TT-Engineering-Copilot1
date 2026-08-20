@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Generate compact phase summary after gate decision
     const compactSummary = {
       phaseId: 1,
-      phaseName: 'Business Case',
+      phaseName: 'Concept & Proposal',
       outcome: decision,
       keyFindings: [],
       openActions: [],

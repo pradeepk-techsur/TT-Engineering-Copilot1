@@ -68,7 +68,7 @@ export class LessonsLearnedAgent extends BaseAgent {
 
     // LLM for transfer narrative
     const systemPrompt = this.buildSystemPrompt(7);
-    const prompt = `Phase 7 Transfer & Lessons Learned for EVINV-POC-001.
+    const prompt = `Phase 7 Transfer & Monitor for EVINV-POC-001.
 5 lessons captured. Key lessons:
 - LL-001 (SI-07): MOP-012 torque variation — action in progress
 - LL-002: Coolant connector DFM (closed), LL-003: Solder joint Cpk (closed), LL-004: REQ-THERM-004 testability (closed), LL-005: Supply chain lifecycle (ongoing EOL)

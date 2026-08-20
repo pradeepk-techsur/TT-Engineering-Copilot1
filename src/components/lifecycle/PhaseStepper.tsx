@@ -8,21 +8,22 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+/** Abbreviations for the rail — ten have to fit across. Full names in FULL. */
 const SHORT: Record<number, string> = {
-  0:'Bid', 1:'Proposal', 2:'Reqs', 3:'PDR',
-  4:'CDR', 5:'V&V', 6:'MRL', 7:'Transfer', 8:'Sustain', 9:'EOL',
+  0:'Initiation', 1:'Concept', 2:'Reqs', 3:'Prelim',
+  4:'Detail', 5:'Validation', 6:'Prod Prep', 7:'Transfer', 8:'Manufacture', 9:'EOL',
 };
 const FULL: Record<number, string> = {
-  0:'Phase 0 — Commercial Assessment (Bid/No-Bid)',
-  1:'Phase 1 — Business Case & Proposal',
-  2:'Phase 2 — Requirements Definition',
-  3:'Phase 3 — Preliminary Design Review (PDR)',
-  4:'Phase 4 — Critical Design Review (CDR) & Design Freeze',
-  5:'Phase 5 — Verification & Validation (V&V)',
-  6:'Phase 6 — Manufacturing Readiness (MRL/PPAP)',
-  7:'Phase 7 — Transfer & Lessons Learned',
-  8:'Phase 8 — Production Sustaining',
-  9:'Phase 9 — End of Life (EOL)',
+  0:'Phase 0 — Project Initiation',
+  1:'Phase 1 — Concept & Proposal',
+  2:'Phase 2 — Requirements Development',
+  3:'Phase 3 — Preliminary Design',
+  4:'Phase 4 — Detail Design',
+  5:'Phase 5 — Design Validation',
+  6:'Phase 6 — Production Preparation & Qualification',
+  7:'Phase 7 — Transfer & Monitor',
+  8:'Phase 8 — Manufacture',
+  9:'Phase 9 — End-of-Life',
 };
 
 const DONE = ['GatePassed', 'GateConditional'];

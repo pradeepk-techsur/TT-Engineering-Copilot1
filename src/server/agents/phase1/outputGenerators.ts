@@ -16,7 +16,7 @@ export interface ResourceScheduleRow {
 export async function generateCostedProposal(data: CostedProposalData, phaseId = 1) {
   const content = `# Costed Proposal / Business Case
 
-**Project:** ${data.projectId} | **Phase:** 1 — Business Case
+**Project:** ${data.projectId} | **Phase:** 1 — Concept & Proposal
 **Customer:** ${data.customerName}
 **Title:** ${data.proposalTitle}
 

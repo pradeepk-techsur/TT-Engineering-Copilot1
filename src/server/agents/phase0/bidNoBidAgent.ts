@@ -17,7 +17,7 @@ export class BidNoBidAgent extends BaseAgent {
     // Build minimal, token-optimized prompt using only active phase 0 inputs
     const prompt = `You are the Bid/No-Bid Copilot for TT Electronics.
 
-Phase: 0 — Commercial Assessment (Gate 0: Bid/No-Bid)
+Phase: 0 — Project Initiation (Gate 0: Bid/No-Bid)
 Project: ${context.projectId}
 Product: EV-INV-800 Demonstration Traction Inverter (NPI A / Category 1)
 

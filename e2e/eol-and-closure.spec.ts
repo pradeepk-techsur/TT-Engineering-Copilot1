@@ -4,7 +4,7 @@ test.describe('Phase 8 Workspace (Yield & Obsolescence)', () => {
   test('Phase 8 workspace loads at /phase/8', async ({ page }) => {
     await page.goto('/phase/8');
     // Use heading role to avoid strict-mode violation (sidebar also has the phase name as a link)
-    await expect(page.getByRole('heading', { name: /Phase 8.*Production.*Sustaining/i }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Phase 8.*Manufacture/i }).first()).toBeVisible();
     await expect(page.getByText('Technical Review:')).not.toBeVisible();
   });
 
@@ -35,11 +35,11 @@ test.describe('Phase 8 Workspace (Yield & Obsolescence)', () => {
   });
 });
 
-test.describe('Phase 9 Workspace (End of Life)', () => {
+test.describe('Phase 9 Workspace (End-of-Life)', () => {
   test('Phase 9 workspace loads at /phase/9', async ({ page }) => {
     await page.goto('/phase/9');
     // Use heading role to avoid strict-mode violation (sidebar also has the phase name as a link)
-    await expect(page.getByRole('heading', { name: /Phase 9.*End of Life/i }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Phase 9.*End-of-Life/i }).first()).toBeVisible();
     await expect(page.getByText('Technical Review:')).not.toBeVisible();
   });
 
@@ -189,25 +189,37 @@ test.describe('Gate Review Human Authority — Phases 8 and 9', () => {
 
 test.describe('Sidebar Navigation — All Views Accessible', () => {
   test('All main sidebar links render without errors', async ({ page }) => {
+    // Four entries: Findings & Actions became a tab on /audit.
     const sidebarLinks = [
       { href: '/', label: 'Project Overview' },
       { href: '/lifecycle', label: 'Lifecycle', exact: true },
-      { href: '/findings-actions', label: 'Findings & Actions' },
-      { href: '/audit', label: 'Audit Log' },
+      { href: '/audit', label: 'Audit & Findings' },
+      { href: '/settings', label: 'Settings' },
     ];
 
     for (const { href, label, exact } of sidebarLinks) {
       await page.goto('/');
-      // Use exact match to avoid strict-mode issues with multiple links sharing the same label
-      await page.getByRole('link', { name: label, exact: exact ?? false }).first().click();
+      await page.getByRole('complementary', { name: 'Main navigation' })
+        .getByRole('link', { name: label, exact: exact ?? false }).first().click();
       await expect(page).toHaveURL(href);
     }
   });
 
   test('Phase shortcuts P0–P9 all render in sidebar', async ({ page }) => {
     await page.goto('/');
+    const sidebar = page.getByRole('complementary', { name: 'Main navigation' });
+    // The rail now carries each phase's name beside its number, rather than a
+    // bare "P0" chip, so it reads as a table of contents.
+    const NAMES = [
+      'Project Initiation', 'Concept & Proposal', 'Requirements Development', 'Preliminary Design',
+      'Detail Design', 'Verification', 'Mfg Readiness', 'Transfer',
+      'Sustaining', 'End-of-Life',
+    ];
     for (let i = 0; i <= 9; i++) {
-      await expect(page.getByRole('link', { name: `Phase ${i}` }).first()).toBeVisible();
+      await expect(
+        sidebar.getByRole('link', { name: `${i} ${NAMES[i]}` }),
+        `phase ${i} rail link`
+      ).toBeVisible();
     }
   });
 });

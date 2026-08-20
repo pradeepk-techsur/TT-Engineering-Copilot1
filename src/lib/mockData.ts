@@ -159,7 +159,7 @@ export const MOCK_ACTIONS = [
 export const MOCK_GATE_DECISIONS = [
   {
     decisionId: 'mock-decision-0',
-    gateNumber: 0, phaseName: 'Phase 0 — Commercial Assessment',
+    gateNumber: 0, phaseName: 'Phase 0 — Project Initiation',
     aiRecommendation: { recommendedOutcome: 'Pass', rationale: 'Capability assessment complete.', advisoryLabel: 'Advisory Only — Human Decision Required' },
     humanDisposition: 'Proceeding to proposal phase.',
     reviewerRole: 'Claire Ashby', decision: 'Pass',
@@ -169,7 +169,7 @@ export const MOCK_GATE_DECISIONS = [
   },
   {
     decisionId: 'mock-decision-1',
-    gateNumber: 1, phaseName: 'Phase 1 — Business Case',
+    gateNumber: 1, phaseName: 'Phase 1 — Concept & Proposal',
     aiRecommendation: { recommendedOutcome: 'Pass', rationale: 'Business case complete.', advisoryLabel: 'Advisory Only — Human Decision Required' },
     humanDisposition: 'Proposal approved.',
     reviewerRole: 'Claire Ashby', decision: 'Pass',
@@ -179,7 +179,7 @@ export const MOCK_GATE_DECISIONS = [
   },
   {
     decisionId: 'mock-decision-2',
-    gateNumber: 2, phaseName: 'Phase 2 — Requirements Definition',
+    gateNumber: 2, phaseName: 'Phase 2 — Requirements Development',
     aiRecommendation: { recommendedOutcome: 'Pass', rationale: 'All requirements testable after REQ-THERM-004 clarification.', advisoryLabel: 'Advisory Only — Human Decision Required' },
     humanDisposition: 'Requirements baseline confirmed.',
     reviewerRole: 'Priya Nair', decision: 'Pass',
@@ -265,6 +265,59 @@ export const MOCK_AUDIT_EVENTS = [
     },
   },
 ];
+
+/**
+ * Phase outputs, for Preview mode.
+ *
+ * The single source of truth for "what has this phase produced" when there is
+ * no database. The outputs routes, the Gate Review payload and the risk engine
+ * all read this, so a phase cannot appear to have produced its artifacts on one
+ * screen and not on another.
+ *
+ * A phase only has outputs once it has executed — which in this storyline means
+ * Phases 0-3. Gates 0-2 are decided, so theirs are approved; Phase 3 is at its
+ * gate, so its outputs are awaiting review.
+ */
+const EXECUTED_STATES = new Set([
+  'AwaitingGate', 'GatePassed', 'GateConditional', 'GateFailed',
+]);
+
+export function mockPhaseOutputs(phaseId: number) {
+  const config = PHASE_CONFIG.find(c => c.phaseId === phaseId);
+  const phase = MOCK_PHASE_STATES.find(p => p.phaseId === phaseId);
+  if (!config || !phase || !EXECUTED_STATES.has(phase.phaseState)) return [];
+
+  const approved = phase.phaseState !== 'AwaitingGate';
+
+  return config.outputs.map((outputName, i) => ({
+    outputId: `mock-out-${phaseId}-${i}`,
+    projectId: 'EVINV-POC-001',
+    phaseId,
+    outputName,
+    // First output of every phase is tabular, second is a narrative document.
+    artifactType: i === 0 ? 'XLSX' : 'DOCX',
+    sizeGuidance: i === 0 ? '≤10 rows' : '1–2 pages',
+    artifactId: `mock-artifact-out-${phaseId}-${i}`,
+    versionRef: 'v1',
+    approvalStatus: approved ? 'Approved' : 'AwaitingReview',
+    reviewRequired: !approved,
+    approvedBy: approved ? 'Claire Ashby' : null,
+    approvedAt: approved ? `2026-08-${15 + phaseId}T14:00:00Z` : null,
+  }));
+}
+
+/** The Preview-mode payload the `/api/phases/[id]/outputs` routes return. */
+export function mockPhaseOutputsResponse(phaseId: number) {
+  const phase = MOCK_PHASE_STATES.find(p => p.phaseId === phaseId);
+  return {
+    phaseId,
+    phaseState: phase?.phaseState,
+    gateState: phase?.gateState,
+    aiRecommendation: phase?.aiRecommendation ?? undefined,
+    outputs: mockPhaseOutputs(phaseId).slice(0, 2),
+    preview: true,
+  };
+}
 
 export function isMockMode(): boolean {
   // Use mock data when DATABASE_URL is not set or DB is unreachable

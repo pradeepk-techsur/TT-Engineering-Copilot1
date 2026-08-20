@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const MOCK_DATA = {
   gateNumber: 2,
-  phaseName: 'Phase 2 — Requirements Definition',
+  phaseName: 'Phase 2 — Requirements Development',
   gateState: 'Decided',
   phaseState: 'GatePassed',
   inputs: [
@@ -16,7 +16,7 @@ const MOCK_DATA = {
   findings: [{ findingId: 'F2-001-original', sourcePhase: 2, sourceGate: 2, detectedBy: 'DeterministicCheck', description: 'REQ-THERM-004 lacked measurable criterion — resolved.', severity: 'Major', status: 'VerifiedClosed', seeded: true, createdAt: '2026-08-17T10:00:00Z', closedAt: '2026-08-17T11:00:00Z' }],
   openActions: [],
   aiRecommendation: { recommendedOutcome: 'Pass', rationale: 'Phase 2 complete. Recommend Gate 2 Pass.', findingsCited: [], checksCited: [], advisoryLabel: 'Advisory Only — Human Decision Required' },
-  decisionHistory: [{ decisionId: 'mock-dec-2', gateNumber: 2, phaseName: 'Phase 2 — Requirements Definition', decision: 'Pass', reviewerRole: 'Priya Nair', comments: 'Phase 2 complete.', timestamp: '2026-08-17T14:00:00Z', isFinal: true }],
+  decisionHistory: [{ decisionId: 'mock-dec-2', gateNumber: 2, phaseName: 'Phase 2 — Requirements Development', decision: 'Pass', reviewerRole: 'Priya Nair', comments: 'Phase 2 complete.', timestamp: '2026-08-17T14:00:00Z', isFinal: true }],
 };
 
 export async function GET() {
@@ -35,7 +35,7 @@ export async function GET() {
     const decisions = await db.select().from(gateDecisions).where(eq(gateDecisions.gateNumber, GATE as any));
 
     return NextResponse.json({
-      gateNumber: GATE, phaseName: 'Phase 2 — Requirements Definition',
+      gateNumber: GATE, phaseName: 'Phase 2 — Requirements Development',
       gateState: phase?.gateState ?? 'Locked', phaseState: phase?.phaseState ?? 'Pending',
       inputs: inputs.map((i: any) => ({ logicalName: i.logicalName, inputRole: i.inputRole, intakeBehavior: i.intakeBehavior, systemRepresented: i.systemRepresented, readinessStatus: i.readinessStatus })),
       outputs: outputs.slice(0, 2), findings: allFindings, openActions,

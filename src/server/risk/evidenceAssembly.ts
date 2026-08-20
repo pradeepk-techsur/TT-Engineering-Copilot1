@@ -12,9 +12,8 @@
  */
 
 import {
-  MOCK_PHASE_STATES, MOCK_FINDINGS, MOCK_ACTIONS, MOCK_INPUTS,
+  MOCK_PHASE_STATES, MOCK_FINDINGS, MOCK_ACTIONS, MOCK_INPUTS, mockPhaseOutputs,
 } from '@/lib/mockData';
-import { PHASE_CONFIG_MAP, type PhaseId } from '@/shared/constants/phaseConfig';
 import type {
   RiskEvidence, FindingLike, ActionLike, CheckLike, InputLike, OutputLike,
 } from './riskScoreEngine';
@@ -22,10 +21,10 @@ import type {
 const PROJECT_ID = 'EVINV-POC-001';
 
 export const PHASE_NAMES: Record<number, string> = {
-  0: 'Commercial Assessment', 1: 'Business Case', 2: 'Requirements Definition',
-  3: 'Preliminary Design', 4: 'Detailed Design', 5: 'Verification & Validation',
-  6: 'Manufacturing Readiness', 7: 'Transfer & Lessons Learned',
-  8: 'Production & Sustaining', 9: 'End of Life',
+  0: 'Project Initiation', 1: 'Concept & Proposal', 2: 'Requirements Development',
+  3: 'Preliminary Design', 4: 'Detail Design', 5: 'Design Validation',
+  6: 'Production Preparation & Qualification', 7: 'Transfer & Monitor',
+  8: 'Manufacture', 9: 'End-of-Life',
 };
 
 export function phaseLabel(phaseId: number): string {
@@ -148,12 +147,9 @@ function finish(
 /* ── Mock assembly ─────────────────────────────────────────────────────── */
 
 function assembleFromMock(phaseId: number): AssembledEvidence {
-  const config = PHASE_CONFIG_MAP[phaseId as PhaseId];
   const phase = MOCK_PHASE_STATES.find(p => p.phaseId === phaseId);
   const mockInputs = MOCK_INPUTS[phaseId];
   const phaseState = phase?.phaseState ?? 'Pending';
-  const executed = ['AwaitingGate', 'GatePassed', 'GateConditional', 'GateFailed']
-    .includes(phaseState);
 
   const inputs: InputLike[] = mockInputs
     ? [
@@ -170,15 +166,14 @@ function assembleFromMock(phaseId: number): AssembledEvidence {
       ]
     : [];
 
-  // Mock mode has no phase_outputs table, so an executed phase is modelled as
-  // having produced exactly the outputs phaseConfig declares for it.
-  const outputs: OutputLike[] = executed && config
-    ? config.outputs.map((outputName, i) => ({
-        outputId: `mock-out-${phaseId}-${i}`,
-        outputName,
-        approvalStatus: phaseState === 'AwaitingGate' ? 'AwaitingReview' : 'Approved',
-      }))
-    : [];
+  // One source of truth with the outputs routes, so a phase cannot look as
+  // though it produced its artifacts on the workspace but not at the gate.
+  const outputs: OutputLike[] = mockPhaseOutputs(phaseId).map(o => ({
+    outputId: o.outputId,
+    outputName: o.outputName,
+    approvalStatus: o.approvalStatus,
+    artifactId: o.artifactId,
+  }));
 
   return finish({
     phaseId,

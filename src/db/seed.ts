@@ -5,16 +5,16 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const PHASE_CONFIG = [
-  { phaseId: 0, phaseName: 'Commercial Assessment', technicalReview: 'Kickoff' },
-  { phaseId: 1, phaseName: 'Business Case', technicalReview: 'SLR' },
-  { phaseId: 2, phaseName: 'Requirements Definition', technicalReview: null },
+  { phaseId: 0, phaseName: 'Project Initiation', technicalReview: 'Kickoff' },
+  { phaseId: 1, phaseName: 'Concept & Proposal', technicalReview: 'SLR' },
+  { phaseId: 2, phaseName: 'Requirements Development', technicalReview: null },
   { phaseId: 3, phaseName: 'Preliminary Design', technicalReview: 'Schematic/PDR' },
-  { phaseId: 4, phaseName: 'Detailed Design', technicalReview: 'PCB Layout/CDR' },
-  { phaseId: 5, phaseName: 'Verification & Validation', technicalReview: null },
-  { phaseId: 6, phaseName: 'Manufacturing Readiness', technicalReview: null },
-  { phaseId: 7, phaseName: 'Transfer & Lessons Learned', technicalReview: null },
-  { phaseId: 8, phaseName: 'Production & Sustaining', technicalReview: null },
-  { phaseId: 9, phaseName: 'End of Life', technicalReview: null },
+  { phaseId: 4, phaseName: 'Detail Design', technicalReview: 'PCB Layout/CDR' },
+  { phaseId: 5, phaseName: 'Design Validation', technicalReview: null },
+  { phaseId: 6, phaseName: 'Production Preparation & Qualification', technicalReview: null },
+  { phaseId: 7, phaseName: 'Transfer & Monitor', technicalReview: null },
+  { phaseId: 8, phaseName: 'Manufacture', technicalReview: null },
+  { phaseId: 9, phaseName: 'End-of-Life', technicalReview: null },
 ];
 
 async function seed() {

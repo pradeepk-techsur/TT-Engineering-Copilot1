@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 5 Workspace (V&V)', () => {
   test('Phase 5 workspace loads at /phase/5', async ({ page }) => {
     await page.goto('/phase/5');
-    await expect(page.getByRole('heading', { name: 'Phase 5: Verification & Validation' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Phase 5: Design Validation' })).toBeVisible();
     // No technical review for Phase 5
     await expect(page.getByText('Technical Review:')).not.toBeVisible();
   });
@@ -34,7 +34,7 @@ test.describe('Phase 5 Workspace (V&V)', () => {
 test.describe('Phase 6 Workspace (MRL/PPAP)', () => {
   test('Phase 6 workspace loads at /phase/6', async ({ page }) => {
     await page.goto('/phase/6');
-    await expect(page.getByRole('heading', { name: 'Phase 6: Manufacturing Readiness' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Phase 6: Production Preparation & Qualification' })).toBeVisible();
     // No technical review for Phase 6
     await expect(page.getByText('Technical Review:')).not.toBeVisible();
   });
@@ -73,7 +73,7 @@ test.describe('Phase 6 Workspace (MRL/PPAP)', () => {
 test.describe('Phase 7 Workspace (Transfer/Lessons Learned)', () => {
   test('Phase 7 workspace loads at /phase/7', async ({ page }) => {
     await page.goto('/phase/7');
-    await expect(page.getByRole('heading', { name: 'Phase 7: Transfer & Lessons Learned' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Phase 7: Transfer & Monitor' })).toBeVisible();
     await expect(page.getByText('Technical Review:')).not.toBeVisible();
   });
 

@@ -13,16 +13,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Demo Readiness — All Phase Workspaces', () => {
   // Verify every phase workspace loads with correct content
   const PHASE_CONFIG = [
-    { phaseId: 0, name: 'Commercial Assessment', extBehavior: 'UP', intBehavior: 'SI' },
-    { phaseId: 1, name: 'Business Case', extBehavior: 'UP', intBehavior: 'SI' },
-    { phaseId: 2, name: 'Requirements Definition', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 0, name: 'Project Initiation', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 1, name: 'Concept & Proposal', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 2, name: 'Requirements Development', extBehavior: 'UP', intBehavior: 'SI' },
     { phaseId: 3, name: 'Preliminary Design', extBehavior: 'SI', intBehavior: 'UP' },
-    { phaseId: 4, name: 'Detailed Design', extBehavior: 'SI', intBehavior: 'UP' },
-    { phaseId: 5, name: 'Verification & Validation', extBehavior: 'SI', intBehavior: 'UP' },
-    { phaseId: 6, name: 'Manufacturing Readiness', extBehavior: 'UP', intBehavior: 'SI' },
-    { phaseId: 7, name: 'Transfer & Lessons Learned', extBehavior: 'UP', intBehavior: 'SI' },
-    { phaseId: 8, name: 'Production & Sustaining', extBehavior: 'SI', intBehavior: 'SI' },
-    { phaseId: 9, name: 'End of Life', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 4, name: 'Detail Design', extBehavior: 'SI', intBehavior: 'UP' },
+    { phaseId: 5, name: 'Design Validation', extBehavior: 'SI', intBehavior: 'UP' },
+    { phaseId: 6, name: 'Production Preparation & Qualification', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 7, name: 'Transfer & Monitor', extBehavior: 'UP', intBehavior: 'SI' },
+    { phaseId: 8, name: 'Manufacture', extBehavior: 'SI', intBehavior: 'SI' },
+    { phaseId: 9, name: 'End-of-Life', extBehavior: 'UP', intBehavior: 'SI' },
   ];
 
   for (const phase of PHASE_CONFIG) {
@@ -101,17 +101,19 @@ test.describe('Demo Readiness — Navigation and Breadcrumbs', () => {
     await expect(page).toHaveURL('/lifecycle');
     await expect(page.getByTestId('phase-0')).toBeVisible();
 
-    // Navigate to Phase 0 Workspace
-    await page.getByTestId('phase-0').getByRole('link', { name: /Phase 0/ }).click();
+    // Navigate to Phase 0 Workspace — the row links by phase name.
+    await page.getByTestId('phase-0').getByRole('link', { name: 'Project Initiation' }).click();
     await expect(page).toHaveURL('/phase/0');
 
     // Navigate to Gate 0 Review
     await page.getByRole('link', { name: 'Open Gate Review' }).click();
     await expect(page).toHaveURL('/gate/0/review');
 
-    // Navigate back via breadcrumb EV-INV-800 link
-    await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'EV-INV-800' }).click();
-    await expect(page).toHaveURL('/');
+    // Back up the breadcrumb, which now starts at the phase rather than the
+    // product — the product name lives in the top bar instead.
+    await page.getByRole('navigation', { name: 'Breadcrumb' })
+      .getByRole('link', { name: 'Phase 0: Project Initiation' }).click();
+    await expect(page).toHaveURL('/phase/0');
   });
 
   test('Checklist navigation: Phase 0 → Open Checklist → Phase 0 checklist items', async ({ page }) => {
@@ -128,11 +130,14 @@ test.describe('Demo Readiness — Navigation and Breadcrumbs', () => {
     await expect(page).toHaveURL('/phase/0/intake');
   });
 
-  test('Findings navigation: Phase 0 workspace → Findings & Actions (sidebar)', async ({ page }) => {
+  test('Findings navigation: Phase 0 workspace → Findings & Actions (sidebar tab)', async ({ page }) => {
     await page.goto('/phase/0');
-    await page.locator('aside[aria-label="Main navigation"]').getByRole('link', { name: 'Findings & Actions' }).click();
-    await expect(page).toHaveURL('/findings-actions');
-    await expect(page.getByRole('heading', { name: 'Findings and Actions' })).toBeVisible();
+    await page.locator('aside[aria-label="Main navigation"]')
+      .getByRole('link', { name: 'Audit & Findings' }).click();
+    await expect(page).toHaveURL('/audit');
+    // The workspace is a tab on this page now, not a route of its own.
+    await page.getByRole('tab', { name: 'Findings & Actions' }).click();
+    await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
   });
 });
 
@@ -173,8 +178,8 @@ test.describe('Final Acceptance — Complete Demo Walk', () => {
   test('All sidebar navigation links work', async ({ page }) => {
     const NAV = [
       { href: '/lifecycle', label: 'Lifecycle', exact: true },
-      { href: '/findings-actions', label: 'Findings & Actions', exact: false },
-      { href: '/audit', label: 'Audit Log', exact: true },
+      { href: '/audit', label: 'Audit & Findings', exact: true },
+      { href: '/settings', label: 'Settings', exact: true },
     ];
     for (const { href, label, exact } of NAV) {
       await page.goto('/');
@@ -184,9 +189,17 @@ test.describe('Final Acceptance — Complete Demo Walk', () => {
   });
 
   test('Phase shortcuts P0–P9 all work in sidebar', async ({ page }) => {
+    test.slow();  // ten navigations, each a fresh page load
+    // The rail rows are "<number> <short name>", not bare "Phase N" chips.
+    const NAMES = [
+      'Project Initiation', 'Concept & Proposal', 'Requirements Development', 'Preliminary Design',
+      'Detail Design', 'Verification', 'Mfg Readiness', 'Transfer',
+      'Sustaining', 'End-of-Life',
+    ];
     for (let i = 0; i <= 9; i++) {
       await page.goto('/');
-      await page.getByRole('link', { name: `Phase ${i}`, exact: true }).click();
+      await page.locator('aside[aria-label="Main navigation"]')
+        .getByRole('link', { name: `${i} ${NAMES[i]}` }).click();
       await expect(page).toHaveURL(`/phase/${i}`);
     }
   });
@@ -228,6 +241,12 @@ test.describe('Final Acceptance — Complete Demo Walk', () => {
   });
 
   test('Acceptance: Complete prohibited terminology scan across 22 paths', async ({ page }) => {
+    // Twenty-two full page loads in one test. The default 30s budget is for a
+    // single interaction, not a sweep of the whole app against a dev server
+    // that compiles routes on demand — so the assertions below were never
+    // reaching the later paths.
+    test.slow();
+
     const ALL_PATHS = [
       '/', '/lifecycle', '/audit', '/findings-actions',
       '/phase/0', '/phase/1', '/phase/2', '/phase/3', '/phase/4',

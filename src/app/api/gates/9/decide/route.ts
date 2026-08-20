@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 9,
-        phaseName: 'End of Life',
+        phaseName: 'End-of-Life',
         outcome: decision,
         keyFindings: [],
         openActions: [],

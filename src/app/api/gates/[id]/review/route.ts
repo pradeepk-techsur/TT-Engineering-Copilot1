@@ -3,10 +3,10 @@ import { MOCK_PHASE_STATES, MOCK_FINDINGS, MOCK_ACTIONS, MOCK_GATE_DECISIONS } f
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
 
 const PHASE_NAMES: Record<number, string> = {
-  0: 'Commercial Assessment', 1: 'Business Case', 2: 'Requirements Definition',
-  3: 'Preliminary Design', 4: 'Detailed Design', 5: 'Verification & Validation',
-  6: 'Manufacturing Readiness', 7: 'Transfer & Lessons Learned',
-  8: 'Production & Sustaining', 9: 'End of Life',
+  0: 'Project Initiation', 1: 'Concept & Proposal', 2: 'Requirements Development',
+  3: 'Preliminary Design', 4: 'Detail Design', 5: 'Design Validation',
+  6: 'Production Preparation & Qualification', 7: 'Transfer & Monitor',
+  8: 'Manufacture', 9: 'End-of-Life',
 };
 
 function buildMockReview(gateId: number) {

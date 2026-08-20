@@ -43,7 +43,7 @@ export async function generateBOMHealthReport(
 
   const content = `# BOM Health and Manufacturability Report
 
-**Project:** EVINV-POC-001 | **Phase:** 4 — Detailed Design | **Gate:** 4 — CDR
+**Project:** EVINV-POC-001 | **Phase:** 4 — Detail Design | **Gate:** 4 — CDR
 **Run:** ${isRevised ? 'Revised Design Baseline (Post-Correction)' : 'Initial Design Baseline'}
 
 ## Deterministic Check Summary (Outside LLM)

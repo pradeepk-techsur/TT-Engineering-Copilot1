@@ -40,7 +40,7 @@ Mark as synthetic POC data.`;
 
     const eolContent = `# EOL and Last-Time-Buy Decision Pack
 
-**Project:** EVINV-POC-001 | **Phase:** 9 — End of Life | **Gate:** 9
+**Project:** EVINV-POC-001 | **Phase:** 9 — End-of-Life | **Gate:** 9
 
 ${narrative}
 

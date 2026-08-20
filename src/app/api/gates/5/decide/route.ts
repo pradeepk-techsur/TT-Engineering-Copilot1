@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     await db.update(phaseStates).set({
       compactPhaseSummary: {
         phaseId: 5,
-        phaseName: 'Verification & Validation',
+        phaseName: 'Design Validation',
         outcome: decision,
         keyFindings: ['F5-001: TP-CASE-1 thermal exceedance 91°C vs ≤85°C criterion (SI-05)'],
         openActions: [],
