@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import useSWR, { mutate as globalMutate } from 'swr';
 
 import type { GateAdvisoryResponse, RiskScore } from '@/shared/types/risk';
 
@@ -69,14 +69,42 @@ export function usePhaseExecutionStatus(phaseId: number) {
   });
 }
 
-/** LLM key status for the top bar. One fetch, cached across navigation. */
+export interface LlmKeyStatus {
+  configured: boolean;
+  maskedKey: string | null;
+  updatedAt: string | null;
+  /** True when the key store itself could not be reached. */
+  storeUnavailable?: boolean;
+}
+
+export const LLM_KEY_STATUS_KEY = '/api/settings/llm-key';
+
+/**
+ * LLM key status. One cache entry, shared by the top-bar badge and the settings
+ * card, so the two can never disagree.
+ *
+ * The settings card used to hold its own `useState` copy and update only
+ * itself, which left the badge reading a stale cache — it still said "LLM Key
+ * Not Set" after a key had been saved, until the page was reloaded. Anything
+ * that changes the key must call `mutate` from this hook (or
+ * `mutateLlmKeyStatus`) so every consumer updates at once.
+ */
 export function useLlmKeyStatus() {
-  return useSWR<{ configured: boolean }>('/api/settings/llm-key', fetcher, {
-    // Only changes when the user edits it on the settings page, so don't poll.
-    revalidateOnFocus: false,
+  return useSWR<LlmKeyStatus>(LLM_KEY_STATUS_KEY, fetcher, {
+    // Not polled: this only changes when the user edits it. But it is
+    // revalidated on focus, so a key saved in another tab is picked up rather
+    // than leaving this one indefinitely wrong.
+    revalidateOnFocus: true,
     revalidateIfStale: false,
-    dedupingInterval: 60000,
+    dedupingInterval: 10000,
   });
+}
+
+/** Refresh the shared key status from anywhere — no hook required. */
+export function mutateLlmKeyStatus(next?: LlmKeyStatus) {
+  return next
+    ? globalMutate(LLM_KEY_STATUS_KEY, next, { revalidate: false })
+    : globalMutate(LLM_KEY_STATUS_KEY);
 }
 
 /**

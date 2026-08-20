@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,27 +14,20 @@ import { KeyRound, ShieldCheck, ShieldOff, Loader2, Trash2, Save } from 'lucide-
 import { Callout } from '@/components/ui/callout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/format';
-
-interface KeyStatus {
-  configured: boolean;
-  maskedKey: string | null;
-  updatedAt: string | null;
-}
+import { useLlmKeyStatus, type LlmKeyStatus } from '@/lib/hooks';
 
 export function LlmKeyConfigCard() {
-  const [status, setStatus] = useState<KeyStatus | null>(null);
+  /**
+   * Shared with the top-bar badge rather than kept in local state. This card
+   * used to own a private copy and update only itself, so saving a key left the
+   * badge still reading "LLM Key Not Set" until the page was reloaded.
+   */
+  const { data: status, error: loadError, mutate } = useLlmKeyStatus();
   const [inputKey, setInputKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/settings/llm-key')
-      .then(r => r.json())
-      .then(setStatus)
-      .catch(() => setError('Failed to load key status.'));
-  }, []);
 
   const handleSave = async () => {
     if (!inputKey.trim()) return;
@@ -51,7 +44,8 @@ export function LlmKeyConfigCard() {
       if (!res.ok) {
         setError(data.message ?? 'Failed to save API key.');
       } else {
-        setStatus(data);
+        // Updates this card AND the top-bar badge, in one place.
+        await mutate(data as LlmKeyStatus, { revalidate: false });
         setInputKey(''); // Clear immediately — key no longer in component state
         setSuccessMsg('API key saved and encrypted successfully.');
       }
@@ -72,7 +66,7 @@ export function LlmKeyConfigCard() {
       if (!res.ok) {
         setError(data.message ?? 'Failed to remove API key.');
       } else {
-        setStatus(data);
+        await mutate(data as LlmKeyStatus, { revalidate: false });
         setSuccessMsg('API key removed. AI agents will not function until a new key is saved.');
       }
     } catch {
@@ -97,7 +91,11 @@ export function LlmKeyConfigCard() {
 
       <CardContent className="space-y-4">
         {/* Current status */}
-        {status === null ? (
+        {!status && loadError ? (
+          <Callout tone="fail" icon={ShieldOff} title="Could not load key status">
+            The settings service did not respond. It will retry automatically.
+          </Callout>
+        ) : !status ? (
           <Skeleton className="h-11 rounded-lg" />
         ) : status.configured ? (
           <div data-testid="key-configured-status">

@@ -31,7 +31,9 @@ export function LlmKeyStatusBadge() {
         data-testid="llm-key-status-badge"
       >
         <KeyRound size={11} strokeWidth={2.5} />
-        {configured ? 'LLM Key Set' : 'LLM Key Not Set'}
+        {/* "Configured" matches the wording on the settings card, so the two
+            never describe the same state with different words. */}
+        {configured ? 'LLM Key Configured' : 'LLM Key Not Set'}
       </StatusPill>
     </Link>
   );
