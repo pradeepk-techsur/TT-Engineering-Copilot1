@@ -1,45 +1,63 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * Findings & Actions (AV-07) is a tab on /audit, not its own route.
+ * /findings-actions is kept only as a redirect for old links.
+ */
 test.describe('AV-07 Findings and Actions Workspace', () => {
-  test('page loads at /findings-actions', async ({ page }) => {
+  /** Opens the tab the workspace now lives on. */
+  async function openFindingsTab(page: import('@playwright/test').Page) {
+    await page.goto('/audit');
+    await page.getByRole('tab', { name: 'Findings & Actions' }).click();
+  }
+
+  test('/findings-actions redirects to the Audit & Findings page', async ({ page }) => {
     await page.goto('/findings-actions');
-    await expect(page.getByRole('heading', { name: 'Findings and Actions' })).toBeVisible();
+    await expect(page).toHaveURL('/audit');
+    await expect(page.getByRole('heading', { name: 'Audit & Findings' })).toBeVisible();
+  });
+
+  test('the Findings & Actions tab renders the workspace', async ({ page }) => {
+    await openFindingsTab(page);
     await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
   });
 
   test('shows findings summary table', async ({ page }) => {
-    await page.goto('/findings-actions');
+    await openFindingsTab(page);
     await expect(page.getByTestId('findings-summary-table')).toBeVisible({ timeout: 10000 });
   });
 
   test('seeded findings have Seeded badge', async ({ page }) => {
-    await page.goto('/findings-actions');
-    // After Phase 4 runs, seeded findings should appear
-    // Wait for findings to load
-    await page.waitForTimeout(2000);
-    const seededBadges = page.getByTestId('seeded-badge');
-    // May be 0 if phases not yet executed — check the component renders
+    await openFindingsTab(page);
     await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
+    // F3-001 and F2-001 are both seeded in the demo storyline.
+    await expect(page.getByTestId('seeded-badge').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('blocking actions banner appears when A3-001 is open', async ({ page }) => {
-    await page.goto('/findings-actions');
-    await page.waitForTimeout(2000);
-    // Check if banner exists (will be visible after Gate 3 Conditional Pass)
-    const banner = page.getByTestId('blocking-actions-banner');
-    // Banner present if blocking actions exist
-    const bannerVisible = await banner.isVisible().catch(() => false);
-    if (bannerVisible) {
-      await expect(banner).toContainText('Blocking');
-    }
-    // Always ensure workspace loads without error
+    await openFindingsTab(page);
     await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
+    // A3-001 is blocking and open in the demo storyline.
+    const banner = page.getByTestId('blocking-actions-banner');
+    await expect(banner).toBeVisible({ timeout: 10000 });
+    await expect(banner).toContainText('Blocking');
+    await expect(banner).toContainText('A3-001');
   });
 
-  test('sidebar Findings & Actions link navigates here', async ({ page }) => {
+  test('a risk-score drill-down link opens the Findings & Actions tab', async ({ page }) => {
+    // The Gate Review risk score and advisory link here; landing on the event
+    // log instead would make every one of those links a dead end.
+    await page.goto('/audit?tab=findings&finding=F3-001');
+    await expect(page.getByTestId('findings-actions-workspace')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('sidebar Audit & Findings link reaches the workspace', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Findings & Actions' }).click();
-    await expect(page).toHaveURL('/findings-actions');
+    await page.getByRole('complementary', { name: 'Main navigation' })
+      .getByRole('link', { name: 'Audit & Findings' }).click();
+    await expect(page).toHaveURL('/audit');
+    await page.getByRole('tab', { name: 'Findings & Actions' }).click();
+    await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
   });
 });
 

@@ -14,18 +14,21 @@
 import {
   MOCK_PHASE_STATES, MOCK_FINDINGS, MOCK_ACTIONS, MOCK_INPUTS, mockPhaseOutputs,
 } from '@/lib/mockData';
+import { PHASE_CONFIG } from '@/shared/constants/phaseConfig';
 import type {
   RiskEvidence, FindingLike, ActionLike, CheckLike, InputLike, OutputLike,
 } from './riskScoreEngine';
 
 const PROJECT_ID = 'EVINV-POC-001';
 
-export const PHASE_NAMES: Record<number, string> = {
-  0: 'Project Initiation', 1: 'Concept & Proposal', 2: 'Requirements Development',
-  3: 'Preliminary Design', 4: 'Detail Design', 5: 'Design Validation',
-  6: 'Production Preparation & Qualification', 7: 'Transfer & Monitor',
-  8: 'Manufacture', 9: 'End-of-Life',
-};
+/**
+ * Derived, never duplicated. Phase names change — this map was hand-copied
+ * once and immediately went stale when they were renamed, so it now reads
+ * straight from the one place that defines them.
+ */
+export const PHASE_NAMES: Record<number, string> = Object.fromEntries(
+  PHASE_CONFIG.map(c => [c.phaseId, c.phaseName])
+);
 
 export function phaseLabel(phaseId: number): string {
   return `Phase ${phaseId} — ${PHASE_NAMES[phaseId] ?? 'Unknown'}`;

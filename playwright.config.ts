@@ -22,6 +22,12 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
   },
+  /**
+   * The default 5s assumes a built app. Against `next dev` the first hit on a
+   * route compiles it on demand, which regularly takes longer than that — so
+   * behavioural assertions were failing on compile latency, not on behaviour.
+   */
+  expect: { timeout: 10_000 },
   projects: [
     {
       name: 'chromium',

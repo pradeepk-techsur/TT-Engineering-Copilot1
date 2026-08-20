@@ -101,8 +101,9 @@ test.describe('Demo Readiness — Navigation and Breadcrumbs', () => {
     await expect(page).toHaveURL('/lifecycle');
     await expect(page.getByTestId('phase-0')).toBeVisible();
 
-    // Navigate to Phase 0 Workspace — the row links by phase name.
-    await page.getByTestId('phase-0').getByRole('link', { name: 'Project Initiation' }).click();
+    // Navigate to Phase 0 Workspace.
+    // By href: navigation should not break when a phase is renamed.
+    await page.getByTestId('phase-0').locator('a[href="/phase/0"]').click();
     await expect(page).toHaveURL('/phase/0');
 
     // Navigate to Gate 0 Review
@@ -112,7 +113,7 @@ test.describe('Demo Readiness — Navigation and Breadcrumbs', () => {
     // Back up the breadcrumb, which now starts at the phase rather than the
     // product — the product name lives in the top bar instead.
     await page.getByRole('navigation', { name: 'Breadcrumb' })
-      .getByRole('link', { name: 'Phase 0: Project Initiation' }).click();
+      .locator('a[href="/phase/0"]').click();
     await expect(page).toHaveURL('/phase/0');
   });
 
@@ -190,16 +191,12 @@ test.describe('Final Acceptance — Complete Demo Walk', () => {
 
   test('Phase shortcuts P0–P9 all work in sidebar', async ({ page }) => {
     test.slow();  // ten navigations, each a fresh page load
-    // The rail rows are "<number> <short name>", not bare "Phase N" chips.
-    const NAMES = [
-      'Project Initiation', 'Concept & Proposal', 'Requirements Development', 'Preliminary Design',
-      'Detail Design', 'Verification', 'Mfg Readiness', 'Transfer',
-      'Sustaining', 'End-of-Life',
-    ];
+    // Match on href, not label: the Sidebar derives its labels from
+    // PHASE_CONFIG, so a hard-coded copy here goes stale on every rename.
     for (let i = 0; i <= 9; i++) {
       await page.goto('/');
       await page.locator('aside[aria-label="Main navigation"]')
-        .getByRole('link', { name: `${i} ${NAMES[i]}` }).click();
+        .locator(`a[href="/phase/${i}"]`).click();
       await expect(page).toHaveURL(`/phase/${i}`);
     }
   });

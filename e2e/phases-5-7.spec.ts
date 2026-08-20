@@ -109,8 +109,9 @@ test.describe('Phases 5–7 — Prohibited Labels Check', () => {
 
 test.describe('Phase 6 Cpk — Distinguishable from AI Narrative', () => {
   test('Findings & Actions Workspace shows Cpk result distinctly from narrative', async ({ page }) => {
-    await page.goto('/findings-actions');
-    await page.waitForTimeout(2000);
+    // Findings & Actions is a tab on /audit now; the bare route only redirects,
+    // landing on the event log rather than this workspace.
+    await page.goto('/audit?tab=findings');
     // The Cpk finding (F6-001) should show DeterministicCheck badge if it exists
     const workspace = page.getByTestId('findings-actions-workspace');
     await expect(workspace).toBeVisible();
@@ -123,6 +124,7 @@ test.describe('Phase 6 Cpk — Distinguishable from AI Narrative', () => {
   });
 
   test('Phase 6 Gate Review workspace renders (Cpk check visible after phase execution)', async ({ page }) => {
+    test.slow();  // cold gate-review route, then its data fetches
     await page.goto('/gate/6/review');
     // Wait for SWR to load the gate review data
     await expect(page.getByTestId('gate-review-workspace-6')).toBeVisible({ timeout: 10000 });

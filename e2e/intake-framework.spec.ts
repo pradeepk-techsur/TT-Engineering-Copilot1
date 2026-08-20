@@ -27,10 +27,18 @@ test.describe('Phase Workspace (AV-03)', () => {
 });
 
 test.describe('UP Intake Card', () => {
-  test('shows "Awaiting User Input" status before upload for phase 0 external', async ({ page }) => {
+  test('shows "Awaiting User Input" before upload', async ({ page }) => {
+    // Phase 5 is pending, so its user-provided input is genuinely still
+    // awaited. Phase 0's was uploaded before Gate 0 was decided.
+    await page.goto('/phase/5');
+    await expect(page.getByTestId('up-intake-internal').getByText('Awaiting User Input'))
+      .toBeVisible();
+  });
+
+  test('shows the ready state once the input has been provided', async ({ page }) => {
     await page.goto('/phase/0');
-    const externalCard = page.getByTestId('up-intake-external');
-    await expect(externalCard.getByText('Awaiting User Input')).toBeVisible();
+    await expect(page.getByTestId('up-intake-external').getByText('User Input Ready'))
+      .toBeVisible();
   });
 
   test('shows "User-Provided File" badge', async ({ page }) => {
@@ -73,9 +81,11 @@ test.describe('SI Intake Card', () => {
     await expect(page.getByTestId('si-intake-internal').getByText(/No live connection/)).toBeVisible();
   });
 
-  test('"Ingest Sample" button is visible', async ({ page }) => {
-    await page.goto('/phase/0');
-    await expect(page.getByTestId('ingest-sample-internal')).toBeVisible();
+  test('"Ingest Sample" button is visible while a sample is still to be ingested', async ({ page }) => {
+    // Phase 5's external input is SI and not yet ingested. Phase 0's was
+    // ingested before Gate 0, so it shows the ingested state instead.
+    await page.goto('/phase/5');
+    await expect(page.getByTestId('ingest-sample-external')).toBeVisible();
   });
 
   test('View and Download controls are present', async ({ page }) => {
@@ -94,8 +104,8 @@ test.describe('SI Intake Card', () => {
   });
 
   test('SI confirmation dialog appears on Ingest Sample click', async ({ page }) => {
-    await page.goto('/phase/0');
-    await page.getByTestId('ingest-sample-internal').click();
+    await page.goto('/phase/5');
+    await page.getByTestId('ingest-sample-external').click();
     await expect(page.getByRole('heading', { name: 'Ingest Synthetic Sample' })).toBeVisible();
     // AlertDialog description contains "No live connection" — search in dialog description
     await expect(page.getByRole('alertdialog').getByText(/No live connection to/)).toBeVisible();

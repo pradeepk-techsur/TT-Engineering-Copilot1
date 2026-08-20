@@ -122,6 +122,8 @@ test.describe('Navigation — Gate Review is reachable', () => {
   });
 
   test('Gate Review reachable from Phase Workspace "Open Gate Review" button', async ({ page }) => {
+    // Two cold routes in one test: the phase workspace, then the gate review.
+    test.slow();
     await page.goto('/phase/0');
     await page.getByRole('link', { name: 'Open Gate Review' }).click();
     await expect(page).toHaveURL('/gate/0/review');

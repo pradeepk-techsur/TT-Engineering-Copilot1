@@ -3,8 +3,11 @@ import { test, expect } from '@playwright/test';
 test.describe('AV-09 Audit View', () => {
   test('Audit View loads at /audit', async ({ page }) => {
     await page.goto('/audit');
-    await expect(page.getByRole('heading', { name: 'Audit View' })).toBeVisible();
-    await expect(page.getByText('Immutable intake event log')).toBeVisible();
+    // Renamed when Findings & Actions became a tab on this page.
+    await expect(page.getByRole('heading', { name: 'Audit & Findings' })).toBeVisible();
+    await expect(page.getByText(/Intake events, gate decisions, findings and actions/)).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Intake & Event Log' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Findings & Actions' })).toBeVisible();
   });
 
   test('Immutable Record — Append Only badge is always visible', async ({ page }) => {
@@ -23,9 +26,10 @@ test.describe('AV-09 Audit View', () => {
     await expect(page.getByTestId('audit-search-input')).toBeVisible();
   });
 
-  test('Sidebar Audit Log link navigates here', async ({ page }) => {
+  test('Sidebar Audit & Findings link navigates here', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Audit Log', exact: true }).click();
+    await page.getByRole('complementary', { name: 'Main navigation' })
+      .getByRole('link', { name: 'Audit & Findings' }).click();
     await expect(page).toHaveURL('/audit');
   });
 
@@ -50,9 +54,10 @@ test.describe('All 9 Application Views — Accessibility Check', () => {
     { path: '/phase/0/intake', name: 'Input Intake Panel (AV-04)', testRole: 'heading' as const, testText: 'Input Intake and Validation' },
     { path: '/artifacts/any-id', name: 'Artifact Viewer (AV-05)', testRole: 'heading' as const, testText: 'Artifact Viewer' },
     { path: '/phase/4/checklist', name: 'Technical Checklist (AV-06)', testRole: 'heading' as const, testText: 'Technical Checklist Workspace' },
-    { path: '/findings-actions', name: 'Findings & Actions (AV-07)', testRole: 'heading' as const, testText: 'Findings and Actions' },
+    // Findings & Actions is now a tab on /audit; /findings-actions only redirects.
+    { path: '/findings-actions', name: 'Findings & Actions (AV-07)', testRole: 'heading' as const, testText: 'Audit & Findings' },
     { path: '/gate/0/review', name: 'Gate Review Workspace (AV-08)', testRole: 'heading' as const, testText: 'Gate 0 Review Workspace' },
-    { path: '/audit', name: 'Audit View (AV-09)', testRole: 'heading' as const, testText: 'Audit View' },
+    { path: '/audit', name: 'Audit View (AV-09)', testRole: 'heading' as const, testText: 'Audit & Findings' },
   ];
 
   for (const { path, name, testRole, testText } of VIEWS) {
@@ -73,10 +78,14 @@ test.describe('All 9 Application Views — Accessibility Check', () => {
 });
 
 test.describe('Breadcrumb Navigation', () => {
-  test('EV-INV-800 breadcrumb visible on all phase pages', async ({ page }) => {
+  test('every phase page carries the product identity and its own breadcrumb', async ({ page }) => {
+    test.slow();  // ten full page loads against a dev server
     for (const phaseId of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
       await page.goto(`/phase/${phaseId}`);
+      // Product in the top bar; the breadcrumb starts at the phase itself.
       await expect(page.getByText('EV-INV-800').first()).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'Breadcrumb' }))
+        .toContainText(`Phase ${phaseId}:`);
     }
   });
 
@@ -147,6 +156,7 @@ test.describe('Full Application — TT Electronics Terminology', () => {
   ];
 
   test('No page uses generic chatbot language', async ({ page }) => {
+    test.slow();  // sweeps every page in the app
     for (const path of ALL_PAGES) {
       await page.goto(path);
       const body = await page.textContent('body') ?? '';

@@ -138,6 +138,7 @@ test.describe('Prohibited Terminology — Full Application Scan', () => {
   });
 
   test('Synthetic disclaimer appears on every phase workspace', async ({ page }) => {
+    test.slow();  // ten full page loads
     for (const phaseId of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
       await page.goto(`/phase/${phaseId}`);
       // The synthetic badge has aria-label "Synthetic POC data — not real TT Electronics product data"
@@ -208,16 +209,13 @@ test.describe('Sidebar Navigation — All Views Accessible', () => {
   test('Phase shortcuts P0–P9 all render in sidebar', async ({ page }) => {
     await page.goto('/');
     const sidebar = page.getByRole('complementary', { name: 'Main navigation' });
-    // The rail now carries each phase's name beside its number, rather than a
-    // bare "P0" chip, so it reads as a table of contents.
-    const NAMES = [
-      'Project Initiation', 'Concept & Proposal', 'Requirements Development', 'Preliminary Design',
-      'Detail Design', 'Verification', 'Mfg Readiness', 'Transfer',
-      'Sustaining', 'End-of-Life',
-    ];
+    // The rail now carries each phase's name beside its number rather than a
+    // bare "P0" chip. Match on href: the Sidebar derives its labels from
+    // PHASE_CONFIG, so a hard-coded copy here goes stale on every rename —
+    // which is exactly what happened to the short names for phases 5-8.
     for (let i = 0; i <= 9; i++) {
       await expect(
-        sidebar.getByRole('link', { name: `${i} ${NAMES[i]}` }),
+        sidebar.locator(`a[href="/phase/${i}"]`),
         `phase ${i} rail link`
       ).toBeVisible();
     }

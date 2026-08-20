@@ -65,7 +65,8 @@ test.describe('AV-02 Product Lifecycle View', () => {
   test('clicking phase card navigates to phase workspace', async ({ page }) => {
     await page.goto('/lifecycle');
     // The row links by phase NAME; the number is the marker beside it.
-    await page.getByTestId('phase-0').getByRole('link', { name: 'Project Initiation' }).click();
+    // By href: navigation should not break when a phase is renamed.
+    await page.getByTestId('phase-0').locator('a[href="/phase/0"]').click();
     await expect(page).toHaveURL('/phase/0');
   });
 });
@@ -86,7 +87,7 @@ test.describe('Breadcrumb and Navigation', () => {
     await page.goto('/phase/3');
     const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
     await expect(breadcrumb).toBeVisible();
-    await expect(breadcrumb).toContainText('Phase 3: Preliminary Design');
+    await expect(breadcrumb).toContainText('Phase 3:');
     await expect(breadcrumb.getByRole('link', { name: 'EV-INV-800' })).toHaveCount(0);
   });
 
