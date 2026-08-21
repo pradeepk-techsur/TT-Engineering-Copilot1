@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { requireData } from './helpers/storyline';
 
 /**
  * Findings & Actions (AV-07) is a tab on /audit, not its own route.
@@ -28,16 +29,23 @@ test.describe('AV-07 Findings and Actions Workspace', () => {
   });
 
   test('seeded findings have Seeded badge', async ({ page }) => {
+    // A fresh database has no findings, so there is no badge to look for.
+    await requireData(page.request, 'findings');
     await openFindingsTab(page);
     await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
-    // F3-001 and F2-001 are both seeded in the demo storyline.
     await expect(page.getByTestId('seeded-badge').first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('blocking actions banner appears when A3-001 is open', async ({ page }) => {
+  test('the workspace renders whether or not any findings exist', async ({ page }) => {
+    // The invariant behind the test above: the tab always loads.
     await openFindingsTab(page);
     await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
-    // A3-001 is blocking and open in the demo storyline.
+  });
+
+  test('blocking actions banner appears when A3-001 is open', async ({ page }) => {
+    await requireData(page.request, 'blockingAction');
+    await openFindingsTab(page);
+    await expect(page.getByTestId('findings-actions-workspace')).toBeVisible();
     const banner = page.getByTestId('blocking-actions-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
     await expect(banner).toContainText('Blocking');

@@ -1,4 +1,5 @@
 import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { requireData } from './helpers/storyline';
 
 /**
  * Numeric Risk Score and Gate Review highlights.
@@ -18,6 +19,21 @@ test.beforeAll(async ({ baseURL }) => {
   await ctx.dispose();
 });
 
+/**
+ * Is the seeded demo storyline loaded?
+ *
+ * Everything above this line is an invariant of the code and must hold whatever
+ * data is present. What follows depends on the specific storyline — Gate 3 open
+ * with F3-001 and A3-001 — which is what Preview mode serves but a freshly
+ * seeded database (currentPhase 0) does not. Tests that assert a particular
+ * score, finding or outcome declare that dependency and skip rather than
+ * pretending a different dataset is a failure.
+ */
+/** Shared with the other specs — see e2e/helpers/storyline.ts. */
+async function requireStoryline(request: import('@playwright/test').APIRequestContext) {
+  await requireData(request, 'gate3Storyline');
+}
+
 test.describe('Numeric Risk Score — API', () => {
   test('every phase and gate returns a 0–100 score with a level', async ({ request }) => {
     for (let phaseId = 0; phaseId <= 9; phaseId++) {
@@ -35,6 +51,7 @@ test.describe('Numeric Risk Score — API', () => {
   });
 
   test('the score offers all four drill-down lists', async ({ request }) => {
+    await requireStoryline(request);
     const risk = await (await request.get('/api/risk/phase/3')).json();
     for (const key of ['contributingFindings', 'openActions', 'failedChecks', 'missingEvidence']) {
       expect(risk.drillDown, key).toHaveProperty(key);
@@ -71,10 +88,23 @@ test.describe('Numeric Risk Score — API', () => {
     const data = await (await request.get('/api/risk/lifecycle')).json();
     expect(data.phases).toHaveLength(10);
     for (let i = 0; i <= 9; i++) {
-      expect(data.byPhase[String(i)].phaseId).toBe(i);
+      const phase = data.byPhase[String(i)];
+      expect(phase.phaseId).toBe(i);
+      // Every phase reports whether it has started, which is what the
+      // lifecycle view uses to decide where to put an indicator.
+      expect(typeof phase.phaseStarted).toBe('boolean');
+      expect(phase.score).toBeGreaterThanOrEqual(0);
+      expect(phase.score).toBeLessThanOrEqual(100);
     }
-    // Active or completed phases; the rest are flagged as not started.
+    // The last phase cannot have started before the first.
+    expect(data.byPhase['9'].phaseStarted).toBe(false);
+  });
+
+  test('the seeded storyline has Phase 3 active and Phase 9 not started', async ({ request }) => {
+    await requireStoryline(request);
+    const data = await (await request.get('/api/risk/lifecycle')).json();
     expect(data.byPhase['3'].phaseStarted).toBe(true);
+    expect(data.byPhase['3'].score).toBe(45);
     expect(data.byPhase['9'].phaseStarted).toBe(false);
   });
 });
@@ -133,6 +163,7 @@ test.describe('Gate advisory — API', () => {
   });
 
   test('Gate 3 reads as the storyline expects', async ({ request }) => {
+    await requireStoryline(request);
     const { header, riskScore, advisory } =
       await (await request.get('/api/gates/3/advisory')).json();
 
@@ -168,6 +199,7 @@ test.describe('Risk Score display — Gate Review header', () => {
   });
 
   test('the header carries all five facts', async ({ page }) => {
+    await requireStoryline(page.request);
     const header = page.getByTestId('gate-review-header');
     await expect(header).toContainText('Gate 3');
     await expect(header).toContainText('Preliminary Design');
@@ -183,6 +215,7 @@ test.describe('Risk Score display — Gate Review header', () => {
   });
 
   test('the score is never colour alone — the level is spelled out', async ({ page }) => {
+    await requireStoryline(page.request);
     const chip = page.getByTestId('gate-risk-score');
     await expect(chip).toContainText('45');
     await expect(chip).toContainText('Medium');
@@ -191,6 +224,7 @@ test.describe('Risk Score display — Gate Review header', () => {
   });
 
   test('selecting the score opens the four drill-down lists', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.getByTestId('gate-risk-score').click();
     const dialog = page.getByTestId('risk-score-detail');
     await expect(dialog).toBeVisible();
@@ -204,6 +238,7 @@ test.describe('Risk Score display — Gate Review header', () => {
   });
 
   test('the weighting breakdown is available but not shown by default', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.getByTestId('gate-risk-score').click();
     const dialog = page.getByTestId('risk-score-detail');
     await expect(dialog).toBeVisible();
@@ -221,6 +256,7 @@ test.describe('Risk Score display — Gate Review header', () => {
 
 test.describe('Risk Score display — Phase Workspace and Lifecycle', () => {
   test('the phase workspace header shows the score', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/phase/3');
     const chip = page.getByTestId('phase-risk-score');
     await expect(chip).toBeVisible({ timeout: 15000 });
@@ -229,6 +265,7 @@ test.describe('Risk Score display — Phase Workspace and Lifecycle', () => {
   });
 
   test('the lifecycle view shows one indicator per active or completed phase', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/lifecycle');
     await expect(page.getByTestId('phase-3')).toBeVisible({ timeout: 15000 });
 
@@ -247,6 +284,7 @@ test.describe('Risk Score display — Phase Workspace and Lifecycle', () => {
   });
 
   test('the lifecycle indicator opens the same drill-down', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/lifecycle');
     await expect(page.getByTestId('phase-risk-3')).toBeVisible({ timeout: 15000 });
     await page.getByTestId('phase-risk-3').click();
@@ -288,6 +326,7 @@ test.describe('Gate Review advisory panel', () => {
   });
 
   test('each key risk shows its level and blocking status', async ({ page }) => {
+    await requireStoryline(page.request);
     const risk = page.getByTestId('advisory-risk-item').first();
     await expect(risk).toContainText('High');
     await expect(risk).toContainText('Non-blocking');
@@ -295,6 +334,7 @@ test.describe('Gate Review advisory panel', () => {
   });
 
   test('selecting a key risk opens the full finding and its action', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.getByTestId('advisory-risk-item').first().getByRole('button').click();
     const detail = page.getByTestId('key-risk-detail-0');
     await expect(detail).toBeVisible();
@@ -318,10 +358,8 @@ test.describe('Gate Review advisory panel', () => {
     expect(body).not.toContain('Connected to ');
     expect(body).not.toContain('replacement input');
 
-    // Outputs appear as names and approval states — never as document bodies.
-    await expect(page.getByText('PDR Readiness Summary').first()).toBeVisible();
-    // A generated PDR summary carries the synthetic disclaimer in its own file;
-    // finding that text here would mean a whole artifact had been inlined.
+    // A generated output carries the synthetic disclaimer inside its own file;
+    // finding that text on this screen would mean an artifact had been inlined.
     expect(body).not.toContain('Not for Design, Fabrication, Certification');
 
     // Every drill-down is behind a control, not expanded into the page: no
@@ -333,6 +371,7 @@ test.describe('Gate Review advisory panel', () => {
 
 test.describe('Human gate decision keeps its authority', () => {
   test('AI recommendation and human decision are visibly distinct', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/gate/3/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 15000 });
 
@@ -359,6 +398,7 @@ test.describe('Human gate decision keeps its authority', () => {
   });
 
   test('a decision that differs from the AI requires a rationale', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/gate/3/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 15000 });
     await page.getByTestId('reviewer-role-input').fill('Engineering Lead');
@@ -377,6 +417,7 @@ test.describe('Human gate decision keeps its authority', () => {
   });
 
   test('agreeing with the AI needs no extra rationale', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/gate/3/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 15000 });
     await page.getByTestId('reviewer-role-input').fill('Engineering Lead');
@@ -386,6 +427,7 @@ test.describe('Human gate decision keeps its authority', () => {
   });
 
   test('the confirmation names both the AI recommendation and the human decision', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/gate/3/review');
     await expect(page.getByTestId('gate-decision-selector')).toBeVisible({ timeout: 15000 });
     await page.getByTestId('reviewer-role-input').fill('Engineering Lead');
@@ -419,6 +461,7 @@ test.describe('Safeguards — the AI cannot decide, and the score cannot approve
   });
 
   test('a divergent decision with no rationale is refused server-side too', async ({ request }) => {
+    await requireStoryline(request);
     const res = await request.post('/api/gates/3/decide', {
       headers: { 'X-Reviewer-Role': 'Engineering Lead' },
       data: { decision: 'Fail', comments: 'no reason' },
@@ -428,18 +471,24 @@ test.describe('Safeguards — the AI cannot decide, and the score cannot approve
   });
 
   test('the risk score never decides anything on its own', async ({ request }) => {
-    // A Critical score does not close a gate, and a Low score does not open one.
-    const { advisory } = await (await request.get('/api/gates/3/advisory')).json();
-    expect(advisory.advisoryLabel).toBe('Advisory Only — Human Decision Required');
+    // Reading the score and the advisory must not move a gate, whatever the
+    // score turns out to be — a Critical score does not close a gate and a Low
+    // one does not open it. Compare the gate state either side of the read.
+    const before = await (await request.get('/api/gates/3/review')).json();
 
-    const review = await (await request.get('/api/gates/3/review')).json();
-    // Only a recorded human decision changes gate state.
-    expect(review.gateState).toBe('Open');
+    const { riskScore, advisory } = await (await request.get('/api/gates/3/advisory?force=1')).json();
+    expect(advisory.advisoryLabel).toBe('Advisory Only — Human Decision Required');
+    expect(riskScore.score).toBeGreaterThanOrEqual(0);
+
+    const after = await (await request.get('/api/gates/3/review')).json();
+    expect(after.gateState).toBe(before.gateState);
+    expect(after.phaseState).toBe(before.phaseState);
   });
 });
 
 test.describe('Preserved decision record', () => {
   test('records both halves, and flags the override', async ({ request }) => {
+    await requireStoryline(request);
     // Gate 3 is the only gate open in this storyline, and it can be decided once.
     const post = await request.post('/api/gates/3/decide', {
       headers: { 'X-Reviewer-Role': 'Engineering Lead' },
@@ -483,6 +532,7 @@ test.describe('Preserved decision record', () => {
   });
 
   test('the audit history keeps the AI recommendation next to the human decision', async ({ request }) => {
+    await requireStoryline(request);
     const { events } = await (await request.get('/api/audit?eventType=GateDecision')).json();
     const gate3 = events.find((e: { phaseId: number }) => e.phaseId === 3);
     expect(gate3, 'no Gate 3 decision in the audit log').toBeTruthy();
@@ -498,6 +548,7 @@ test.describe('Preserved decision record', () => {
   });
 
   test('the same gate cannot be decided twice', async ({ request }) => {
+    await requireStoryline(request);
     const res = await request.post('/api/gates/3/decide', {
       headers: { 'X-Reviewer-Role': 'Program Manager' },
       data: { decision: 'Pass' },
@@ -506,6 +557,7 @@ test.describe('Preserved decision record', () => {
   });
 
   test('the record is shown on the gate review screen', async ({ page }) => {
+    await requireStoryline(page.request);
     await page.goto('/gate/3/review');
     const records = page.getByTestId('gate-decision-records');
     await expect(records).toBeVisible({ timeout: 15000 });

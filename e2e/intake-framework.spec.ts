@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { requireData } from './helpers/storyline';
 
 // Phase 0: external=UP, internal=SI
 // Phase 3: external=SI, internal=UP
@@ -36,6 +37,9 @@ test.describe('UP Intake Card', () => {
   });
 
   test('shows the ready state once the input has been provided', async ({ page }) => {
+    // Phase 0's input is provided in the demo storyline; a fresh database is
+    // still awaiting it, which the test above already covers.
+    await requireData(page.request, 'readyPhase0Input');
     await page.goto('/phase/0');
     await expect(page.getByTestId('up-intake-external').getByText('User Input Ready'))
       .toBeVisible();

@@ -1,16 +1,17 @@
 import { ShieldAlert } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { defaultEmphasis, toneClass, toneClassQuiet, toneDot } from '@/lib/status';
-import { riskLevelEmphasis, riskLevelTone } from '@/lib/riskDisplay';
+import { StatusPill } from '@/components/ui/status-pill';
+import { riskLevelTone } from '@/lib/riskDisplay';
 import type { RiskLevel } from '@/shared/types/risk';
 
 /**
- * The compact risk display. Number and level word together, in one pill —
- * "Risk: 68 / 100, High". Never colour alone: the level is always spelled out,
- * and the dot is decorative.
+ * The compact risk display. Number and level word together — "Risk: 68 / 100,
+ * High". Never colour alone: the level is always spelled out.
  *
- * Tinted only at High and Critical. Below that the score is context, not an
- * alarm, and it appears on screens that already have a state pill to read.
+ * Built on StatusPill rather than composing its own chip, so it inherits the
+ * emphasis rules with everything else. That matters here more than most places:
+ * a Low score is a settled state and reads quiet, while Medium and above are
+ * tinted because they are the ones asking for a reviewer's attention. Rendering
+ * its own tinted pill made every Low score shout as loudly as a Critical one.
  */
 export function RiskScoreChip({
   score,
@@ -31,40 +32,28 @@ export function RiskScoreChip({
 }) {
   if (!assessed) {
     return (
-      <span
-        className={cn(
-          'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap',
-          size === 'sm' ? 'h-[18px] px-1.5 text-[10.5px]' : 'h-[22px] px-2.5 text-[11.5px]',
-          toneClassQuiet.neutral,
-          className
-        )}
-      >
+      <StatusPill tone="neutral" size={size} dot={false} className={className}>
         Risk: not assessed
-      </span>
+      </StatusPill>
     );
   }
 
-  const tone = riskLevelTone[level];
-  const quiet = (riskLevelEmphasis[level] ?? defaultEmphasis[tone]) === 'quiet';
-
   return (
-    <span
-      className={cn(
-        'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap',
-        size === 'sm' ? 'h-[18px] px-1.5 text-[10.5px]' : 'h-[22px] px-2.5 text-[11.5px]',
-        quiet ? toneClassQuiet[tone] : toneClass[tone],
-        className
-      )}
+    <StatusPill
+      tone={riskLevelTone[level]}
+      size={size}
+      // The icon stands in for the dot when asked for, so the pill never shows
+      // both markers.
+      dot={showIcon ? false : undefined}
+      className={className}
     >
-      {showIcon ? (
+      {showIcon && (
         <ShieldAlert size={size === 'sm' ? 10 : 12} strokeWidth={2.5} className="shrink-0" />
-      ) : (
-        <span aria-hidden className={cn('size-1.5 shrink-0 rounded-full', toneDot[tone])} />
       )}
       <span className="tabular-nums">
         Risk: {score} / {cap},
       </span>
       <span className="font-semibold">{level}</span>
-    </span>
+    </StatusPill>
   );
 }
