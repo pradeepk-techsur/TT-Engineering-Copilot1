@@ -2,6 +2,7 @@ import { Sidebar } from './Sidebar';
 import { Breadcrumb } from './Breadcrumb';
 import { SyntheticBadge } from './SyntheticBadge';
 import { ThemeToggle } from './ThemeToggle';
+import { NewCycleButton } from './NewCycleButton';
 import { LlmKeyStatusBadge } from '@/components/settings/LlmKeyStatusBadge';
 
 interface AppShellProps {
@@ -52,6 +53,10 @@ export function AppShell({ children, phaseId, gateId, bleed }: AppShellProps) {
         </span>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          {/* New Cycle sits with the chrome, not on a page: a cycle spans ten
+              phase workspaces, and this is the one control that has to be
+              reachable from all of them. */}
+          <NewCycleButton />
           <LlmKeyStatusBadge />
           <ThemeToggle />
           <SyntheticBadge />

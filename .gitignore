@@ -125,3 +125,11 @@ opencode.json.bak
 AGENTS.md
 .opencode.session
 # <<< pivota:gitignore-managed
+
+# ── Cycle residue (project-specific; outside the pivota-managed block) ──
+# A phase run writes the user's uploads here and the agents' artifacts here.
+# They are per-cycle state, not source — "New Cycle" in the app deletes them
+# (POST /api/project/new-cycle). The 46 files committed before this line are
+# still tracked; `git rm -r --cached uploads outputs` untracks them.
+uploads/
+outputs/

@@ -2,6 +2,13 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 import { projectState, phaseStates, phaseInputs } from './schema';
+import {
+  PHASE_IDS,
+  PROJECT_BASELINE,
+  SEEDED_AI_RECOMMENDATIONS,
+  SEEDED_PHASE_INPUTS,
+  baselinePhaseState,
+} from './baseline';
 import { sql } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -20,71 +27,19 @@ dotenv.config({ path: '.env.local' });
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 
-const PHASE_CONFIG = [
-  { phaseId: 0, phaseName: 'Project Initiation', technicalReview: 'Kickoff' },
-  { phaseId: 1, phaseName: 'Concept & Proposal', technicalReview: 'SLR' },
-  { phaseId: 2, phaseName: 'Requirements Development', technicalReview: null },
-  { phaseId: 3, phaseName: 'Preliminary Design', technicalReview: 'Schematic/PDR' },
-  { phaseId: 4, phaseName: 'Detail Design', technicalReview: 'PCB Layout/CDR' },
-  { phaseId: 5, phaseName: 'Design Validation', technicalReview: null },
-  { phaseId: 6, phaseName: 'Production Preparation & Qualification', technicalReview: null },
-  { phaseId: 7, phaseName: 'Transfer & Monitor', technicalReview: null },
-  { phaseId: 8, phaseName: 'Manufacture', technicalReview: null },
-  { phaseId: 9, phaseName: 'End-of-Life', technicalReview: null },
-];
-
 async function seed() {
   // Upsert the single project row
-  await db.insert(projectState).values({
-    projectId: 'EVINV-POC-001',
-    productName: 'EV-INV-800 Demonstration Traction Inverter',
-    projectType: 'NPI A',
-    projectCategory: 'Category 1',
-    currentPhase: 0,
-    currentGate: 0,
-    currentTechnicalReview: 'Kickoff',
-    projectStatus: 'Active',
-    syntheticDataIndicator: true,
-  }).onConflictDoNothing();
-
-  // Seeded AI recommendations for phases 0–2 — used by Gate Review Workspace tests.
-  // Advisory label 'Advisory Only — Human Decision Required' is always set here at seed time
-  // and overwritten by the real agent at execute time. SYNTHETIC POC data.
-  const SEEDED_AI_RECOMMENDATIONS: Record<number, object> = {
-    0: {
-      recommendedOutcome: 'Pass',
-      rationale: '[SYNTHETIC POC] Commercial assessment complete. EV-INV-800 meets bid/no-bid criteria for Category 1 NPI. Opportunity summary and capability gap matrix produced.',
-      findingsCited: [],
-      checksCited: [],
-      advisoryLabel: 'Advisory Only — Human Decision Required',
-    },
-    1: {
-      recommendedOutcome: 'Pass',
-      rationale: '[SYNTHETIC POC] Business case and costed proposal reviewed. Resource schedule milestone alignment acceptable. No critical cost variances detected.',
-      findingsCited: [],
-      checksCited: [],
-      advisoryLabel: 'Advisory Only — Human Decision Required',
-    },
-    2: {
-      recommendedOutcome: 'Conditional Pass',
-      rationale: '[SYNTHETIC POC] Requirements definition mostly complete. Finding F2-001 (REQ-THERM-004 non-testable criterion) raised. Conditional pass pending revised thermal criterion.',
-      findingsCited: ['F2-001'],
-      checksCited: ['RequirementTestability'],
-      advisoryLabel: 'Advisory Only — Human Decision Required',
-    },
-  };
+  await db.insert(projectState).values(PROJECT_BASELINE).onConflictDoNothing();
 
   // Insert all 10 phase_states rows — upsert aiRecommendation so the advisory label
   // is always present in the DB even after a compose restart (volumes persist).
   // All other fields use onConflict no-update to preserve live agent state.
-  for (const phase of PHASE_CONFIG) {
-    const seededRec = SEEDED_AI_RECOMMENDATIONS[phase.phaseId] ?? null;
+  for (const phaseId of PHASE_IDS) {
+    const seededRec = SEEDED_AI_RECOMMENDATIONS[phaseId] ?? null;
     await db.insert(phaseStates).values({
-      projectId: 'EVINV-POC-001',
-      phaseId: phase.phaseId as unknown as number,
-      phaseState: phase.phaseId === 0 ? 'AwaitingInputs' : 'Pending',
-      gateState: 'Locked',
-      aiRecommendation: seededRec,
+      projectId: PROJECT_BASELINE.projectId,
+      phaseId: phaseId as unknown as number,
+      ...baselinePhaseState(phaseId),
     }).onConflictDoUpdate({
       target: [phaseStates.projectId, phaseStates.phaseId],
       // Only set aiRecommendation when it is currently null (preserve agent-set values)
@@ -96,28 +51,7 @@ async function seed() {
 
   // Seed Phase 3 phaseInputs rows — required so POST /api/phases/3/execute does not return
   // 409 INPUTS_NOT_READY. onConflictDoNothing makes this idempotent on container restart.
-  await db.insert(phaseInputs).values([
-    {
-      projectId: 'EVINV-POC-001',
-      phaseId: 3 as any,
-      inputRole: 'external',
-      logicalName: 'Design Rules and Manufacturing Capabilities Package',
-      intakeBehavior: 'SI',
-      systemRepresented: 'Standards Library, Manufacturing-Capability Repository',
-      readinessStatus: 'Synthetic System Input Ready',
-      validationIssues: [],
-    },
-    {
-      projectId: 'EVINV-POC-001',
-      phaseId: 3 as any,
-      inputRole: 'internal',
-      logicalName: 'Preliminary Design Package',
-      intakeBehavior: 'UP',
-      systemRepresented: null,
-      readinessStatus: 'User Input Ready',
-      validationIssues: [],
-    },
-  ]).onConflictDoNothing();
+  await db.insert(phaseInputs).values(SEEDED_PHASE_INPUTS as any).onConflictDoNothing();
 
   // Revoke UPDATE/DELETE on audit_history from app_role (run as superuser)
   await db.execute(sql`
