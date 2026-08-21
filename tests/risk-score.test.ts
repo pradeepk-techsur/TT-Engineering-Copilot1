@@ -132,7 +132,15 @@ describe('Risk score — configured weights', () => {
     expect(risk.counts.missingMandatoryEvidence).toBe(0);
   });
 
-  it('does penalise a not-ready input before the phase has executed', () => {
+  /**
+   * This previously asserted the opposite — a phase at 'AwaitingInputs' with
+   * neither input ready scored the full 80 for four missing evidence items.
+   * That is what a freshly seeded project looks like, so New Cycle returned the
+   * lifecycle to Phase 0 and the screen immediately read "Risk: 80 / 100,
+   * Critical" on a run nobody had started. The score is a gate score: nothing
+   * is due from a phase that has not produced anything yet.
+   */
+  it('does not penalise a phase that is still waiting for its inputs', () => {
     const risk = computeRiskScore(cleanEvidence({
       phaseState: 'AwaitingInputs',
       outputs: [],
@@ -141,8 +149,16 @@ describe('Risk score — configured weights', () => {
         { inputRole: 'internal', logicalName: 'y', readinessStatus: 'Awaiting User Input' },
       ],
     }));
-    expect(risk.counts.missingMandatoryEvidence).toBe(4);
-    expect(risk.score).toBe(80);
+    expect(risk.counts.missingMandatoryEvidence).toBe(0);
+    expect(risk.score).toBe(0);
+  });
+
+  it('does not penalise a phase while its agent is still running', () => {
+    // Mid-run there are no outputs yet — that is the run in progress, not risk.
+    const risk = computeRiskScore(cleanEvidence({
+      phaseState: 'Running', inputs: [], outputs: [],
+    }));
+    expect(risk.score).toBe(0);
   });
 
   it('treats an unstarted phase as not yet due its evidence', () => {
@@ -152,6 +168,18 @@ describe('Risk score — configured weights', () => {
     expect(risk.counts.missingMandatoryEvidence).toBe(0);
     expect(risk.phaseStarted).toBe(false);
     expect(risk.score).toBe(0);
+  });
+
+  /**
+   * The counterpart the change must not break: once the phase HAS executed,
+   * a missing output is real — the gate has nothing to review.
+   */
+  it('still penalises an output the executed phase never produced', () => {
+    const risk = computeRiskScore(cleanEvidence({
+      phaseState: 'AwaitingGate', inputs: [], outputs: [],
+    }));
+    expect(risk.counts.missingMandatoryEvidence).toBeGreaterThan(0);
+    expect(risk.score).toBeGreaterThan(0);
   });
 
   it('scores open blocking, overdue and prior-gate actions additively', () => {

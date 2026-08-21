@@ -130,8 +130,24 @@ export const EXECUTED_PHASE_STATES = new Set([
   'AwaitingGate', 'GatePassed', 'GateConditional', 'GateFailed',
 ]);
 
-/** Phase states that mean there is nothing yet to score. */
-export const UNSTARTED_PHASE_STATES = new Set(['Pending']);
+/**
+ * Phase states that mean there is nothing yet to score.
+ *
+ * The Overall Risk Score is a *gate* score: it answers how risky it would be to
+ * pass this gate, and a gate is not in play until the phase has produced
+ * something to review. Until then its evidence is not missing, it is not due.
+ *
+ * This set used to hold only 'Pending', which left the two states a phase
+ * actually passes through on its way to the gate — 'AwaitingInputs' while it
+ * waits for its files, 'Running' while the agent works — being scored as though
+ * their outputs were overdue. The visible cost was a freshly seeded project:
+ * Phase 0 starts at 'AwaitingInputs', so a brand-new cycle opened on
+ * "Risk: 80 / 100, Critical" before anyone had touched it, and New Cycle could
+ * not clear a number that was never about the cleared run in the first place.
+ */
+export const UNSTARTED_PHASE_STATES = new Set([
+  'Pending', 'AwaitingInputs', 'Running',
+]);
 
 /** Output approval statuses that mean the artifact exists. */
 export const PRESENT_OUTPUT_STATUSES = new Set([
