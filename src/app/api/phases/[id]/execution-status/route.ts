@@ -30,7 +30,17 @@ export async function GET(
     else if (!intReady && config?.internalIntake.behavior === 'UP') status = 'Waiting for User Input';
     else if (!extReady && config?.externalIntake.behavior === 'SI') status = 'Waiting for Synthetic Sample Ingestion';
     else if (!intReady && config?.internalIntake.behavior === 'SI') status = 'Waiting for Synthetic Sample Ingestion';
-    return NextResponse.json({ phaseId, status, bothReady: extReady && intReady, externalReady: extReady, internalReady: intReady });
+    // The last run's failure, if it failed. `status` deliberately still
+    // reports what the phase can do next — a failed phase is runnable again,
+    // and hiding the Run button would strand the user on the error. The two
+    // answer different questions: what you may do, and what just happened.
+    const executionError = phaseState?.executionError ?? null;
+
+    return NextResponse.json({
+      phaseId, status, bothReady: extReady && intReady,
+      externalReady: extReady, internalReady: intReady,
+      executionError,
+    });
   } catch {
     // Mock fallback
     const mockState = MOCK_PHASE_STATES.find(p => p.phaseId === phaseId);
@@ -38,6 +48,11 @@ export async function GET(
     const status = mockState?.phaseState === 'GatePassed' ? 'Complete'
       : mockState?.phaseState === 'AwaitingGate' ? 'Awaiting Human Decision'
       : bothReady ? 'Ready to Run' : 'Waiting for Synthetic Sample Ingestion';
-    return NextResponse.json({ phaseId, status, bothReady, externalReady: bothReady, internalReady: bothReady, blockingReason: !bothReady ? 'INPUTS_NOT_READY' : null });
+    return NextResponse.json({
+      phaseId, status, bothReady, externalReady: bothReady, internalReady: bothReady,
+      blockingReason: !bothReady ? 'INPUTS_NOT_READY' : null,
+      // Preview mode has no phase row, so there is no recorded failure to read.
+      executionError: null,
+    });
   }
 }

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RequirementsAgent } from '@/server/agents/phase2/requirementsAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
 import { db } from '@/db';
-import { phaseStates, phaseInputs } from '@/db/schema';
+import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
+import { phaseInputs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const PROJECT_ID = 'EVINV-POC-001';
@@ -33,17 +34,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Transition to Running and return 202 immediately — LLM runs in background.
-  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
-    .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 2 as any)));
+  await beginPhaseExecution(2);
 
   buildAgentContext(PROJECT_ID, 2).then(async context => {
     const agent = new RequirementsAgent();
     return agent.run(context, isRevised);
-  }).catch(async (err: unknown) => {
-    console.error('[phase2/execute] agent failed:', (err as Error).message);
-    await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
-      .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 2 as any)));
-  });
+  }).catch((err: unknown) => recordPhaseExecutionFailure(2, err));
 
   return NextResponse.json({ accepted: true, phaseId: 2, isRevised, message: 'Phase execution started. Poll /execution-status for progress.' }, { status: 202 });
 }

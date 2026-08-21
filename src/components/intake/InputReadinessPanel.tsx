@@ -120,6 +120,19 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
   const bothReady = execStatus?.bothReady === true;
   const status: string = execStatus?.status ?? 'Waiting for User Input';
 
+  /**
+   * The last run's failure, as recorded by the server. The agent runs in the
+   * background after execute has already answered 202, so a failure after that
+   * point cannot come back on the original response — it arrives here, on the
+   * next poll. Without it the run bar returned to "Ready to Run" and a failed
+   * run was indistinguishable from one that never happened.
+   *
+   * Suppressed while a new attempt is in flight: the message describes the run
+   * being replaced, and leaving it up makes the retry look like it failed too.
+   */
+  const lastFailure: { message?: string; at?: string } | null =
+    isExecuting ? null : (execStatus?.executionError ?? null);
+
   // isRevised: true when the internal input has been revised (version > 1)
   // The DFM flagship agent re-runs only affected checks and auto-closes A3-001 on revised run.
   const internalVersion: number = readiness?.internal?.activeVersion ?? 0;
@@ -252,6 +265,22 @@ export function InputReadinessPanel({ phaseId }: InputReadinessPanelProps) {
       {executeError && (
         <Callout tone="fail" icon={TriangleAlert} title="Execution error" data-testid="execute-error">
           {executeError}
+        </Callout>
+      )}
+
+      {/* Only when the request itself did not already report one — the two
+          describe the same run, and saying it twice reads as two failures. */}
+      {!executeError && lastFailure?.message && (
+        <Callout
+          tone="fail"
+          icon={TriangleAlert}
+          title="The last run of this phase failed"
+          data-testid="execution-failed"
+        >
+          {lastFailure.message}
+          <span className="mt-1 block text-fg-muted">
+            No outputs were produced. Fix the cause above, then run the phase again.
+          </span>
         </Callout>
       )}
 

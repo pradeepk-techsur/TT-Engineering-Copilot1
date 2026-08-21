@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ObsolescenceRadarAgent } from '@/server/agents/phase8/obsolescenceRadarAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
 import { db } from '@/db';
-import { phaseStates, phaseInputs } from '@/db/schema';
+import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
+import { phaseInputs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const PROJECT_ID = 'EVINV-POC-001';
@@ -30,17 +31,12 @@ export async function POST(_req: NextRequest) {
     }, { status: 503 });
   }
 
-  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
-    .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 8 as any)));
+  await beginPhaseExecution(8);
 
   buildAgentContext(PROJECT_ID, 8).then(async context => {
     const agent = new ObsolescenceRadarAgent();
     return agent.run(context);
-  }).catch(async (err: unknown) => {
-    console.error('[phase8/execute] agent failed:', (err as Error).message);
-    await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
-      .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 8 as any)));
-  });
+  }).catch((err: unknown) => recordPhaseExecutionFailure(8, err));
 
   return NextResponse.json({
     accepted: true, phaseId: 8, eolTriggered: true,

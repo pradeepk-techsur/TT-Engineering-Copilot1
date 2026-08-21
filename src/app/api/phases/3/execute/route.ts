@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PDRAgent } from '@/server/agents/phase3/pdrAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
 import { db } from '@/db';
-import { phaseStates, phaseInputs } from '@/db/schema';
+import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
+import { phaseInputs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const PROJECT_ID = 'EVINV-POC-001';
@@ -30,17 +31,12 @@ export async function POST(_req: NextRequest) {
     }, { status: 503 });
   }
 
-  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
-    .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 3 as any)));
+  await beginPhaseExecution(3);
 
   buildAgentContext(PROJECT_ID, 3).then(async context => {
     const agent = new PDRAgent();
     return agent.run(context);
-  }).catch(async (err: unknown) => {
-    console.error('[phase3/execute] agent failed:', (err as Error).message);
-    await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
-      .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 3 as any)));
-  });
+  }).catch((err: unknown) => recordPhaseExecutionFailure(3, err));
 
   return NextResponse.json({ accepted: true, phaseId: 3, message: 'Phase execution started. Poll /execution-status for progress.' }, { status: 202 });
 }

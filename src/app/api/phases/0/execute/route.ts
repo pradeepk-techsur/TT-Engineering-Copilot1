@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BidNoBidAgent } from '@/server/agents/phase0/bidNoBidAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
 import { db } from '@/db';
-import { phaseStates, phaseInputs } from '@/db/schema';
+import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
+import { phaseInputs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const PROJECT_ID = 'EVINV-POC-001';
@@ -33,21 +34,13 @@ export async function POST(_req: NextRequest) {
   // Transition to Running and return 202 immediately — the LLM call runs in the background.
   // The client polls /api/phases/[id]/execution-status (SWR refreshInterval: 3000) and will
   // see Running → AwaitingGate without waiting for the full LLM response.
-  await db.update(phaseStates)
-    .set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
-    .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
+  await beginPhaseExecution(0);
 
   // Fire-and-forget: do NOT await this Promise — the response is already sent.
   buildAgentContext(PROJECT_ID, 0).then(context => {
     const agent = new BidNoBidAgent();
     return agent.run(context);
-  }).catch(async (err: unknown) => {
-    const e = err as NodeJS.ErrnoException;
-    console.error('[phase0/execute] agent failed:', e.message);
-    await db.update(phaseStates)
-      .set({ phaseState: 'AwaitingInputs' })
-      .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 0 as any)));
-  });
+  }).catch((err: unknown) => recordPhaseExecutionFailure(0, err));
 
   return NextResponse.json({ accepted: true, phaseId: 0, message: 'Phase execution started. Poll /execution-status for progress.' }, { status: 202 });
 }

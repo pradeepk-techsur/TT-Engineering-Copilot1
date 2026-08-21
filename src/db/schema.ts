@@ -44,6 +44,15 @@ export const phaseStates = pgTable('phase_states', {
   compactPhaseSummary: jsonb('compact_phase_summary'),
   executionStartedAt: timestamptz('execution_started_at'),
   executionCompletedAt: timestamptz('execution_completed_at'),
+  /**
+   * Why the last run of this phase failed, or null when the last run did not
+   * fail. The agent runs in the background after the execute route has already
+   * answered 202, so a failure after that point has nowhere else to go: without
+   * this the phase state was quietly rolled back and the screen showed the
+   * phase as runnable again, which is indistinguishable from never having run.
+   * Shape: { message, code, at }.
+   */
+  executionError: jsonb('execution_error'),
 }, (t) => ({
   uniqueProjectPhase: uniqueIndex('phase_states_project_phase_unique').on(t.projectId, t.phaseId),
   idxProject: index('idx_phase_states_project').on(t.projectId),

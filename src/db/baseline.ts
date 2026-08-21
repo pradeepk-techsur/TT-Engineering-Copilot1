@@ -71,6 +71,9 @@ export function baselinePhaseState(phaseId: number) {
     compactPhaseSummary: null,
     executionStartedAt: null,
     executionCompletedAt: null,
+    // A new cycle clears the run, and a failure from the cleared run is part
+    // of it — leaving it set would report a fresh phase as having just failed.
+    executionError: null,
   };
 }
 

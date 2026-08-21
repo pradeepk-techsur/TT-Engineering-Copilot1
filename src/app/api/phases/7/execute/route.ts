@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LessonsLearnedAgent } from '@/server/agents/phase7/lessonsLearnedAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
 import { db } from '@/db';
-import { phaseStates, phaseInputs } from '@/db/schema';
+import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
+import { phaseInputs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const PROJECT_ID = 'EVINV-POC-001';
@@ -33,17 +34,12 @@ export async function POST(req: NextRequest) {
     }, { status: 503 });
   }
 
-  await db.update(phaseStates).set({ phaseState: 'Running', executionStartedAt: new Date().toISOString() })
-    .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 7 as any)));
+  await beginPhaseExecution(7);
 
   buildAgentContext(PROJECT_ID, 7).then(async context => {
     const agent = new LessonsLearnedAgent();
     return agent.run(context);
-  }).catch(async (err: unknown) => {
-    console.error('[phase7/execute] agent failed:', (err as Error).message);
-    await db.update(phaseStates).set({ phaseState: 'AwaitingInputs' })
-      .where(and(eq(phaseStates.projectId, PROJECT_ID), eq(phaseStates.phaseId, 7 as any)));
-  });
+  }).catch((err: unknown) => recordPhaseExecutionFailure(7, err));
 
   return NextResponse.json({
     accepted: true, phaseId: 7,
