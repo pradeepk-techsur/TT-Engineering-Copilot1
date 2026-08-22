@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import path from 'path';
 import { clearRunFiles } from '@/server/cycle/newCycle';
 import {
-  PHASE_IDS, PROJECT_BASELINE, SEEDED_AI_RECOMMENDATIONS, SEEDED_PHASE_INPUTS,
+  PHASE_IDS, PROJECT_BASELINE, SEEDED_AI_RECOMMENDATIONS,
   baselinePhaseState,
 } from '@/db/baseline';
 import { PHASE_CONFIG_MAP } from '@/shared/constants/phaseConfig';
@@ -117,16 +117,21 @@ describe('seeded baseline', () => {
     });
   });
 
-  it('seeds only Phase 3 inputs, with the intake behaviors the phase config declares', () => {
-    expect(SEEDED_PHASE_INPUTS.map(i => i.phaseId)).toEqual([3, 3]);
+  it('seeds no phase inputs at all, so every phase comes back awaiting intake', async () => {
+    const baseline = await import('@/db/baseline');
+    // Phase 3's inputs used to be seeded ready. A seeded 'User Input Ready' on a
+    // USER-PROVIDED input asserts a file nobody uploaded, and it made a new
+    // cycle look like it had done nothing on the Phase 3 workspace.
+    expect('SEEDED_PHASE_INPUTS' in baseline).toBe(false);
+  });
 
-    const config = PHASE_CONFIG_MAP[3];
-    const seeded = Object.fromEntries(SEEDED_PHASE_INPUTS.map(i => [i.inputRole, i]));
-    expect(seeded.external.intakeBehavior).toBe(config.externalIntake.behavior);
-    expect(seeded.internal.intakeBehavior).toBe(config.internalIntake.behavior);
-    expect(seeded.external.logicalName).toBe(config.externalIntake.logicalName);
-    expect(seeded.internal.logicalName).toBe(config.internalIntake.logicalName);
-    expect(seeded.external.readinessStatus).toBe('Synthetic System Input Ready');
-    expect(seeded.internal.readinessStatus).toBe('User Input Ready');
+  it('leaves no phase with inputs ready ahead of intake', () => {
+    // The guarantee stated over the phase config rather than over a seed list:
+    // readiness is something the user creates, for all ten phases equally.
+    for (const phaseId of PHASE_IDS) {
+      const config = PHASE_CONFIG_MAP[phaseId as keyof typeof PHASE_CONFIG_MAP];
+      expect(config).toBeDefined();
+      expect(baselinePhaseState(phaseId).phaseState).toBe(phaseId === 0 ? 'AwaitingInputs' : 'Pending');
+    }
   });
 });

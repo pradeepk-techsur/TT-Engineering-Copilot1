@@ -6,7 +6,6 @@ import {
   PHASE_IDS,
   PROJECT_BASELINE,
   SEEDED_AI_RECOMMENDATIONS,
-  SEEDED_PHASE_INPUTS,
   baselinePhaseState,
 } from './baseline';
 import { sql } from 'drizzle-orm';
@@ -49,9 +48,9 @@ async function seed() {
     });
   }
 
-  // Seed Phase 3 phaseInputs rows — required so POST /api/phases/3/execute does not return
-  // 409 INPUTS_NOT_READY. onConflictDoNothing makes this idempotent on container restart.
-  await db.insert(phaseInputs).values(SEEDED_PHASE_INPUTS as any).onConflictDoNothing();
+  // phase_inputs is deliberately left empty: a phase becomes ready by the
+  // user ingesting its sample and uploading its file, and the execute route
+  // now requires a stored artifact rather than a readiness label.
 
   // Revoke UPDATE/DELETE on audit_history from app_role (run as superuser)
   await db.execute(sql`

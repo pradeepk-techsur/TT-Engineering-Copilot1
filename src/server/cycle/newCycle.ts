@@ -24,7 +24,6 @@ import {
   PHASE_IDS,
   PROJECT_BASELINE,
   PROJECT_ID,
-  SEEDED_PHASE_INPUTS,
   baselinePhaseState,
 } from '@/db/baseline';
 import { clearPreviewDecisions } from '@/server/risk/decisionRecordStore';
@@ -142,8 +141,9 @@ async function resetDatabase(): Promise<Record<string, number>> {
     rowsDeleted.gate_decisions =
       (await tx.delete(gateDecisions).returning({ id: gateDecisions.decisionId })).length;
 
-    // Phase 3 starts with its inputs ready again — see SEEDED_PHASE_INPUTS.
-    await tx.insert(phaseInputs).values(SEEDED_PHASE_INPUTS as never);
+    // Nothing is re-seeded: every phase comes back awaiting its intake, which
+    // is what a cleared run means. Re-seeding Phase 3 here was why a new cycle
+    // left that phase reporting both inputs ready.
 
     for (const phaseId of PHASE_IDS) {
       const baseline = baselinePhaseState(phaseId);

@@ -78,31 +78,19 @@ export function baselinePhaseState(phaseId: number) {
 }
 
 /**
- * Phase 3's two inputs are seeded ready.
+ * No phase starts with its inputs ready.
  *
- * Without them POST /api/phases/3/execute answers 409 INPUTS_NOT_READY, which
- * makes the flagship Phase 3 → 4 walkthrough undemonstrable on a fresh
- * database. Every other phase starts with no input rows at all.
+ * Phase 3's two inputs used to be seeded as ready so that the flagship Phase
+ * 3 → 4 walkthrough could run on a fresh database without an intake step. The
+ * cost was that the internal input is USER-PROVIDED, so a seeded "User Input
+ * Ready" asserted a Preliminary Design Package the user had never uploaded —
+ * the silent synthetic substitution the FRD prohibits — and the phase would
+ * execute on it. It also made New Cycle look broken twice over: Phase 3 came
+ * back ready while every other phase came back awaiting intake, and on the
+ * Phase 3 workspace a new cycle changed nothing visible at all.
+ *
+ * Both intake handlers create the `phase_inputs` row themselves when none
+ * exists, so a phase with no rows is the correct starting point for every
+ * phase: the user ingests the sample and uploads the file, and the readiness
+ * the execute route checks is then backed by a real stored artifact.
  */
-export const SEEDED_PHASE_INPUTS = [
-  {
-    projectId: PROJECT_ID,
-    phaseId: 3,
-    inputRole: 'external',
-    logicalName: 'Design Rules and Manufacturing Capabilities Package',
-    intakeBehavior: 'SI',
-    systemRepresented: 'Standards Library, Manufacturing-Capability Repository',
-    readinessStatus: 'Synthetic System Input Ready',
-    validationIssues: [] as unknown[],
-  },
-  {
-    projectId: PROJECT_ID,
-    phaseId: 3,
-    inputRole: 'internal',
-    logicalName: 'Preliminary Design Package',
-    intakeBehavior: 'UP',
-    systemRepresented: null,
-    readinessStatus: 'User Input Ready',
-    validationIssues: [] as unknown[],
-  },
-];
