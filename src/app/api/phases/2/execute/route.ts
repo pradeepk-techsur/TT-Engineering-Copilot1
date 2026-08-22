@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RequirementsAgent } from '@/server/agents/phase2/requirementsAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
-import { db } from '@/db';
 import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
-import { phaseInputs } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { readPhaseReadiness } from '@/server/orchestrator/inputReadiness';
 
 const PROJECT_ID = 'EVINV-POC-001';
 
@@ -12,14 +10,13 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const isRevised = body.isRevised === true;  // True when called after correction
 
-  const inputs = await db.select().from(phaseInputs)
-    .where(and(eq(phaseInputs.projectId, PROJECT_ID), eq(phaseInputs.phaseId, 2 as any)));
-
-  const extReady = inputs.find(i => i.inputRole === 'external')?.readinessStatus === 'User Input Ready';
-  const intReady = inputs.find(i => i.inputRole === 'internal')?.readinessStatus === 'Synthetic System Input Ready';
-
-  if (!extReady || !intReady) {
-    return NextResponse.json({ error_code: 'INPUTS_NOT_READY' }, { status: 409 });
+  const readiness = await readPhaseReadiness(2);
+  if (!readiness.ready) {
+    return NextResponse.json({
+      error_code: 'INPUTS_NOT_READY',
+      message: readiness.message,
+      inputs: readiness.inputs,
+    }, { status: 409 });
   }
 
   // Fast-fail if LLM key not configured — before transitioning state

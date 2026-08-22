@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObsolescenceRadarAgent } from '@/server/agents/phase8/obsolescenceRadarAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
-import { db } from '@/db';
 import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
-import { phaseInputs } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { readPhaseReadiness } from '@/server/orchestrator/inputReadiness';
 
 const PROJECT_ID = 'EVINV-POC-001';
 
 export async function POST(_req: NextRequest) {
-  const inputs = await db.select().from(phaseInputs)
-    .where(and(eq(phaseInputs.projectId, PROJECT_ID), eq(phaseInputs.phaseId, 8 as any)));
-
-  // Phase 8: BOTH inputs are SI — both must be Synthetic System Input Ready
-  const extReady = inputs.find(i => i.inputRole === 'external')?.readinessStatus === 'Synthetic System Input Ready';
-  const intReady = inputs.find(i => i.inputRole === 'internal')?.readinessStatus === 'Synthetic System Input Ready';
-
-  if (!extReady || !intReady) {
-    return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Both simulated inputs must be ingested before Phase 8 execution.' }, { status: 409 });
+  const readiness = await readPhaseReadiness(8);
+  if (!readiness.ready) {
+    return NextResponse.json({
+      error_code: 'INPUTS_NOT_READY',
+      message: readiness.message,
+      inputs: readiness.inputs,
+    }, { status: 409 });
   }
 
   // Fast-fail if LLM key not configured

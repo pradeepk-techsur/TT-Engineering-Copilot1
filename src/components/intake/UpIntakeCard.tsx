@@ -25,6 +25,9 @@ export function UpIntakeCard({
   phaseId, inputRole, logicalName, format, sizeGuidance,
   isReady, readyStatus, activeVersion, validationIssues, onSuccess
 }: UpIntakeCardProps) {
+  // A version number is only written once an artifact has been stored, so this
+  // is the one honest test for "there is something here to revise".
+  const hasStoredVersion = activeVersion !== null && activeVersion >= 1;
   const [uploading, setUploading] = useState(false);
   const [localErrors, setLocalErrors] = useState<typeof validationIssues>([]);
 
@@ -40,7 +43,7 @@ export function UpIntakeCard({
       const formData = new FormData();
       formData.append('file', file);
 
-      const endpoint = isReady
+      const endpoint = hasStoredVersion
         ? `/api/phases/${phaseId}/inputs/${inputRole}/upload-revised`
         : `/api/phases/${phaseId}/inputs/${inputRole}/upload`;
 
@@ -171,7 +174,11 @@ export function UpIntakeCard({
             )}
           >
             {uploading ? 'Uploading…' : isDragActive ? 'Drop file here' : (
-              isReady
+              /* "Revised" only once a version exists to revise. This followed
+                 isReady, which is a status label — so a phase marked ready with
+                 nothing stored invited the user to revise a file they had never
+                 uploaded. */
+              hasStoredVersion
                 ? `Upload Revised Version of ${logicalName}`
                 : `Upload ${logicalName}`
             )}

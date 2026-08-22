@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDRAgent } from '@/server/agents/phase3/pdrAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
-import { db } from '@/db';
 import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
-import { phaseInputs } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { readPhaseReadiness } from '@/server/orchestrator/inputReadiness';
 
 const PROJECT_ID = 'EVINV-POC-001';
 
 export async function POST(_req: NextRequest) {
-  const inputs = await db.select().from(phaseInputs)
-    .where(and(eq(phaseInputs.projectId, PROJECT_ID), eq(phaseInputs.phaseId, 3 as any)));
-
-  // Phase 3: external = SI (standards library / Synthetic System Input Ready), internal = UP (preliminary design / User Input Ready)
-  const extReady = inputs.find(i => i.inputRole === 'external')?.readinessStatus === 'Synthetic System Input Ready';
-  const intReady = inputs.find(i => i.inputRole === 'internal')?.readinessStatus === 'User Input Ready';
-
-  if (!extReady || !intReady) {
-    return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Both inputs must be ready before phase execution.' }, { status: 409 });
+  const readiness = await readPhaseReadiness(3);
+  if (!readiness.ready) {
+    return NextResponse.json({
+      error_code: 'INPUTS_NOT_READY',
+      message: readiness.message,
+      inputs: readiness.inputs,
+    }, { status: 409 });
   }
 
   // Fast-fail if LLM key not configured

@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EOLMemoryAgent } from '@/server/agents/phase9/eolMemoryAgent';
 import { buildAgentContext } from '@/server/context/contextAssembly';
-import { db } from '@/db';
 import { beginPhaseExecution, recordPhaseExecutionFailure } from '@/server/orchestrator/executionFailure';
-import { phaseInputs } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { readPhaseReadiness } from '@/server/orchestrator/inputReadiness';
 
 const PROJECT_ID = 'EVINV-POC-001';
 
 export async function POST(_req: NextRequest) {
-  const inputs = await db.select().from(phaseInputs)
-    .where(and(eq(phaseInputs.projectId, PROJECT_ID), eq(phaseInputs.phaseId, 9 as any)));
-
-  // Phase 9: external = UP (customer EOL/LTB), internal = SI (ERP/archive)
-  const extReady = inputs.find(i => i.inputRole === 'external')?.readinessStatus === 'User Input Ready';
-  const intReady = inputs.find(i => i.inputRole === 'internal')?.readinessStatus === 'Synthetic System Input Ready';
-
-  if (!extReady || !intReady) {
-    return NextResponse.json({ error_code: 'INPUTS_NOT_READY', message: 'Customer EOL package (upload) and archive package (ingest) must both be ready.' }, { status: 409 });
+  const readiness = await readPhaseReadiness(9);
+  if (!readiness.ready) {
+    return NextResponse.json({
+      error_code: 'INPUTS_NOT_READY',
+      message: readiness.message,
+      inputs: readiness.inputs,
+    }, { status: 409 });
   }
 
   // Fast-fail if LLM key not configured

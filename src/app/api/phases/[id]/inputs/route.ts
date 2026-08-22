@@ -26,8 +26,14 @@ export async function GET(
           .where(and(eq(inputVersions.inputId, row.inputId), eq(inputVersions.active, true)));
         activeVersion = av;
       }
-      const isReady = row?.readinessStatus === 'User Input Ready' ||
-                      row?.readinessStatus === 'Synthetic System Input Ready';
+      // Readiness has to mean the same thing here as it does in the execute
+      // route: a validated status AND a stored artifact behind it. Reporting
+      // ready from the status alone is what let the Phase 3 seed show two
+      // inputs as ready with no file, and put a Run button on a phase that had
+      // nothing to run on.
+      const statusReady = row?.readinessStatus === 'User Input Ready' ||
+                          row?.readinessStatus === 'Synthetic System Input Ready';
+      const isReady = statusReady && !!activeVersion?.artifactId;
       return {
         inputRole: role, logicalName: intakeConfig.logicalName,
         intakeBehavior: intakeConfig.behavior,
@@ -38,11 +44,14 @@ export async function GET(
         activeVersion: activeVersion?.versionNumber ?? null,
         validationStatus: isReady ? 'Pass' : (row ? 'Fail' : 'Pending'),
         validationIssues: row?.validationIssues ?? [],
-        requiredUserAction: !row ? (intakeConfig.behavior === 'UP' ? 'Upload file' : 'Click Ingest Sample')
+        requiredUserAction: !row || !activeVersion?.artifactId
+          ? (intakeConfig.behavior === 'UP' ? 'Upload file' : 'Click Ingest Sample')
           : isReady ? 'None'
           : intakeConfig.behavior === 'SI' ? 'Click Ingest Sample' : 'Upload valid file',
         isReady,
-        readyStatus: row?.readinessStatus ?? (intakeConfig.behavior === 'UP' ? 'Awaiting User Input' : 'Waiting for Synthetic Sample Ingestion'),
+        readyStatus: (row && activeVersion?.artifactId)
+          ? row.readinessStatus
+          : (intakeConfig.behavior === 'UP' ? 'Awaiting User Input' : 'Waiting for Synthetic Sample Ingestion'),
       };
     }
 
